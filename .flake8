@@ -1,0 +1,12 @@
+[flake8]
+max-line-length = 97
+ignore =
+    E203 # black; whitespace before ':'
+    W503 # black; line break before binary operator
+    SIM106 # Handle error-cases first
+    SIM115 # Use context handler for opening files
+    SIM119 # Use a dataclass
+
+# don't check docstrings in tests
+per-file-ignores = 
+    tests/*:D,PLC
