@@ -3,7 +3,6 @@
 from loguru import logger
 
 from tf2mon.chat import Chat
-from tf2mon.duel import Duel
 from tf2mon.hacker import HackerAttr
 from tf2mon.regex import Regex
 from tf2mon.steamplayer import steamid_from_str
@@ -209,37 +208,64 @@ class Gameplay:
         killer.last_victim = victim
         victim.last_killer = killer
 
+        # do most calculations now (once);
+        # to avoid calculating when rendering scoreboard (often).
+
+        killer.opponents[victim] = victim
+        victim.opponents[killer] = killer
+
+        killer.victims[victim] = victim
+        victim.killers[killer] = killer
+
+        # totals ---------------------------------------------------------------
+
         killer.nkills += 1
         victim.ndeaths += 1
 
-        killer.opponents[victim] = True
-        victim.opponents[killer] = True
+        _k = killer.nkills
+        _d = killer.ndeaths
+        killer.kdratio = _k if not _d else _k / _d
 
-        #
-        if role := self.monitor.weapons.get(weapon):
+        _k = victim.nkills
+        _d = victim.ndeaths
+        victim.kdratio = _k if not _d else _k / _d
+
+        # subtotals by opponent-------------------------------------------------
+
+        killer.nkills_by_opponent[victim] += 1
+        victim.ndeaths_by_opponent[killer] += 1
+
+        _k = killer.nkills_by_opponent[victim]
+        _d = killer.ndeaths_by_opponent[victim]
+        killer.kdratio_by_opponent[victim] = _k if not _d else _k / _d
+
+        _k = victim.nkills_by_opponent[killer]
+        _d = victim.ndeaths_by_opponent[killer]
+        victim.kdratio_by_opponent[killer] = _k if not _d else _k / _d
+
+        # subtotal opponents by weapon_state -----------------------------------
+
+        if role := self.monitor.role_by_weapon.get(weapon):
             killer.role = role
             if killer.role == self.monitor.sniper_role:
                 killer.nsnipes += 1
-        elif weapon in ("player", "world"):
-            logger.trace(f"ignoring {weapon}")
         else:
-            logger.trace(f"cannot map {weapon} for {killer}")
+            role = killer.role
+            if weapon not in ("player", "world"):
+                logger.error(f"cannot map {weapon} for {killer}")
+
+        crit = bool(s_crit)
+        weapon_state = role.get_weapon_state(weapon, crit, killer.perk)
+
+        killer.nkills_by_opponent_by_weapon[victim][weapon_state] += 1
+        victim.ndeaths_by_opponent_by_weapon[killer][weapon_state] += 1
 
         #
-        crit = bool(s_crit)
-        duel = Duel(killer, victim, weapon, crit)
-
-        killer.kills[victim][duel.key] += 1
-        victim.deaths[killer][duel.key] += 1
-
-        killer.duels.append(duel)
-        victim.duels.append(duel)
-
         level = "KILL"
         if killer.team:
             level += killer.team.name
 
-        logger.log(level, duel)
+        logger.log(level, weapon_state)
 
         if killer == self.monitor.me:
             self.monitor.spammer.taunt(victim, weapon, crit)

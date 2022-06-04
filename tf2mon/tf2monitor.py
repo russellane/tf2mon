@@ -76,12 +76,13 @@ class TF2Monitor:
         #
         self.roles = Role.get_roles_by_name()
         self.sniper_role = self.roles["sniper"]
+        self.unknown_role = self.roles["unknown"]
 
         #
         path = Path(__file__).parent / "data" / "weapons.csv"
         logger.info(f"Reading `{path}`")
         with open(path, encoding="utf-8") as _f:
-            self.weapons = {weapon: self.roles[role] for role, weapon in csv.reader(_f)}
+            self.role_by_weapon = {weapon: self.roles[role] for role, weapon in csv.reader(_f)}
 
         #
         path = Path(__file__).parent / "data" / "racist.txt"

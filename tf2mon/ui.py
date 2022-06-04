@@ -370,13 +370,11 @@ class UI:
         for opponent in [x for x in user.opponents if x.state == UserState.ACTIVE]:
             lines.append(f"{user.duel_as_str(opponent, True)} vs {opponent.moniker}")
 
-            if kills := user.kills.get(opponent):
-                for weapon, count in kills.items():
-                    lines.append(f"{indent} K {count:2} {weapon}")
+            for weapon, count in user.nkills_by_opponent_by_weapon[opponent].items():
+                lines.append(f"{indent} K {count:2} {weapon}")
 
-            if deaths := user.deaths.get(opponent):
-                for weapon, count in deaths.items():
-                    lines.append(f"{indent} D {count:2} {weapon}")
+            for weapon, count in user.ndeaths_by_opponent_by_weapon[opponent].items():
+                lines.append(f"{indent} D {count:2} {weapon}")
 
         if self.show_actions.value:
             lines.extend(user.actions)

@@ -135,7 +135,7 @@ class Scoreboard:
                 continue
             line = self._fmt_user.format(
                 user.steamid.id if user.steamid else 0,
-                user.role.display if user.role else "",
+                user.role.display,
                 user.nkills,
                 user.ndeaths,
                 user.kdratio,

@@ -94,24 +94,33 @@ class User:
 
         self.state = UserState.ACTIVE
         self.n_status_checks = 0
-        self.nkills = 0
         self.nsnipes = 0
-        self.role = None
-        self.ndeaths = 0
+        self.role = self.monitor.unknown_role
         self.ncaptures = 0
         self.ndefenses = 0
         self.chats = []
-        self.last_killer = None  # User
-        self.last_victim = None  # User
         self.display_level = None
         self.selected = False
         self.perk = None
 
-        # battles fought
-        self.duels = []
-        self.kills = defaultdict(lambda: defaultdict(int))
-        self.deaths = defaultdict(lambda: defaultdict(int))
-        self.opponents = defaultdict(User)
+        #
+        self.opponents: dict[User, User] = {}
+        self.victims: dict[User, User] = {}
+        self.killers: dict[User, User] = {}
+
+        self.last_killer: User = None
+        self.last_victim: User = None
+
+        self.nkills = 0
+        self.ndeaths = 0
+        self.kdratio: float = 0
+
+        self.nkills_by_opponent = defaultdict(int)
+        self.ndeaths_by_opponent = defaultdict(int)
+        self.kdratio_by_opponent = defaultdict(float)
+
+        self.nkills_by_opponent_by_weapon = defaultdict(lambda: defaultdict(int))
+        self.ndeaths_by_opponent_by_weapon = defaultdict(lambda: defaultdict(int))
 
         # list of non-kill actions performed, like capture/defend.
         self.actions = []
@@ -144,12 +153,6 @@ class User:
         self.cheater_chat_seen = False
 
     @property
-    def kdratio(self):
-        """Return kill/death ratio."""
-
-        return self.nkills if not self.ndeaths else float(self.nkills / self.ndeaths)
-
-    @property
     def points(self):
         """Return number of points scored."""
 
@@ -180,8 +183,8 @@ class User:
     def duel_as_str(self, opponent, formatted=False):
         """Return string showing win/loss record against `opponent`."""
 
-        nkills = len([x for x in self.duels if x.victim == opponent])
-        ndeaths = len([x for x in self.duels if x.killer == opponent])
+        nkills = self.nkills_by_opponent[opponent]
+        ndeaths = self.ndeaths_by_opponent[opponent]
         return f"{nkills:2} and {ndeaths:2}" if formatted else f"{nkills} and {ndeaths}"
 
     def __repr__(self):
@@ -220,11 +223,12 @@ class User:
         self.team = team
 
         # assign any unassigned opponents
-        for duel in self.duels:
-            if not duel.killer.team:
-                duel.killer.assign_team(duel.victim.opposing_team)
-            if not duel.victim.team:
-                duel.victim.assign_team(duel.killer.opposing_team)
+
+        for opponent in self.opponents:
+            if not opponent.team:
+                opponent.assign_team(self.opposing_team)
+            if not self.team:
+                self.assign_team(opponent.opposing_team)
 
     def vet_player(self):
         """Examine user."""
