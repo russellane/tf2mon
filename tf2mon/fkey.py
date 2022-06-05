@@ -72,7 +72,9 @@ class FKey:
         self.action = action or f"echo {self.cmd_prefix}{cmd}"
 
         # how to recognize tf2 performing this action in the con_logfile.
-        leader = r"^(\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}: )?"  # anchor to head; optional timestamp
+        leader = (
+            r"^(\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}: )?"  # anchor to head; optional timestamp
+        )
         self.regex = Regex(leader + f"{self.cmd_prefix}{cmd}$", handler) if handler else None
 
 

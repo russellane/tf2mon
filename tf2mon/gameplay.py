@@ -18,7 +18,9 @@ class Gameplay:
     def __init__(self, monitor):
         """Initialize Gameplay."""
 
-        leader = r"^(\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}: )?"  # anchor to head; optional timestamp
+        leader = (
+            r"^(\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}: )?"  # anchor to head; optional timestamp
+        )
 
         self.monitor = monitor
 
