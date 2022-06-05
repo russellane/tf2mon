@@ -202,6 +202,9 @@ class Gameplay:
 
     def _kill(self, s_killer: str, s_victim: str, weapon: str, s_crit: str) -> None:
 
+        # pylint: disable=too-many-branches
+        # pylint: disable=too-many-statements
+
         killer = self.monitor.users.find_username(s_killer)
         victim = self.monitor.users.find_username(s_victim)
 
@@ -211,11 +214,11 @@ class Gameplay:
         # do most calculations now (once);
         # to avoid calculating when rendering scoreboard (often).
 
-        killer.opponents[victim] = victim
-        victim.opponents[killer] = killer
+        killer.opponents[victim.key] = victim
+        victim.opponents[killer.key] = killer
 
-        killer.victims[victim] = victim
-        victim.killers[killer] = killer
+        killer.victims[victim.key] = victim
+        victim.killers[killer.key] = killer
 
         # totals ---------------------------------------------------------------
 
@@ -224,24 +227,29 @@ class Gameplay:
 
         _k = killer.nkills
         _d = killer.ndeaths
-        killer.kdratio = _k if not _d else _k / _d
+        killer.kdratio = float(_k) if not _d else _k / _d
 
         _k = victim.nkills
         _d = victim.ndeaths
-        victim.kdratio = _k if not _d else _k / _d
+        victim.kdratio = float(_k) if not _d else _k / _d
 
         # subtotals by opponent-------------------------------------------------
 
-        killer.nkills_by_opponent[victim] += 1
-        victim.ndeaths_by_opponent[killer] += 1
+        if victim.key not in killer.nkills_by_opponent:
+            killer.nkills_by_opponent[victim.key] = 0
+        killer.nkills_by_opponent[victim.key] += 1
 
-        _k = killer.nkills_by_opponent[victim]
-        _d = killer.ndeaths_by_opponent[victim]
-        killer.kdratio_by_opponent[victim] = _k if not _d else _k / _d
+        if killer.key not in victim.ndeaths_by_opponent:
+            victim.ndeaths_by_opponent[killer.key] = 0
+        victim.ndeaths_by_opponent[killer.key] += 1
 
-        _k = victim.nkills_by_opponent[killer]
-        _d = victim.ndeaths_by_opponent[killer]
-        victim.kdratio_by_opponent[killer] = _k if not _d else _k / _d
+        _k = killer.nkills_by_opponent.get(victim.key, 0)
+        _d = killer.ndeaths_by_opponent.get(victim.key, 0)
+        killer.kdratio_by_opponent[victim.key] = float(_k) if not _d else _k / _d
+
+        _k = victim.nkills_by_opponent.get(killer.key, 0)
+        _d = victim.ndeaths_by_opponent.get(killer.key, 0)
+        victim.kdratio_by_opponent[killer.key] = float(_k) if not _d else _k / _d
 
         # subtotal opponents by weapon_state -----------------------------------
 
@@ -257,15 +265,25 @@ class Gameplay:
         crit = bool(s_crit)
         weapon_state = role.get_weapon_state(weapon, crit, killer.perk)
 
-        killer.nkills_by_opponent_by_weapon[victim][weapon_state] += 1
-        victim.ndeaths_by_opponent_by_weapon[killer][weapon_state] += 1
+        if victim.key not in killer.nkills_by_opponent_by_weapon:
+            # contains a hash of counts by weapon_state
+            killer.nkills_by_opponent_by_weapon[victim.key] = {}
+        if weapon_state not in killer.nkills_by_opponent_by_weapon[victim.key]:
+            killer.nkills_by_opponent_by_weapon[victim.key][weapon_state] = 0
+        killer.nkills_by_opponent_by_weapon[victim.key][weapon_state] += 1
 
         #
         level = "KILL"
         if killer.team:
             level += killer.team.name
 
-        logger.log(level, weapon_state)
+        logger.log(
+            level,
+            "killer {!r} victim {!r} weapon {!r}",
+            killer.moniker,
+            victim.moniker,
+            weapon_state,
+        )
 
         if killer == self.monitor.me:
             self.monitor.spammer.taunt(victim, weapon, crit)

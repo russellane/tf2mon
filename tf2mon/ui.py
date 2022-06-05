@@ -367,14 +367,16 @@ class UI:
         indent = " " * 12  # 12=len("99 and 99 vs")
 
         lines.append("Duels:")
-        for opponent in [x for x in user.opponents if x.state == UserState.ACTIVE]:
+        for opponent in [x for x in user.opponents.values() if x.state == UserState.ACTIVE]:
             lines.append(f"{user.duel_as_str(opponent, True)} vs {opponent.moniker}")
 
-            for weapon, count in user.nkills_by_opponent_by_weapon[opponent].items():
-                lines.append(f"{indent} K {count:2} {weapon}")
+            if opponent.key in user.nkills_by_opponent_by_weapon:
+                for weapon, count in user.nkills_by_opponent_by_weapon[opponent.key].items():
+                    lines.append(f"{indent} K {count:2} {weapon}")
 
-            for weapon, count in user.ndeaths_by_opponent_by_weapon[opponent].items():
-                lines.append(f"{indent} D {count:2} {weapon}")
+            if user.key in opponent.nkills_by_opponent_by_weapon:
+                for weapon, count in opponent.nkills_by_opponent_by_weapon[user.key].items():
+                    lines.append(f"{indent} D {count:2} {weapon}")
 
         if self.show_actions.value:
             lines.extend(user.actions)

@@ -1,13 +1,16 @@
 """A user of the game."""
 
 import re
-from collections import defaultdict
 from enum import Enum
+from typing import NewType
 
 from fuzzywuzzy import fuzz
 from loguru import logger
 
 from tf2mon.hacker import HackerAttr
+
+UserKey = NewType("UserKey", str)
+WeaponState = NewType("WeaponState", str)
 
 
 class Team(Enum):
@@ -115,12 +118,11 @@ class User:
         self.ndeaths = 0
         self.kdratio: float = 0
 
-        self.nkills_by_opponent = defaultdict(int)
-        self.ndeaths_by_opponent = defaultdict(int)
-        self.kdratio_by_opponent = defaultdict(float)
-
-        self.nkills_by_opponent_by_weapon = defaultdict(lambda: defaultdict(int))
-        self.ndeaths_by_opponent_by_weapon = defaultdict(lambda: defaultdict(int))
+        # "by" as in "lookup by", "for each", "per".
+        self.nkills_by_opponent: dict[UserKey, int] = {}
+        self.ndeaths_by_opponent: dict[UserKey, int] = {}
+        self.kdratio_by_opponent: dict[UserKey, float] = {}
+        self.nkills_by_opponent_by_weapon: dict[UserKey, dict[WeaponState, int]] = {}
 
         # list of non-kill actions performed, like capture/defend.
         self.actions = []
@@ -153,6 +155,12 @@ class User:
         self.cheater_chat_seen = False
 
     @property
+    def key(self) -> str:
+        """Return readable hashable key."""
+
+        return f"{self.userid}-{self._clean_username[:15]}"
+
+    @property
     def points(self):
         """Return number of points scored."""
 
@@ -183,8 +191,8 @@ class User:
     def duel_as_str(self, opponent, formatted=False):
         """Return string showing win/loss record against `opponent`."""
 
-        nkills = self.nkills_by_opponent[opponent]
-        ndeaths = self.ndeaths_by_opponent[opponent]
+        nkills = self.nkills_by_opponent.get(opponent.key, 0)
+        ndeaths = self.ndeaths_by_opponent.get(opponent.key, 0)
         return f"{nkills:2} and {ndeaths:2}" if formatted else f"{nkills} and {ndeaths}"
 
     def __repr__(self):
@@ -224,7 +232,7 @@ class User:
 
         # assign any unassigned opponents
 
-        for opponent in self.opponents:
+        for opponent in self.opponents.values():
             if not opponent.team:
                 opponent.assign_team(self.opposing_team)
             if not self.team:
