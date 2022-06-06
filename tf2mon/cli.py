@@ -393,18 +393,18 @@ class Tf2monCLI(BaseCLI):
             print(self.options.con_logfile)
             sys.exit(0)
 
+        monitor = TF2Monitor(self.options, self.config)
+
         if self.options.trunc_con_logfile:
-            Conlog(self.options.con_logfile).trunc()
+            Conlog(monitor).trunc()
             logger.warning(f"con_logfile {str(self.options.con_logfile)!r} truncated; Exiting.")
             sys.exit(0)
 
         if self.options.clean_con_logfile:
-            for line in Conlog(self.options.con_logfile).filter_excludes():
+            for line in Conlog(monitor).filter_excludes():
                 print(line)
             logger.warning(f"con_logfile {str(self.options.con_logfile)!r} cleaned; Exiting.")
             sys.exit(0)
-
-        monitor = TF2Monitor(self.options, self.config)
 
         if self.options.print_steamid:
             monitor.steam_web_api.connect()
