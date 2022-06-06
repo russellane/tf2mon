@@ -36,7 +36,7 @@ class Cycle(list):
 
     def start(self, value):
         """Set starting `value`."""
-        return self.__setitem__(None, value)
+        return self.__setitem__(None, value)  # noqa
 
     def __getitem__(self, index):
         return self._values[index]
