@@ -19,7 +19,7 @@ from tf2mon.user import Team, UserState
 # These would have been defined within class UI (because they're only used internally)
 # but `pydoc` doesn't display their values when defined there; it does when defined here.
 
-USER_PANEL = Enum("_user_panel_enum", "USER SPAMS")
+USER_PANEL = Enum("_user_panel_enum", "AUTO DUELS KICKS SPAMS")
 USER_PANEL.__doc__ = "What to display in the user window"
 
 LOG_LOCATION = Enum("_log_location_enum", "MOD FILE THREAD NOLOC")
@@ -97,7 +97,7 @@ class UI:
         self.taunt_flag = Toggle("_tf", [False, True])
         self.gurgle_flag = Toggle("_gf", [True, False])
 
-        # the USER window displays either the USER_PANEL.USER or the USER_PANEL.SPAMS
+        # control contents of user window
         self.user_panel = Toggle("_up", USER_PANEL)
 
         # options when displaying USER_PANEL.USER
@@ -274,18 +274,18 @@ class UI:
                 # curses.beep()
 
         #
-        if self.monitor.kicks.msgs:
-            # commandeer user window
+        if self.user_panel.value == USER_PANEL.KICKS or (
+            self.user_panel.value == USER_PANEL.AUTO and self.monitor.kicks.msgs
+        ):
             self._show_lines("KICKS", reversed(self.monitor.kicks.msgs), self.user_win)
-
-        elif self.user_panel.value == USER_PANEL.SPAMS:
+        #
+        elif self.user_panel.value == USER_PANEL.SPAMS or (
+            self.user_panel.value == USER_PANEL.AUTO and self.monitor.spams.msgs
+        ):
             self._show_lines("SPAMS", reversed(self.monitor.spams.msgs), self.user_win)
-
-        elif self.user_panel.value == USER_PANEL.USER:
-            self._show_user(self.monitor.me)
-
+        #
         else:
-            raise ValueError(f"user_panel {self.user_panel!r}")
+            self._show_user(self.monitor.me)
 
         # chatwin_blu and chatwin_red are rendered from gameplay/_playerchat
 
