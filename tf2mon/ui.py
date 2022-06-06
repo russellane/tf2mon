@@ -95,7 +95,7 @@ class UI:
         #
         self.debug_flag = Toggle("_df", [False, True])
         self.taunt_flag = Toggle("_tf", [False, True])
-        self.gurgle_flag = Toggle("_gf", [True, False])
+        self.throe_flag = Toggle("_gf", [True, False])
 
         # control contents of user window
         self.user_panel = Toggle("_up", USER_PANEL)

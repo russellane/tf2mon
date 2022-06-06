@@ -310,7 +310,7 @@ class Gameplay:
             self.monitor.spammer.taunt(victim, weapon, crit)
 
         if victim == self.monitor.me:
-            self.monitor.spammer.gurgle(killer, weapon, crit)
+            self.monitor.spammer.throe(killer, weapon, crit)
 
         if not victim.team and killer.team:
             victim.assign_team(killer.opposing_team)

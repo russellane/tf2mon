@@ -53,7 +53,7 @@ class Spammer:
         ],
     )
 
-    _crit_gurgles = Cycle(
+    _crit_throes = Cycle(
         "cg",
         [
             # "Nice crit with that {weapon}, {user}, you {insult}!",
@@ -62,7 +62,7 @@ class Spammer:
         ],
     )
 
-    _no_crit_gurgles = Cycle(
+    _no_crit_throes = Cycle(
         "ncg",
         [
             # "Nice {weapon} ya got there, {user}, you {insult}!",
@@ -83,11 +83,11 @@ class Spammer:
         if self.monitor.ui.taunt_flag.value:
             self._push_spam(self._crit_taunts if crit else self._no_crit_taunts, victim, weapon)
 
-    def gurgle(self, killer, weapon, crit):
+    def throe(self, killer, weapon, crit):
         """Make noise when opponent kills operator."""
 
-        if self.monitor.ui.gurgle_flag.value:
-            spam = self._crit_gurgles if crit else self._no_crit_gurgles
+        if self.monitor.ui.throe_flag.value:
+            spam = self._crit_throes if crit else self._no_crit_throes
             suffix = (" +" + killer.perk) if killer.perk else ""
             self._push_spam(spam, killer, weapon, suffix)
 

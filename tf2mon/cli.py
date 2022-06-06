@@ -276,7 +276,7 @@ class Tf2monCLI(BaseCLI):
     `CALLVOTE KICK` commands.
 
     When gamer kills an opponent, `%(prog)s` pushes a `taunt` onto the
-    `Spams` queue; on death, a `gurgle`. Enable/disable with `F3`.
+    `Spams` queue; on death, a `throe`. Enable/disable with `F3`.
 
     The monitor can only push actions onto the queues; the gamer must pop
     them for the action to be taken, or clear the queue to discard.
@@ -292,7 +292,7 @@ class Tf2monCLI(BaseCLI):
 
         F1=HELP                 Display help.
         F2=TOGGLE-DEBUG         Control `say` vs `echo`.
-        F3=TOGGLE-TAUNT         Enable taunts and gurgles.
+        F3=TOGGLE-TAUNT         Enable taunts and throes.
         F4=TOGGLE-KD            Include kd-ratio in messages.
         F5=TOGGLE-USER-PANEL    Control contents of the user panel;
                                 USER=show duels, weapons, captures, etc.
