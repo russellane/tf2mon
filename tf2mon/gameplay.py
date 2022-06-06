@@ -18,6 +18,8 @@ class Gameplay:
     def __init__(self, monitor):
         """Initialize Gameplay."""
 
+        leader = r"^(\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}: )?"  # anchor to head; optional timestamp
+
         self.monitor = monitor
 
         self.regex_list = [
@@ -27,12 +29,13 @@ class Gameplay:
             #    lambda m: logger.debug('key_listboundkeys')),
             # new server
             Regex(
-                "(^Client reached server_spawn.$|^Connected to [0-9])",
+                leader + "(Client reached server_spawn.$|Connected to [0-9])",
                 lambda m: self.monitor.reset_game(),
             ),
             # capture/defend
             Regex(
-                r"^(?P<username>.*) (?P<action>(?:captured|defended)) (?P<capture_pt>.*) for team #(?P<teamno>\d)$",  # noqa
+                leader
+                + r"(?P<username>.*) (?P<action>(?:captured|defended)) (?P<capture_pt>.*) for team #(?P<teamno>\d)$",  # noqa
                 lambda m: self._capture(
                     m.group("username"),
                     m.group("action"),
@@ -50,7 +53,18 @@ class Gameplay:
             # players : 20 humans, 0 bots (32 max)
             # edicts  : 1378 used of 2048 max
             Regex(
-                r"^(account|version|map|udp\/ip|tags|steamid|players|edicts)\s+: (.*)",
+                leader + r"(account|version|map|udp\/ip|tags|steamid|players|edicts)\s+: (.*)",
+                lambda m: logger.log("server", m.group(0)),
+            ),
+            # "06/05/2022 - 13:54:19: Client ping times:"
+            Regex(
+                leader + r"Client ping times:",
+                lambda m: logger.log("server", m.group(0)),
+            ),
+            # "06/05/2022 - 13:54:19:   67 ms : luft"
+            # "06/05/2022 - 13:54:19:xy 87 ms : BananaHatTaco"
+            Regex(
+                leader + r"\s*\d+ ms .*",
                 lambda m: logger.log("server", m.group(0)),
             ),
             # chat
@@ -58,27 +72,31 @@ class Gameplay:
             # '*DEAD* Bad Dad :  hello'
             # '*DEAD*(TEAM) Bad Dad :  hello'
             Regex(
-                r"^(?:(?P<dead>\*DEAD\*)?(?P<teamflag>\(TEAM\))? )?(?P<username>.*) :  ?(?P<msg>.*)$",  # noqa
+                leader
+                + r"(?:(?P<dead>\*DEAD\*)?(?P<teamflag>\(TEAM\))? )?(?P<username>.*) :  ?(?P<msg>.*)$",  # noqa
                 lambda m: self._playerchat(
                     m.group("teamflag"), m.group("username"), m.group("msg")
                 ),
             ),
             # kill
             Regex(
-                r"^(?P<killer>.*) killed (?P<victim>.*) with (?P<weapon>.*)\.(?P<crit> \(crit\))?$",  # noqa
+                leader
+                + r"(?P<killer>.*) killed (?P<victim>.*) with (?P<weapon>.*)\.(?P<crit> \(crit\))?$",  # noqa
                 lambda m: self._kill(
                     m.group("killer"), m.group("victim"), m.group("weapon"), m.group("crit")
                 ),
             ),
             # connected
             Regex(
-                "^(?P<username>.*) connected$", lambda m: self._connected(m.group("username"))
+                leader + "(?P<username>.*) connected$",
+                lambda m: self._connected(m.group("username")),
             ),
             # status
             # "# userid name                uniqueid            connected ping loss state"
             # "#     29 "Bad Dad"           [U:1:42708103]      01:24       67    0 active"
             Regex(
-                r'^#\s*(?P<userid>\d+) "(?P<username>.+)"\s+(?P<steamid>\S+)\s+(?P<elapsed>[\d:]+)\s+(?P<ping>\d+)',  # noqa
+                leader
+                + r'#\s*(?P<userid>\d+) "(?P<username>.+)"\s+(?P<steamid>\S+)\s+(?P<elapsed>[\d:]+)\s+(?P<ping>\d+)',  # noqa
                 lambda m: self._status(
                     int(m.group("userid")),
                     m.group("username"),
@@ -90,7 +108,7 @@ class Gameplay:
             # "# userid name                uniqueid            connected ping loss state"
             # "#      3 "Nobody"            BOT                                     active
             Regex(
-                r'^#\s*(?P<userid>\d+) "(?P<username>.+)"\s+(?P<steamid>BOT)\s+active',
+                leader + r'#\s*(?P<userid>\d+) "(?P<username>.+)"\s+(?P<steamid>BOT)\s+active',
                 lambda m: self._status(
                     int(m.group("userid")),
                     m.group("username"),
@@ -101,11 +119,12 @@ class Gameplay:
             # tf_lobby_debug
             # "Member[22] [U:1:42708103]  team = TF_GC_TEAM_INVADERS  type = MATCH_PLAYER"
             Regex(
-                r"^\s*(Member|Pending)\[\d+\] (?P<steamid>\S+)\s+team = (?P<teamname>\w+)",
+                leader
+                + r"\s*(Member|Pending)\[\d+\] (?P<steamid>\S+)\s+team = (?P<teamname>\w+)",
                 lambda m: self._lobby(m.group("steamid"), m.group("teamname")),
             ),
             Regex(
-                "^Failed to find lobby shared object",
+                leader + "Failed to find lobby shared object",
                 lambda m: logger.trace("tf_lobby_debug failed: " + m.group(0)),
             ),
             #
@@ -114,7 +133,7 @@ class Gameplay:
             #    lambda m: self.monitor.switch_teams()),
             #
             Regex(
-                r"^You have switched to team (?P<teamname>\w+) and will",
+                leader + r"You have switched to team (?P<teamname>\w+) and will",
                 lambda m: self.monitor.me.assign_team(m.group("teamname")),
             ),
             # hostname: Valve Matchmaking Server (Virginia iad-1/srcds148 #53)
