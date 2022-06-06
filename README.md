@@ -72,7 +72,7 @@ By default, `tf2mon` starts reading the console logfile from its end
   The configuration file (see `--config FILE` below) defines local
   settings:
   
-      [`tf2mon`]
+      [tf2mon]
   
       tf2_install_dir = "/path/to/your/tf2/installation"
       webapi_key = "your-steamworks-webapi-key"

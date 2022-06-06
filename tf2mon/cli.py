@@ -231,7 +231,7 @@ class Tf2monCLI(BaseCLI):
     The configuration file (see `--config FILE` below) defines local
     settings:
 
-        [`%(prog)s`]
+        [%(prog)s]
 
         tf2_install_dir = "/path/to/your/tf2/installation"
         webapi_key = "your-steamworks-webapi-key"
