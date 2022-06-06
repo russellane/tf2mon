@@ -120,23 +120,23 @@ By default, `tf2mon` starts reading the console logfile from its end
   The user-panel displays battles with opponents, grouped by weapon (and
   its state when fired).
   
-  ┌─────────────────────────────────────────────────────────────────────┐
-  │Duels:                                                               │
-  │ 4 and  2 vs GLaDOS                                                  │
-  │             K  2 soldier        quake_rl                            │
-  │             K  1 pyro           flamethrower                        │
-  │             K  1 pyro     +crit flamethrower         +Low Gravity   │
-  │             D  2 heavy          minigun                             │
-  │ 5 and  0 vs CreditToTeam                                            │
-  │             K  2 soldier        quake_rl                            │
-  │             K  2 pyro     +crit flamethrower                        │
-  │             K  1 pyro           flamethrower                        │
-  │ 3 and  1 vs Aperture Science Prototype XR7                          │
-  │             K  1 soldier        world                               │
-  │             K  1 soldier        quake_rl             +Invisibility  │
-  │             K  1 pyro     +crit flamethrower                        │
-  │             D  1 demo           player                              │
-  └─────────────────────────────────────────────────────────────────────┘
+      ┌─────────────────────────────────────────────────────────────────────┐
+      │Duels:                                                               │
+      │ 4 and  2 vs GLaDOS                                                  │
+      │             K  2 soldier        quake_rl                            │
+      │             K  1 pyro           flamethrower                        │
+      │             K  1 pyro     +crit flamethrower         +Low Gravity   │
+      │             D  2 heavy          minigun                             │
+      │ 5 and  0 vs CreditToTeam                                            │
+      │             K  2 soldier        quake_rl                            │
+      │             K  2 pyro     +crit flamethrower                        │
+      │             K  1 pyro           flamethrower                        │
+      │ 3 and  1 vs Aperture Science Prototype XR7                          │
+      │             K  1 soldier        world                               │
+      │             K  1 soldier        quake_rl             +Invisibility  │
+      │             K  1 pyro     +crit flamethrower                        │
+      │             D  1 demo           player                              │
+      └─────────────────────────────────────────────────────────────────────┘
 
 #### Function Keys
   These function keys are available in-game and in the monitor:
