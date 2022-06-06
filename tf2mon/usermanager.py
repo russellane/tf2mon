@@ -177,10 +177,10 @@ class UserManager:
             if user == self.monitor.me:
                 continue
             user.n_status_checks += 1
-            if user.n_status_checks == self._max_status_checks:
+            if user.n_status_checks >= self._max_status_checks:
                 logger.log(
                     "Inactive",
-                    f"{user.n_status_checks} > {self._max_status_checks} {user.username!r}",
+                    f"{user.n_status_checks} >= {self._max_status_checks} {user.username!r}",
                 )
                 self.delete(user)
 
