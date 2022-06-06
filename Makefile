@@ -23,7 +23,7 @@ $(CONLOG_BKUP): $(CONLOG_FILE)
 	ls -lh $<
 
 cleanlog:	latest
-		$(PYTHON) -m tf2mon --clean-con-logfile latest >$@
+		python -m tf2mon --clean-con-logfile latest >$@
 
 distclean::
 	rm -f cleanlog latest
