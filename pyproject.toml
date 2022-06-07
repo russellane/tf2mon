@@ -23,7 +23,7 @@ dependencies = [
     "playsound>=1.3.0",
     "python-levenshtein>=0.12.2",
     "rlane-libcli>=1.0.2",
-    "rlane-libcurses>=1.0.1",
+    "rlane-libcurses>=1.0.2",
     "steam!=1.3.3,>=1.3.0",
     "xdg>=5.1.1",
 ]
