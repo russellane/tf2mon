@@ -69,10 +69,11 @@ class Tf2monCLI(BaseCLI):
     in-game to take those actions; such as issue `SAY` and `CALLVOTE KICK`
     commands.
 
-    Other in-game key-bindings format `CHAT` messages that include the
-    name, K/D Ratio and duel-score with the player's last victim or killer.
+    Other in-game key-bindings taunt gamer's last victim/killer with a
+    `CHAT` message customized with their name, k/d ratio, weapon and duel-
+    score (`Taunt` and `Throe`).
 
-    By default, `%(prog)s` starts reading the console logfile from its end
+    By default, `%(prog)s` starts reading the con_logfile from its end
     (`--no-rewind`), and continues to `--follow` it until interrupted.
                 """
             ),
@@ -122,7 +123,7 @@ class Tf2monCLI(BaseCLI):
             metavar="DIR",
             default=Path(self.config["tf2_install_dir"]),
             type=Path,
-            help="tf2 installation directory",
+            help="TF2 installation directory",
         )
         self.add_default_to_help(arg)
 
@@ -131,26 +132,26 @@ class Tf2monCLI(BaseCLI):
             default=Path(self.config["con_logfile"]),
             nargs="?",
             type=Path,
-            help="tf2 console logfile",
+            help="TF2 console logfile; relative to `--tf2-install-dir`",
         )
         self.add_default_to_help(arg)
 
         self.parser.add_argument(
             "--list-con-logfile",
             action="store_true",
-            help="show tf2 console logfile path and exit",
+            help="show path to logfile and exit",
         )
 
         self.parser.add_argument(
             "--trunc-con-logfile",
             action="store_true",
-            help="truncate tf2 console logfile and exit",
+            help="truncate logfile and exit",
         )
 
         self.parser.add_argument(
             "--clean-con-logfile",
             action="store_true",
-            help="filter-out excluded lines from tf2 console logfile to stdout and exit",
+            help="filter-out excluded lines from logfile to stdout and exit",
         )
 
         group = self.parser.add_argument_group("Debugging options")
@@ -158,7 +159,7 @@ class Tf2monCLI(BaseCLI):
         group.add_argument(
             "--single-step",
             action="store_true",
-            help="begin single-stepping at startup",
+            help="single-step at startup",
         )
 
         group.add_argument(
@@ -166,13 +167,13 @@ class Tf2monCLI(BaseCLI):
             dest="breakpoint",
             type=int,
             metavar="LINENO",
-            help="single-step when logfile reaches `LINENO`",
+            help="single-step at line `LINENO`",
         )
 
         group.add_argument(
             "--search",
             metavar="PATTERN",
-            help="single-step logfile line matches `PATTERN`; add `/i` to ignore case.",
+            help="single-step when line matches `PATTERN`; add `/i` to ignore case.",
         )
 
         group.add_argument(
@@ -180,7 +181,7 @@ class Tf2monCLI(BaseCLI):
             dest="inject_cmds",
             metavar="LINENO:CMD",
             action="append",
-            help="inject `CMD` into logfile before `LINENO`",
+            help="inject `CMD` before line `LINENO`",
         )
 
         group.add_argument(
@@ -232,7 +233,6 @@ class Tf2monCLI(BaseCLI):
     settings:
 
         [%(prog)s]
-
         tf2_install_dir = "/path/to/your/tf2/installation"
         webapi_key = "your-steamworks-webapi-key"
         player_name = "Your Name"
@@ -244,9 +244,8 @@ class Tf2monCLI(BaseCLI):
             "In-Game Controls, Numpad",
             self.dedent(
                 """
-    While playing TF2, gamer uses the `numpad` to perform actions, such as
-    kicking a cheater, or taunting the last victim with a `chat` message
-    customized with his name, k/d ratio and the duel-score with him.
+    While playing TF2, use the `Numpad` to kick cheaters, and generate
+    `Taunt` and death-`Throe` spam.
 
     Messages are placed into queues, and may be popped off either end.
 
@@ -267,19 +266,21 @@ class Tf2monCLI(BaseCLI):
                    |         |         |         |
                    +-----------------------------+
 
-    To vet any new players that have joined the game, gamer must press
-    `NUMPAD-DOWNARROW` in-game. The monitor indicates when new players have
-    arrived and that key should be pressed; or press it each time you die.
+    To vet new players that have joined the game, and to remove inactive
+    players, press `NUMPAD-DOWNARROW`. The monitor indicates when new
+    players have arrived and that key should be pressed; or press it each
+    time you die.
 
     When detected, `%(prog)s` pushes hackers onto the `Kicks` queue, and
-    alerts the gamer, who may then press `NUMPAD-HOME` to issue `CHAT` and
-    `CALLVOTE KICK` commands.
+    alerts the gamer, who may then press `HOME`/`END` to issue `CHAT`
+    and `CALLVOTE KICK` commands.
 
-    When gamer kills an opponent, `%(prog)s` pushes a `taunt` onto the
-    `Spams` queue; on death, a `throe`. Enable/disable with `F3`.
+    When gamer kills an opponent, `%(prog)s` pushes a `Taunt` onto the
+    `Spams` queue; on death, a `Throe`. Enable/disable with `F3`. Send
+    with `PGUP`/`PGDN`.
 
-    The monitor can only push actions onto the queues; the gamer must pop
-    them for the action to be taken, or clear the queue to discard.
+    The monitor can only push actions onto the queues; gamer must pop
+    for action to be taken, or clear to discard.
                 """
             ),
         )
@@ -318,20 +319,18 @@ class Tf2monCLI(BaseCLI):
                 """
     These function keys are available in-game and in the monitor:
 
-        F1=HELP                 Display help.
-        F2=TOGGLE-DEBUG         Control `say` vs `echo`.
-        F3=TOGGLE-TAUNT         Enable taunts and throes.
-        F4=TOGGLE-KD            Include kd-ratio in messages.
-        F5=TOGGLE-USER-PANEL    Control contents of the user panel;
-                                USER=show duels, weapons, captures, etc.
-                                SPAMS=show SPAMS queue.
-        F6=SWITCH-MY-TEAM       Join other team.
-        F7=TOGGLE-SORT          Change scoreboard sort column.
-        F8=TOGGLE-LOG-LOCATION  Various logger formats.
-        KP_DEL=SINGLE-STEP      Start single-stepping.
-        [=KICK-LAST-CHEATER     Kick last killer as cheater.
-        ]=KICK-LAST-RACIST      Kick last killer as racist.
-        \\=KICK-LAST-SUSPECT    Mark last killer as suspect.
+        F1 Display help.
+        F2 Control `say` vs `echo`.
+        F3 Enable taunts and throes.
+        F4 Include kd-ratio in messages.
+        F5 Control User-panel display: Kicks, Spams, Duels and Auto.
+        F6 Join other team.
+        F7 Change scoreboard sort column.
+        F8 Change logger location formats.
+        [  Kick last killer as cheater.
+        ]  Kick last killer as racist.
+        \\  Mark last killer as suspect.
+        KP_DEL Begin single-stepping.
                 """
             ),
         )
@@ -340,9 +339,11 @@ class Tf2monCLI(BaseCLI):
             "Where to Operate",
             self.dedent(
                 """
-    `%(prog)s` works by reading the console logfile to which `TF2` logs
-    messages during the game. `%(prog)s` can either `tail -f` an active
-    game, or `--rewind` and replay saved logfiles.
+    `%(prog)s` works by reading the `con_logfile` to which `TF2` logs
+    messages during the game. `%(prog)s` can either "tail -f" an active
+    game, or `--rewind` and replay saved logfiles. Press `Enter` in the
+    admin console to process the next line when in `--single-step` mode.
+    Type `quit` or press `^D` to exit.
 
         `Duel monitors`
             Run `%(prog)s` on a secondary monitor, while playing the game on
@@ -354,7 +355,7 @@ class Tf2monCLI(BaseCLI):
 
         `Duel machines, nfs`
             cross-mount TF2's directory to another box and run from there.
-                    """
+                """
             ),
         )
 
@@ -394,6 +395,7 @@ class Tf2monCLI(BaseCLI):
     `Single-click` user to highlight and follow.
     `Double-click` user to kick as cheater.
     `Triple-click` user to kick as racist.
+    `F7` to change sort column.
                 """
             ),
         )

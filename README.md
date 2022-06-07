@@ -23,14 +23,16 @@ scripts in TF2's `cfg` directory, and binds keys for the gamer to press
 in-game to take those actions; such as issue `SAY` and `CALLVOTE KICK`
 commands.
 
-Other in-game key-bindings format `CHAT` messages that include the
-name, K/D Ratio and duel-score with the player's last victim or killer.
+Other in-game key-bindings taunt gamer's last victim/killer with a
+`CHAT` message customized with their name, k/d ratio, weapon and duel-
+score (`Taunt` and `Throe`).
 
-By default, `tf2mon` starts reading the console logfile from its end
+By default, `tf2mon` starts reading the con_logfile from its end
 (`--no-rewind`), and continues to `--follow` it until interrupted.
 
 #### Positional Arguments
-    con_logfile         Tf2 console logfile (default: `console.log`).
+    con_logfile         TF2 console logfile; relative to `--tf2-install-dir`
+                        (default: `console.log`).
 
 #### Options
     --rewind            Start from head of logfile (default: `False`).
@@ -38,21 +40,21 @@ By default, `tf2mon` starts reading the console logfile from its end
     --follow            Follow end of logfile forever (default: `True`).
     --no-follow         Exit at end of logfile (default: `False`).
     --tf2-install-dir DIR
-                        Tf2 installation directory (default: `~/tf2`).
-    --list-con-logfile  Show tf2 console logfile path and exit.
+                        TF2 installation directory (default: `~/tf2`).
+    --list-con-logfile  Show path to logfile and exit.
     --trunc-con-logfile
-                        Truncate tf2 console logfile and exit.
+                        Truncate logfile and exit.
     --clean-con-logfile
-                        Filter-out excluded lines from tf2 console logfile to
-                        stdout and exit.
+                        Filter-out excluded lines from logfile to stdout and
+                        exit.
 
 #### Debugging options
-    --single-step       Begin single-stepping at startup.
-    --break LINENO      Single-step when logfile reaches `LINENO`.
-    --search PATTERN    Single-step logfile line matches `PATTERN`; add `/i`
-                        to ignore case.
+    --single-step       Single-step at startup.
+    --break LINENO      Single-step at line `LINENO`.
+    --search PATTERN    Single-step when line matches `PATTERN`; add `/i` to
+                        ignore case.
     --inject-cmd LINENO:CMD
-                        Inject `CMD` into logfile before `LINENO`.
+                        Inject `CMD` before line `LINENO`.
     --inject-file FILE  Read list of inject commands from `FILE`.
 
 #### Database options
@@ -73,15 +75,13 @@ By default, `tf2mon` starts reading the console logfile from its end
   settings:
   
       [tf2mon]
-  
       tf2_install_dir = "/path/to/your/tf2/installation"
       webapi_key = "your-steamworks-webapi-key"
       player_name = "Your Name"
 
 #### In-Game Controls, Numpad
-  While playing TF2, gamer uses the `numpad` to perform actions, such as
-  kicking a cheater, or taunting the last victim with a `chat` message
-  customized with his name, k/d ratio and the duel-score with him.
+  While playing TF2, use the `Numpad` to kick cheaters, and generate
+  `Taunt` and death-`Throe` spam.
   
   Messages are placed into queues, and may be popped off either end.
   
@@ -102,19 +102,21 @@ By default, `tf2mon` starts reading the console logfile from its end
                  |         |         |         |
                  +-----------------------------+
   
-  To vet any new players that have joined the game, gamer must press
-  `NUMPAD-DOWNARROW` in-game. The monitor indicates when new players have
-  arrived and that key should be pressed; or press it each time you die.
+  To vet new players that have joined the game, and to remove inactive
+  players, press `NUMPAD-DOWNARROW`. The monitor indicates when new
+  players have arrived and that key should be pressed; or press it each
+  time you die.
   
   When detected, `tf2mon` pushes hackers onto the `Kicks` queue, and
-  alerts the gamer, who may then press `NUMPAD-HOME` to issue `CHAT` and
-  `CALLVOTE KICK` commands.
+  alerts the gamer, who may then press `HOME`/`END` to issue `CHAT`
+  and `CALLVOTE KICK` commands.
   
-  When gamer kills an opponent, `tf2mon` pushes a `taunt` onto the
-  `Spams` queue; on death, a `throe`. Enable/disable with `F3`.
+  When gamer kills an opponent, `tf2mon` pushes a `Taunt` onto the
+  `Spams` queue; on death, a `Throe`. Enable/disable with `F3`. Send
+  with `PGUP`/`PGDN`.
   
-  The monitor can only push actions onto the queues; the gamer must pop
-  them for the action to be taken, or clear the queue to discard.
+  The monitor can only push actions onto the queues; gamer must pop
+  for action to be taken, or clear to discard.
 
 #### Duels
   The user-panel displays battles with opponents, grouped by weapon (and
@@ -141,25 +143,25 @@ By default, `tf2mon` starts reading the console logfile from its end
 #### Function Keys
   These function keys are available in-game and in the monitor:
   
-      F1=HELP                 Display help.
-      F2=TOGGLE-DEBUG         Control `say` vs `echo`.
-      F3=TOGGLE-TAUNT         Enable taunts and throes.
-      F4=TOGGLE-KD            Include kd-ratio in messages.
-      F5=TOGGLE-USER-PANEL    Control contents of the user panel;
-                              USER=show duels, weapons, captures, etc.
-                              SPAMS=show SPAMS queue.
-      F6=SWITCH-MY-TEAM       Join other team.
-      F7=TOGGLE-SORT          Change scoreboard sort column.
-      F8=TOGGLE-LOG-LOCATION  Various logger formats.
-      KP_DEL=SINGLE-STEP      Start single-stepping.
-      [=KICK-LAST-CHEATER     Kick last killer as cheater.
-      ]=KICK-LAST-RACIST      Kick last killer as racist.
-      \=KICK-LAST-SUSPECT    Mark last killer as suspect.
+      F1 Display help.
+      F2 Control `say` vs `echo`.
+      F3 Enable taunts and throes.
+      F4 Include kd-ratio in messages.
+      F5 Control User-panel display: Kicks, Spams, Duels and Auto.
+      F6 Join other team.
+      F7 Change scoreboard sort column.
+      F8 Change logger location formats.
+      [  Kick last killer as cheater.
+      ]  Kick last killer as racist.
+      \  Mark last killer as suspect.
+      KP_DEL Begin single-stepping.
 
 #### Where to Operate
-  `tf2mon` works by reading the console logfile to which `TF2` logs
-  messages during the game. `tf2mon` can either `tail -f` an active
-  game, or `--rewind` and replay saved logfiles.
+  `tf2mon` works by reading the `con_logfile` to which `TF2` logs
+  messages during the game. `tf2mon` can either "tail -f" an active
+  game, or `--rewind` and replay saved logfiles. Press `Enter` in the
+  admin console to process the next line when in `--single-step` mode.
+  Type `quit` or press `^D` to exit.
   
       `Duel monitors`
           Run `tf2mon` on a secondary monitor, while playing the game on
@@ -193,6 +195,7 @@ By default, `tf2mon` starts reading the console logfile from its end
   `Single-click` user to highlight and follow.
   `Double-click` user to kick as cheater.
   `Triple-click` user to kick as racist.
+  `F7` to change sort column.
 
 #### General options
     -h, --help          Show this help message and exit.
