@@ -19,6 +19,9 @@ from tf2mon.user import Team, UserState
 # These would have been defined within class UI (because they're only used internally)
 # but `pydoc` doesn't display their values when defined there; it does when defined here.
 
+GRID_LAYOUT = Enum("_grid_layout_enum", "WIDE TALL")
+GRID_LAYOUT.__doc__ = "Grid layout."
+
 USER_PANEL = Enum("_user_panel_enum", "AUTO DUELS KICKS SPAMS")
 USER_PANEL.__doc__ = "What to display in the user window"
 
@@ -28,7 +31,7 @@ LOG_LOCATION.__doc__ = (
 )
 
 SORT_ORDER = Enum("_so", "STEAMID K KD USERNAME")
-SORT_ORDER.__doc__ = "Column to sort the scoreboard by." ""
+SORT_ORDER.__doc__ = "Column to sort the scoreboard by."
 
 
 class UI:
@@ -70,6 +73,15 @@ class UI:
         self.logger_win: curses.window = None
         self.status_win: curses.window = None
         self.cmdline_win: curses.window = None
+
+        # the windows may be placed in different arrangements.
+        self.grid_layout = Toggle("_grid_layout", GRID_LAYOUT)
+        self.grid_layout.start(GRID_LAYOUT.WIDE)
+        self._build_grid_layouts = {
+            GRID_LAYOUT.WIDE: self._build_grid_layout_wide,
+            GRID_LAYOUT.TALL: self._build_grid_layout_tall,
+        }
+        self._do_build_grid = self._build_grid_layouts[self.grid_layout.value]
 
         # `register_builder` 1) calls `_build_grid` and 2) configures
         # `KEY_RESIZE` to call it again each time that event occurs.
@@ -122,10 +134,41 @@ class UI:
         self.notify_operator = False
         self.sound_alarm = False
 
-    def _build_grid(self):
-        """Add boxes to the grid.
+    def cycle_grid_layout(self):
+        """Cycle through grid layouts."""
 
-        Called during init and on KEY_RESIZE events.
+        self._do_build_grid = self._build_grid_layouts[self.grid_layout.cycle]
+        self._build_grid()
+
+    def _build_grid(self):
+        """Add boxes to grid.
+
+        Called at init, on KEY_RESIZE events, and when grid_layout is cycled.
+        """
+
+        try:
+            self._do_build_grid()
+        except AssertionError:
+            curses.endwin()
+            logger.error("Terminal too small; try `Maximize` and `Ctrl+Minus`.")
+            sys.exit(0)
+
+        #
+        self.chatwin_blu.scrollok(True)
+        self.chatwin_red.scrollok(True)
+        self.scorewin_blu.scrollok(False)
+        self.scorewin_red.scrollok(False)
+        self.user_win.scrollok(True)
+        self.logger_win.scrollok(True)
+        self.status_win.scrollok(False)
+        self.cmdline_win.scrollok(True)
+        #
+        self.cmdline_win.keypad(True)
+        #
+        self.redraw()
+
+    def _build_grid_layout_wide(self):
+        """Horizontal layout.
 
         +-------------------+----------------------+
         | chatwin_blu       | chatwin_red          |  section 1
@@ -140,15 +183,6 @@ class UI:
         | status_win            | cmdline_win      |  section 4
         +-----------------------+------------------+
         """
-
-        try:
-            self._do_build_grid()
-        except AssertionError:
-            curses.endwin()
-            logger.error("Terminal too small; try `Maximize` and `Ctrl+Minus`.")
-            sys.exit(0)
-
-    def _do_build_grid(self):
 
         # section 1
         self.chatwin_blu = self.grid.box(
@@ -226,19 +260,102 @@ class UI:
             bottom=self.user_win,
         )
 
-        #
-        self.chatwin_blu.scrollok(True)
-        self.chatwin_red.scrollok(True)
-        self.scorewin_blu.scrollok(False)
-        self.scorewin_red.scrollok(False)
-        self.user_win.scrollok(True)
-        self.logger_win.scrollok(True)
-        self.status_win.scrollok(False)
-        self.cmdline_win.scrollok(True)
-        #
-        self.cmdline_win.keypad(True)
-        #
-        self.redraw()
+    def _build_grid_layout_tall(self):
+        """Vertical layout.
+
+        +-------------------+----------------------+
+        | scorewin_blu      | chatwin_blu          |  section 1
+        |                   |                      |
+        +-------------------+----------------------+
+        | scorewin_red      | chatwin_red          |  section 2
+        |                   |                      |
+        +--------------+----+----------------------+
+        | user_win     | logger_win                |  section 3
+        |              |                           |
+        +--------------+--------+------------------+
+        | status_win            | cmdline_win      |  section 4
+        +-----------------------+------------------+
+        """
+
+        # 124=len(self._scoreboard._formatted_header) + 2=borders (left and right) + 1=padding
+
+        width = min(124, int(2 * self.grid.ncols / 3))
+
+        # section 1
+        self.scorewin_blu = self.grid.box(
+            "scorewin_blu",
+            nlines=int(self.max_users / 2) + 2 + 1,  # 2=borders (top and bottom), 1=header.
+            ncols=width,
+            left=self.grid,
+            top=self.grid,
+        )
+
+        self.chatwin_blu = self.grid.box(
+            "chatwin_blu",
+            nlines=0,
+            ncols=0,
+            left2r=self.scorewin_blu,
+            right=self.grid,
+            top=self.scorewin_blu,
+            bottom=self.scorewin_blu,
+        )
+
+        # section 2
+        self.scorewin_red = self.grid.box(
+            "scorewin_red",
+            nlines=int(self.max_users / 2) + 2 + 1,  # 2=borders (top and bottom), 1=header.
+            ncols=width,
+            left=self.grid,
+            top2b=self.scorewin_blu,
+        )
+
+        self.chatwin_red = self.grid.box(
+            "chatwin_red",
+            nlines=0,
+            ncols=0,
+            left2r=self.scorewin_red,
+            right=self.grid,
+            top=self.scorewin_red,
+            bottom=self.scorewin_red,
+        )
+
+        # section 4
+        self.status_win = self.grid.box(
+            "status",
+            nlines=3,
+            ncols=int(2 * self.grid.ncols / 3),
+            left=self.grid,
+            bottom=self.grid,
+        )
+
+        self.cmdline_win = self.grid.box(
+            "cmdline",
+            nlines=3,
+            ncols=0,
+            left2r=self.status_win,
+            right=self.grid,
+            bottom=self.grid,
+        )
+
+        # section 3 - fills gap between sections 2 and 4
+        self.user_win = self.grid.box(
+            "user",
+            nlines=0,
+            ncols=int(self.grid.ncols / 3),
+            left=self.grid,
+            top2b=self.scorewin_red,
+            bottom2t=self.status_win,
+        )
+
+        self.logger_win = self.grid.box(
+            "logwin",
+            nlines=0,
+            ncols=0,
+            left2r=self.user_win,
+            right=self.grid,
+            top=self.user_win,
+            bottom=self.user_win,
+        )
 
     def cycle_log_location(self):
         """Cycle format of location in messages displayed in logger window."""

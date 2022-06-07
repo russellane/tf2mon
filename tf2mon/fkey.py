@@ -214,6 +214,13 @@ class FKeyManager:
                 ),
             ),
             FKey(
+                cmd="TOGGLE-GRID-LAYOUT",
+                game_key="F9",
+                curses_key=curses.KEY_F9,
+                status=lambda: self.monitor.ui.grid_layout.value.name,
+                handler=lambda m: self.monitor.ui.cycle_grid_layout(),
+            ),
+            FKey(
                 cmd="SINGLE-STEP",
                 game_key="KP_DEL",
                 curses_key=curses.KEY_DC,

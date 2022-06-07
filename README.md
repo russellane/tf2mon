@@ -144,13 +144,14 @@ By default, `tf2mon` starts reading the con_logfile from its end
   These function keys are available in-game and in the monitor:
   
       F1 Display help.
-      F2 Control `say` vs `echo`.
-      F3 Enable taunts and throes.
+      F2 Toggle Debug (control `say` vs `echo`).
+      F3 Enable/disable Taunts and Throes.
       F4 Include kd-ratio in messages.
       F5 Control User-panel display: Kicks, Spams, Duels and Auto.
       F6 Join other team.
       F7 Change scoreboard sort column.
-      F8 Change logger location formats.
+      F8 Change logger location format.
+      F9 Change grid layout.
       [  Kick last killer as cheater.
       ]  Kick last killer as racist.
       \  Mark last killer as suspect.
