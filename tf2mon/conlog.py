@@ -28,6 +28,7 @@ class Conlog:
         self._inject_cmds = []  # list(_cmd)
         self._is_inject_sorted = False
         self._is_inject_paused = False
+        self._buffer = None
         self._fp = None
 
         #
@@ -111,6 +112,11 @@ class Conlog:
 
         while True:
 
+            if _buffer := self._buffer:
+                self._buffer = None
+                self.last_line = self._fmt_last_line.format(lineno=self.lineno, line=_buffer)
+                return _buffer
+
             if not self._is_inject_sorted:
                 self._inject_cmds.sort(key=lambda x: x.lineno)
                 self._is_inject_sorted = True
@@ -138,6 +144,11 @@ class Conlog:
 
             if line:
                 line = line.strip()
+                if line.startswith(self.monitor.cmd_prefix) and " " in line:
+                    # sometimes newlines get dropped and lines are combined
+                    cmd, self._buffer = line.split(sep=" ", maxsplit=1)
+                    self.last_line = self._fmt_last_line.format(lineno=self.lineno, line=cmd)
+                    return cmd
                 if self._excludes_re.search(line):
                     logger.log("exclude", self._fmt_last_line, lineno=self.lineno, line=line)
                     continue
