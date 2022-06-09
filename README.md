@@ -2,11 +2,11 @@
 
 #### Usage
     tf2mon [--rewind | --no-rewind] [--follow | --no-follow]
-           [--tf2-install-dir DIR] [--list-con-logfile]
-           [--trunc-con-logfile] [--clean-con-logfile] [--single-step]
-           [--break LINENO] [--search PATTERN] [--inject-cmd LINENO:CMD]
-           [--inject-file FILE] [--toggles] [--players FILE]
-           [--hackers-base FILE] [--hackers-local FILE]
+           [--tf2-install-dir DIR] [--layout {DFLT,FULL,TALL,WIDE}]
+           [--list-con-logfile] [--trunc-con-logfile] [--clean-con-logfile]
+           [--single-step] [--break LINENO] [--search PATTERN]
+           [--inject-cmd LINENO:CMD] [--inject-file FILE] [--toggles]
+           [--players FILE] [--hackers-base FILE] [--hackers-local FILE]
            [--print-steamid STEAMID] [-h] [-v] [-V] [--config FILE]
            [--print-config] [--print-url]
            [con_logfile]
@@ -42,6 +42,8 @@ By default, `tf2mon` starts reading the con_logfile from its end
     --no-follow         Exit at end of logfile (default: `False`).
     --tf2-install-dir DIR
                         TF2 installation directory (default: `~/tf2`).
+    --layout {DFLT,FULL,TALL,WIDE}
+                        Display grid-layout (default: `DFLT`).
     --list-con-logfile  Show path to logfile and exit.
     --trunc-con-logfile
                         Truncate logfile and exit.

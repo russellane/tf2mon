@@ -13,6 +13,7 @@ from loguru import logger
 from tf2mon.conlog import Conlog
 from tf2mon.logger import configure_logger
 from tf2mon.tf2monitor import TF2Monitor
+from tf2mon.ui import GRID_LAYOUT
 
 
 class Tf2monCLI(BaseCLI):
@@ -124,6 +125,14 @@ class Tf2monCLI(BaseCLI):
             default=Path(self.config["tf2_install_dir"]),
             type=Path,
             help="TF2 installation directory",
+        )
+        self.add_default_to_help(arg)
+
+        arg = self.parser.add_argument(
+            "--layout",
+            choices=[x.name for x in list(GRID_LAYOUT)],
+            default=GRID_LAYOUT.DFLT.name,
+            help="choose display layout",
         )
         self.add_default_to_help(arg)
 
@@ -457,6 +466,9 @@ class Tf2monCLI(BaseCLI):
             cmd = " ".join([self.parser.prog] + sys.argv[1:] + ["2>x"])
             logger.error(f"Please redirect `stderr`; try `{cmd}`")
             sys.exit(0)
+
+        if self.options.layout:  # get enum from name
+            self.options.layout = GRID_LAYOUT.__dict__[self.options.layout]
 
         monitor.run()
 

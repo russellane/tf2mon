@@ -23,6 +23,7 @@ from tf2mon.user import Team, UserState
 # These would have been defined within class UI (because they're only used internally)
 # but `pydoc` doesn't display their values when defined there; it does when defined here.
 
+# [no longer true: GRID_LAYOUT is referenced externally]
 GRID_LAYOUT = Enum("_grid_layout_enum", "DFLT FULL TALL WIDE")
 GRID_LAYOUT.__doc__ = "Grid layout."
 
@@ -104,7 +105,7 @@ class UI:
 
         # the windows may be placed in different arrangements.
         self.grid_layout = Toggle("_grid_layout", GRID_LAYOUT)
-        self.grid_layout.start(GRID_LAYOUT.DFLT)
+        self.grid_layout.start(self.monitor.options.layout or GRID_LAYOUT.DFLT)
         self._grid_layout_classes = {
             GRID_LAYOUT.DFLT: DefaultLayout,
             GRID_LAYOUT.FULL: FullLayout,
