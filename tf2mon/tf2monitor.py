@@ -15,7 +15,7 @@ from tf2mon.admin import Admin
 from tf2mon.conlog import Conlog
 from tf2mon.fkey import FKey, FKeyManager
 from tf2mon.gameplay import Gameplay
-from tf2mon.hacker import HackerManager
+from tf2mon.hacker import HackerAttr, HackerManager
 from tf2mon.msgqueue import MsgQueueManager
 from tf2mon.role import Role
 from tf2mon.spammer import Spammer
@@ -115,8 +115,21 @@ class TF2Monitor:
         self.fkeys.add(self._fkey_sort_order("F7", curses.KEY_F7))
         self.fkeys.add(self._fkey_log_location("F8", curses.KEY_F8))
         self.fkeys.add(self._fkey_grid_layout("F9", curses.KEY_F9))
-
-        self.fkeys.load_fkeys()
+        self.fkeys.add(self._fkey_single_step("KP_DEL", curses.KEY_DC))
+        self.fkeys.add(self._fkey_kick_last_cheater("[", None))
+        self.fkeys.add(self._fkey_kick_last_racist("]", None))
+        self.fkeys.add(self._fkey_kick_last_suspect("\\", None))
+        # numpad
+        self.fkeys.add(self._fkey_kicks_pop("KP_HOME", curses.KEY_HOME))
+        self.fkeys.add(self._fkey_kicks_clear("KP_LEFTARROW", curses.KEY_LEFT))
+        self.fkeys.add(self._fkey_kicks_popleft("KP_END", curses.KEY_END))
+        self.fkeys.add(self._fkey_pull("KP_UPARROW", curses.KEY_UP))
+        self.fkeys.add(self._fkey_clear_queues("KP_5", curses.KEY_B2))
+        self.fkeys.add(self._fkey_push("KP_DOWNARROW", curses.KEY_DOWN))
+        self.fkeys.add(self._fkey_spams_pop("KP_PGUP", curses.KEY_PPAGE))
+        self.fkeys.add(self._fkey_spams_clear("KP_RIGHTARROW", curses.KEY_RIGHT))
+        self.fkeys.add(self._fkey_spams_popleft("KP_PGDN", curses.KEY_NPAGE))
+        #
         self.fkeys.create_tf2_exec_script(self.tf2_scripts_dir / "tf2-monitor-fkeys.cfg")
 
         # admin command handlers
@@ -347,4 +360,175 @@ class TF2Monitor:
             curses_key=curses_key,
             status=lambda: self.ui.grid_layout.value.name,
             handler=lambda m: _action(),
+        )
+
+    def _fkey_single_step(self, game_key: str, curses_key: int) -> FKey:
+
+        return FKey(
+            cmd="SINGLE-STEP",
+            game_key=game_key,
+            curses_key=curses_key,
+            handler=lambda m: self.admin.start_single_stepping(),
+        )
+
+    def _fkey_kick_last_cheater(self, game_key: str, curses_key: int) -> FKey:
+
+        return FKey(
+            cmd="KICK-LAST-CHEATER",
+            game_key=game_key,
+            curses_key=curses_key,
+            status=lambda: HackerAttr.CHEATER.name,
+            handler=lambda m: self.kick_my_last_killer(HackerAttr.CHEATER),
+        )
+
+    def _fkey_kick_last_racist(self, game_key: str, curses_key: int) -> FKey:
+
+        return FKey(
+            cmd="KICK-LAST-RACIST",
+            game_key=game_key,
+            curses_key=curses_key,
+            status=lambda: HackerAttr.RACIST.name,
+            handler=lambda m: self.kick_my_last_killer(HackerAttr.RACIST),
+        )
+
+    def _fkey_kick_last_suspect(self, game_key: str, curses_key: int) -> FKey:
+
+        return FKey(
+            cmd="KICK-LAST-SUSPECT",
+            game_key=game_key,
+            curses_key=curses_key,
+            status=lambda: HackerAttr.SUSPECT.name,
+            handler=lambda m: self.kick_my_last_killer(HackerAttr.SUSPECT),
+        )
+
+    # --------------------------------------------------------------------------
+    # Numpad
+    #                      kicks     admin     spams
+    #                        |         |         |
+    #                        v         v         v
+    #                   +-----------------------------+
+    #        last/      |         |         |         |
+    #        latest --> |   pop   |  pull   |   pop   |
+    #                   |         |         |         |
+    #                   |---------+---------+---------|
+    #                   |         |         |         |
+    #                   |  clear  |  clear  |  clear  |
+    #                   |         |  both   |         |
+    #                   |---------+---------+---------|
+    #        first/     |         |         |         |
+    #        oldest --> | popleft |  push   | popleft |
+    #                   |         |         |         |
+    #                   +-----------------------------+
+
+    def _fkey_kicks_pop(self, game_key: str, curses_key: int) -> FKey:
+
+        return FKey(
+            cmd="KICKS-POP",
+            game_key=game_key,
+            curses_key=curses_key,
+            handler=lambda m: (
+                self.kicks.pop(),
+                self.ui.refresh_kicks(),
+            ),
+            action="tf2mon_kicks_pop",
+        )
+
+    def _fkey_kicks_clear(self, game_key: str, curses_key: int) -> FKey:
+
+        return FKey(
+            cmd="KICKS-CLEAR",
+            game_key=game_key,
+            curses_key=curses_key,
+            handler=lambda m: (
+                self.kicks.clear(),
+                self.ui.refresh_kicks(),
+            ),
+            action="tf2mon_kicks_clear",
+        )
+
+    def _fkey_kicks_popleft(self, game_key: str, curses_key: int) -> FKey:
+
+        return FKey(
+            cmd="KICKS-POPLEFT",
+            game_key=game_key,
+            curses_key=curses_key,
+            handler=lambda m: (
+                self.kicks.popleft(),
+                self.ui.refresh_kicks(),
+            ),
+            action="tf2mon_kicks_popleft",
+        )
+
+    def _fkey_pull(self, game_key: str, curses_key: int) -> FKey:
+
+        return FKey(
+            cmd="PULL",
+            game_key=game_key,
+            curses_key=curses_key,
+            # handler=lambda m: logger.trace('pull'),
+            action="tf2mon_pull",
+        )
+
+    def _fkey_clear_queues(self, game_key: str, curses_key: int) -> FKey:
+
+        return FKey(
+            cmd="CLEAR-QUEUES",
+            game_key=game_key,
+            curses_key=curses_key,
+            handler=lambda m: (
+                self.kicks.clear(),
+                self.ui.refresh_kicks(),
+                self.spams.clear(),
+                self.ui.refresh_spams(),
+            ),
+            action="tf2mon_clear_queues",
+        )
+
+    def _fkey_push(self, game_key: str, curses_key: int) -> FKey:
+
+        return FKey(
+            cmd="PUSH",
+            game_key=game_key,
+            curses_key=curses_key,
+            # handler=lambda m: logger.trace('push'),
+            action="tf2mon_push",
+        )
+
+    def _fkey_spams_pop(self, game_key: str, curses_key: int) -> FKey:
+
+        return FKey(
+            cmd="SPAMS-POP",
+            game_key=game_key,
+            curses_key=curses_key,
+            handler=lambda m: (
+                self.spams.pop(),
+                self.ui.refresh_spams(),
+            ),
+            action="tf2mon_spams_pop",
+        )
+
+    def _fkey_spams_clear(self, game_key: str, curses_key: int) -> FKey:
+
+        return FKey(
+            cmd="SPAMS-CLEAR",
+            game_key=game_key,
+            curses_key=curses_key,
+            handler=lambda m: (
+                self.spams.clear(),
+                self.ui.refresh_spams(),
+            ),
+            action="tf2mon_spams_clear",
+        )
+
+    def _fkey_spams_popleft(self, game_key: str, curses_key: int) -> FKey:
+
+        return FKey(
+            cmd="SPAMS-POPLEFT",
+            game_key=game_key,
+            curses_key=curses_key,
+            handler=lambda m: (
+                self.spams.popleft(),
+                self.ui.refresh_spams(),
+            ),
+            action="tf2mon_spams_popleft",
         )
