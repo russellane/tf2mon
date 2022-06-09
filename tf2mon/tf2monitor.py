@@ -199,3 +199,61 @@ class TF2Monitor:
         # pylint: disable=protected-access
         for user in self.users._users_by_username.values():
             logger.success(pformat(user.__dict__))
+
+    @property
+    def toggling_enabled(self) -> bool:
+        """Return True if toggling is enabled.
+
+        Don't allow toggling when replaying a game (`--rewind`),
+        unless `--toggles` is also given... or if single-stepping
+
+        This is checked by keys that alter the behavior of gameplay;
+        it is not checked by keys that only alter the display.
+        """
+
+        return self.conlog.is_eof or self.options.toggles or self.admin.is_single_stepping
+
+    def toggle_debug_flag(self) -> None:
+        """F2."""
+        if self.toggling_enabled:
+            _ = self.ui.debug_flag.toggle
+            self.ui.show_status()
+
+    def toggle_taunt_flag(self) -> None:
+        """F3."""
+        if self.toggling_enabled:
+            _ = self.ui.taunt_flag.toggle
+            self.ui.show_status()
+
+    def toggle_show_kd(self) -> None:
+        """F4."""
+        if self.toggling_enabled:
+            _ = self.ui.show_kd.toggle
+            self.ui.show_status()
+
+    def toggle_user_panel(self) -> None:
+        """F5."""
+        _ = self.ui.user_panel.toggle
+        self.ui.update_display()
+
+    def join_other_team(self) -> None:
+        """F6."""
+        if self.toggling_enabled:
+            self.me.assign_team(self.my.opposing_team)
+            self.ui.update_display()
+
+    def toggle_sort_order(self) -> None:
+        """F7."""
+        self.ui.set_sort_order(self.ui.sort_order.toggle)
+        self.ui.update_display()
+
+    def toggle_log_location(self) -> None:
+        """F8."""
+        self.ui.cycle_log_location()
+        self.ui.show_status()
+
+    def toggle_grid_layout(self) -> None:
+        """F9."""
+        if self.toggling_enabled:  # not ready to disregard.
+            self.ui.cycle_grid_layout()
+            self.ui.update_display()

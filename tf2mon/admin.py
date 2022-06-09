@@ -17,7 +17,7 @@ class Admin:
 
         self.monitor = monitor
         self._single_step_event = threading.Event()
-        self._is_single_stepping = self.monitor.options.single_step
+        self.is_single_stepping = self.monitor.options.single_step
         self._single_step_re = None
 
         if pattern := self.monitor.options.search:
@@ -25,7 +25,7 @@ class Admin:
                 pattern = pattern[1:]
             self.set_single_step_pattern(pattern)
 
-        if self._is_single_stepping:
+        if self.is_single_stepping:
             self.start_single_stepping()
         else:
             self._stop_single_stepping()
@@ -94,13 +94,13 @@ class Admin:
     def start_single_stepping(self):
         """Begin prompting operator before processing each line from con_logfile."""
 
-        self._is_single_stepping = True
+        self.is_single_stepping = True
         self._single_step_event.clear()
 
     def _stop_single_stepping(self):
         """End prompting operator before processing each line from con_logfile."""
 
-        self._is_single_stepping = False
+        self.is_single_stepping = False
         self._single_step_event.set()
 
     def set_single_step_lineno(self, lineno=0):
@@ -153,20 +153,20 @@ class Admin:
         # start single stepping if pattern match
         if (
             self._single_step_re
-            and not self._is_single_stepping
+            and not self.is_single_stepping
             and self._single_step_re.search(line)
         ):
             flags = "i" if (self._single_step_re.flags & re.IGNORECASE) else ""
             logger.log("ADMIN", f"break search /{self._single_step_re.pattern}/{flags}")
             self.start_single_stepping()
 
-        level = "nextline" if self._is_single_stepping else "logline"
+        level = "nextline" if self.is_single_stepping else "logline"
         logger.log(level, "-" * 80)
         logger.log(level, self.monitor.conlog.last_line)
 
         # check gate
         self._single_step_event.wait()
-        if self._is_single_stepping:
+        if self.is_single_stepping:
             self._single_step_event.clear()
 
     def repl(self):
@@ -177,7 +177,7 @@ class Admin:
             self.monitor.ui.update_display()
 
             prompt = self.monitor.appname
-            if self._is_single_stepping:
+            if self.is_single_stepping:
                 prompt += " (single-stepping)"
             prompt += ": "
 

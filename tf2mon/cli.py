@@ -190,6 +190,13 @@ class Tf2monCLI(BaseCLI):
             help="read list of inject commands from `FILE`",
         )
 
+        arg = group.add_argument(
+            "--toggles",
+            action="store_true",
+            help="allow toggles when `--rewind`",
+        )
+        self.add_default_to_help(arg)
+
         group = self.parser.add_argument_group("Database options")
 
         arg = group.add_argument(
