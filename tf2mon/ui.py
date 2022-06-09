@@ -9,6 +9,10 @@ from enum import Enum
 import libcurses
 from loguru import logger
 
+from tf2mon.layouts.default import DefaultLayout
+from tf2mon.layouts.full import FullLayout
+from tf2mon.layouts.tall import TallLayout
+from tf2mon.layouts.wide import WideLayout
 from tf2mon.scoreboard import Scoreboard
 from tf2mon.toggle import Toggle
 from tf2mon.user import Team, UserState
@@ -19,19 +23,17 @@ from tf2mon.user import Team, UserState
 # These would have been defined within class UI (because they're only used internally)
 # but `pydoc` doesn't display their values when defined there; it does when defined here.
 
-GRID_LAYOUT = Enum("_grid_layout_enum", "WIDE TALL")
+GRID_LAYOUT = Enum("_grid_layout_enum", "DFLT FULL TALL WIDE")
 GRID_LAYOUT.__doc__ = "Grid layout."
 
 USER_PANEL = Enum("_user_panel_enum", "AUTO DUELS KICKS SPAMS")
-USER_PANEL.__doc__ = "What to display in the user window"
+USER_PANEL.__doc__ = "Contents of user panel."
 
 LOG_LOCATION = Enum("_log_location_enum", "MOD FILE THREAD NOLOC")
-LOG_LOCATION.__doc__ = (
-    "How to format the location field of messages displayed in the logger window."
-)
+LOG_LOCATION.__doc__ = "Format of logger location field."
 
-SORT_ORDER = Enum("_so", "STEAMID K KD USERNAME")
-SORT_ORDER.__doc__ = "Column to sort the scoreboard by."
+SORT_ORDER = Enum("_sort_order_enum", "STEAMID K KD USERNAME")
+SORT_ORDER.__doc__ = "Scoreboard sort column."
 
 
 class UI:
@@ -55,14 +57,37 @@ class UI:
         """
 
         self.monitor = monitor
-        self.max_users = 32
+        self.notify_operator = False
+        self.sound_alarm = False
+
+        # F2 Toggle Debug (control `say` vs `echo`).
+        self.debug_flag = Toggle("_df", [False, True])
+
+        # F3 Enable/disable Taunts and Throes.
+        self.taunt_flag = Toggle("_tf", [False, True])
+        self.throe_flag = Toggle("_gf", [True, False])
+
+        # F4 Include kd-ratio in messages (`User.moniker`)
+        self.show_kd = Toggle("_kd", [False, True])
+
+        # F5 Control User-panel display: Kicks, Spams, Duels and Auto.
+        self.user_panel = Toggle("_up", USER_PANEL)
+
+        # options when displaying USER_PANEL.USER
+        # self.show_actions = Toggle("_sa", [True, False])
+        # if self.show_actions.value:
+        #     lines.extend(user.actions)
+
+        # Format of logger location field.
+        self.log_location = Toggle("_ll", LOG_LOCATION)
+        self.log_location.start(LOG_LOCATION.MOD)
+
+        # Scoreboard sort column.
+        self.sort_order = Toggle("_so", SORT_ORDER)
+        self.sort_order.start(SORT_ORDER.KD)
 
         # create empty grid
         self.grid = libcurses.Grid(win)
-
-        # promote some grid methods.
-        self.redraw = self.grid.redraw
-        self.refresh = self.grid.refresh
 
         # `self._build_grid` creates these windows, sized to fill `win`.
         self.chatwin_blu: curses.window = None
@@ -70,18 +95,23 @@ class UI:
         self.scorewin_blu: curses.window = None
         self.scorewin_red: curses.window = None
         self.user_win: curses.window = None
+        self.kicks_win: curses.window = None
+        self.spams_win: curses.window = None
+        self.duels_win: curses.window = None
         self.logger_win: curses.window = None
         self.status_win: curses.window = None
         self.cmdline_win: curses.window = None
 
         # the windows may be placed in different arrangements.
         self.grid_layout = Toggle("_grid_layout", GRID_LAYOUT)
-        self.grid_layout.start(GRID_LAYOUT.WIDE)
-        self._build_grid_layouts = {
-            GRID_LAYOUT.WIDE: self._build_grid_layout_wide,
-            GRID_LAYOUT.TALL: self._build_grid_layout_tall,
+        self.grid_layout.start(GRID_LAYOUT.DFLT)
+        self._grid_layout_classes = {
+            GRID_LAYOUT.DFLT: DefaultLayout,
+            GRID_LAYOUT.FULL: FullLayout,
+            GRID_LAYOUT.TALL: TallLayout,
+            GRID_LAYOUT.WIDE: WideLayout,
         }
-        self._do_build_grid = self._build_grid_layouts[self.grid_layout.value]
+        self._grid_layout_class = self._grid_layout_classes[self.grid_layout.value]
 
         # `register_builder` 1) calls `_build_grid` and 2) configures
         # `KEY_RESIZE` to call it again each time that event occurs.
@@ -93,6 +123,7 @@ class UI:
         #
         self._curses_logwin = libcurses.LoggerWindow(self.logger_win)
         self._curses_logwin.set_verbose(self.monitor.options.verbose)
+        self._curses_logwin.set_location(self._log_locations[self.log_location.value])
         self.colormap = self._curses_logwin.colormap
 
         #
@@ -104,258 +135,84 @@ class UI:
             self.colormap[Team.RED.name],
         )
 
-        #
-        self.debug_flag = Toggle("_df", [False, True])
-        self.taunt_flag = Toggle("_tf", [False, True])
-        self.throe_flag = Toggle("_gf", [True, False])
-
-        # control contents of user window
-        self.user_panel = Toggle("_up", USER_PANEL)
-
-        # options when displaying USER_PANEL.USER
-        self.show_duels = Toggle("_sd", [True, False])
-        self.show_actions = Toggle("_sa", [True, False])
-        self.show_chats = Toggle("_sc", [False, True])
-
-        # how to format the location field of messages displayed in the logger window.
-        self.log_location = Toggle("_ll", LOG_LOCATION)
-        self.log_location.start(LOG_LOCATION.MOD)
-        self._curses_logwin.set_location(self._log_locations[self.log_location.value])
-
-        # if to show kd ratio in User.moniker.
-        self.show_kd = Toggle("_kd", [False, True])
-
-        # how to sort users in the scoreboard.
-        self.sort_order = Toggle("_so", SORT_ORDER)
-        self.sort_order.start(SORT_ORDER.KD)
         self.set_sort_order(self.sort_order.value)
 
-        #
-        self.notify_operator = False
-        self.sound_alarm = False
-
     def cycle_grid_layout(self):
-        """Cycle through grid layouts."""
+        """Use next grid layout."""
 
-        self._do_build_grid = self._build_grid_layouts[self.grid_layout.cycle]
-        self._build_grid()
+        self._grid_layout_class = self._grid_layout_classes[self.grid_layout.cycle]
+
+        self.chatwin_blu = None
+        self.chatwin_red = None
+        self.scorewin_blu = None
+        self.scorewin_red = None
+        self.user_win = None
+        self.kicks_win = None
+        self.spams_win = None
+        self.duels_win = None
+        self.logger_win = None
+        self.status_win = None
+        self.cmdline_win = None
+
+        # pylint: disable=protected-access
+        self.grid._handle_term_resized_event()
+        self.grid._draw_box(self.grid.nlines, self.grid.ncols, 0, 0)
+        self.grid.boxes = [self.grid.win]
+        self.grid.boxnames = {self.grid.win: "grid"}
+        logger.trace(self)
 
     def _build_grid(self):
         """Add boxes to grid.
 
-        Called at init, on KEY_RESIZE events, and when grid_layout is cycled.
+        Called at init, on KEY_RESIZE events, and when grid_layout changes.
         """
 
         try:
-            self._do_build_grid()
+            layout = self._grid_layout_class(self.grid)
         except AssertionError:
             curses.endwin()
             logger.error("Terminal too small; try `Maximize` and `Ctrl+Minus`.")
-            sys.exit(0)
+            raise
+            sys.exit(0)  # noqa
 
-        #
-        self.chatwin_blu.scrollok(True)
-        self.chatwin_red.scrollok(True)
-        self.scorewin_blu.scrollok(False)
-        self.scorewin_red.scrollok(False)
-        self.user_win.scrollok(True)
-        self.logger_win.scrollok(True)
-        self.status_win.scrollok(False)
-        self.cmdline_win.scrollok(True)
-        #
-        self.cmdline_win.keypad(True)
-        #
-        self.redraw()
+        # promote
+        self.chatwin_blu = layout.chatwin_blu
+        self.chatwin_red = layout.chatwin_red
+        self.scorewin_blu = layout.scorewin_blu
+        self.scorewin_red = layout.scorewin_red
+        self.user_win = layout.user_win
+        self.kicks_win = layout.kicks_win
+        self.spams_win = layout.spams_win
+        self.duels_win = layout.duels_win
+        self.logger_win = layout.logger_win
+        self.status_win = layout.status_win
+        self.cmdline_win = layout.cmdline_win
 
-    def _build_grid_layout_wide(self):
-        """Horizontal layout.
+        if self.chatwin_blu:
+            self.chatwin_blu.scrollok(True)
+        if self.chatwin_red:
+            self.chatwin_red.scrollok(True)
+        if self.scorewin_blu:
+            self.scorewin_blu.scrollok(False)
+        if self.scorewin_red:
+            self.scorewin_red.scrollok(False)
+        if self.user_win:
+            self.user_win.scrollok(False)
+        if self.kicks_win:
+            self.kicks_win.scrollok(False)
+        if self.spams_win:
+            self.spams_win.scrollok(False)
+        if self.duels_win:
+            self.duels_win.scrollok(False)
+        if self.logger_win:
+            self.logger_win.scrollok(True)
+        if self.status_win:
+            self.status_win.scrollok(False)
+        if self.cmdline_win:
+            self.cmdline_win.scrollok(True)
+            self.cmdline_win.keypad(True)
 
-        +-------------------+----------------------+
-        | chatwin_blu       | chatwin_red          |  section 1
-        |                   |                      |
-        +-------------------+----------------------+
-        | scorewin_blu      | scorewin_red         |  section 2
-        |                   |                      |
-        +--------------+----+----------------------+
-        | user_win     | logger_win                |  section 3
-        |              |                           |
-        +--------------+--------+------------------+
-        | status_win            | cmdline_win      |  section 4
-        +-----------------------+------------------+
-        """
-
-        # section 1
-        self.chatwin_blu = self.grid.box(
-            "chatwin_blu",
-            nlines=10,
-            ncols=int(self.grid.ncols / 2),
-            left=self.grid,
-            top=self.grid,
-        )
-
-        self.chatwin_red = self.grid.box(
-            "chatwin_red",
-            nlines=0,
-            ncols=0,
-            left2r=self.chatwin_blu,
-            right=self.grid,
-            top=self.chatwin_blu,
-            bottom=self.chatwin_blu,
-        )
-
-        # section 2
-        self.scorewin_blu = self.grid.box(
-            "scorewin_blu",
-            nlines=int(self.max_users / 2) + 2 + 1,  # 2=borders (top and bottom), 1=header.
-            ncols=int(self.grid.ncols / 2),
-            left=self.grid,
-            top2b=self.chatwin_blu,
-        )
-
-        self.scorewin_red = self.grid.box(
-            "scorewin_red",
-            nlines=0,
-            ncols=0,
-            left2r=self.scorewin_blu,
-            right=self.grid,
-            top=self.scorewin_blu,
-            bottom=self.scorewin_blu,
-        )
-
-        # section 4
-        self.status_win = self.grid.box(
-            "status",
-            nlines=3,
-            ncols=int(2 * self.grid.ncols / 3),
-            left=self.grid,
-            bottom=self.grid,
-        )
-
-        self.cmdline_win = self.grid.box(
-            "cmdline",
-            nlines=3,
-            ncols=0,
-            left2r=self.status_win,
-            right=self.grid,
-            bottom=self.grid,
-        )
-
-        # section 3 - fills gap between sections 2 and 4
-        self.user_win = self.grid.box(
-            "user",
-            nlines=0,
-            ncols=int(self.grid.ncols / 3),
-            left=self.grid,
-            top2b=self.scorewin_blu,
-            bottom2t=self.status_win,
-        )
-
-        self.logger_win = self.grid.box(
-            "logwin",
-            nlines=0,
-            ncols=0,
-            left2r=self.user_win,
-            right=self.grid,
-            top=self.user_win,
-            bottom=self.user_win,
-        )
-
-    def _build_grid_layout_tall(self):
-        """Vertical layout.
-
-        +-------------------+----------------------+
-        | scorewin_blu      | chatwin_blu          |  section 1
-        |                   |                      |
-        +-------------------+----------------------+
-        | scorewin_red      | chatwin_red          |  section 2
-        |                   |                      |
-        +--------------+----+----------------------+
-        | user_win     | logger_win                |  section 3
-        |              |                           |
-        +--------------+--------+------------------+
-        | status_win            | cmdline_win      |  section 4
-        +-----------------------+------------------+
-        """
-
-        # 124=len(self._scoreboard._formatted_header) + 2=borders (left and right) + 1=padding
-
-        width = min(124, int(2 * self.grid.ncols / 3))
-
-        # section 1
-        self.scorewin_blu = self.grid.box(
-            "scorewin_blu",
-            nlines=int(self.max_users / 2) + 2 + 1,  # 2=borders (top and bottom), 1=header.
-            ncols=width,
-            left=self.grid,
-            top=self.grid,
-        )
-
-        self.chatwin_blu = self.grid.box(
-            "chatwin_blu",
-            nlines=0,
-            ncols=0,
-            left2r=self.scorewin_blu,
-            right=self.grid,
-            top=self.scorewin_blu,
-            bottom=self.scorewin_blu,
-        )
-
-        # section 2
-        self.scorewin_red = self.grid.box(
-            "scorewin_red",
-            nlines=int(self.max_users / 2) + 2 + 1,  # 2=borders (top and bottom), 1=header.
-            ncols=width,
-            left=self.grid,
-            top2b=self.scorewin_blu,
-        )
-
-        self.chatwin_red = self.grid.box(
-            "chatwin_red",
-            nlines=0,
-            ncols=0,
-            left2r=self.scorewin_red,
-            right=self.grid,
-            top=self.scorewin_red,
-            bottom=self.scorewin_red,
-        )
-
-        # section 4
-        self.status_win = self.grid.box(
-            "status",
-            nlines=3,
-            ncols=int(2 * self.grid.ncols / 3),
-            left=self.grid,
-            bottom=self.grid,
-        )
-
-        self.cmdline_win = self.grid.box(
-            "cmdline",
-            nlines=3,
-            ncols=0,
-            left2r=self.status_win,
-            right=self.grid,
-            bottom=self.grid,
-        )
-
-        # section 3 - fills gap between sections 2 and 4
-        self.user_win = self.grid.box(
-            "user",
-            nlines=0,
-            ncols=int(self.grid.ncols / 3),
-            left=self.grid,
-            top2b=self.scorewin_red,
-            bottom2t=self.status_win,
-        )
-
-        self.logger_win = self.grid.box(
-            "logwin",
-            nlines=0,
-            ncols=0,
-            left2r=self.user_win,
-            right=self.grid,
-            top=self.user_win,
-            bottom=self.user_win,
-        )
+        self.grid.redraw()
 
     def cycle_log_location(self):
         """Cycle format of location in messages displayed in logger window."""
@@ -385,38 +242,71 @@ class UI:
         if self.sound_alarm:
             self.sound_alarm = False
             if self.monitor.conlog.is_eof:  # don't do this when replaying logfile from start
+                ...
                 # playsound('/usr/share/sounds/sound-icons/prompt.wav')
                 # playsound('/usr/share/sounds/sound-icons/cembalo-10.wav')
-                curses.flash()
+                # curses.flash()
                 # curses.beep()
 
-        #
-        if self.user_panel.value == USER_PANEL.KICKS or (
-            self.user_panel.value == USER_PANEL.AUTO and self.monitor.kicks.msgs
-        ):
-            self._show_lines("KICKS", reversed(self.monitor.kicks.msgs), self.user_win)
-        #
-        elif self.user_panel.value == USER_PANEL.SPAMS or (
-            self.user_panel.value == USER_PANEL.AUTO and self.monitor.spams.msgs
-        ):
-            self._show_lines("SPAMS", reversed(self.monitor.spams.msgs), self.user_win)
-        #
-        else:
-            self._show_user(self.monitor.me)
-
+        self.refresh_kicks()
+        self.refresh_spams()
+        self.refresh_duels(self.monitor.me)
+        self.refresh_user(self.monitor.me)
         # chatwin_blu and chatwin_red are rendered from gameplay/_playerchat
-
-        #
         self._scoreboard.show_scores(
             team1=list(self.monitor.users.active_team_users(Team.BLU)),
             team2=list(self.monitor.users.active_team_users(Team.RED)),
         )
-
-        #
         self.show_status()
+        self.grid.refresh()
 
-        #
-        self.refresh()
+    def refresh_kicks(self):
+        """Refresh kicks panel."""
+
+        if self.kicks_win:
+            # ic(self.kicks_win.getbegyx())
+            # ic(self.kicks_win.getmaxyx())
+            self._show_lines("KICKS", reversed(self.monitor.kicks.msgs), self.kicks_win)
+
+        # if self.user_win:
+        #     self.refresh_user(self.monitor.me)
+
+    def refresh_spams(self):
+        """Refresh spams panel."""
+
+        if self.spams_win:
+            self._show_lines("SPAMS", reversed(self.monitor.spams.msgs), self.spams_win)
+
+        if self.user_win:
+            self.refresh_user(self.monitor.me)
+
+    def refresh_duels(self, user):
+        """Refresh duels panel."""
+
+        if self.duels_win:
+            self._show_lines("user", self._format_duels(user), self.duels_win)
+
+        if self.user_win:
+            self.refresh_user(self.monitor.me)
+
+    def refresh_user(self, user):
+        """Refresh user panel."""
+
+        if self.user_win:
+            if self.user_panel.value == USER_PANEL.KICKS or (
+                self.user_panel.value == USER_PANEL.AUTO and self.monitor.kicks.msgs
+            ):
+                self._show_lines("KICKS", reversed(self.monitor.kicks.msgs), self.user_win)
+            #
+            elif self.user_panel.value == USER_PANEL.SPAMS or (
+                self.user_panel.value == USER_PANEL.AUTO and self.monitor.spams.msgs
+            ):
+                self._show_lines("SPAMS", reversed(self.monitor.spams.msgs), self.user_win)
+            #
+            else:
+                self._show_lines("user", self._format_duels(user), self.user_win)
+
+            self.user_win.noutrefresh()
 
     def user_color(self, user, color):
         """Return `color` to display `user` in scoreboard."""
@@ -437,22 +327,28 @@ class UI:
             color |= curses.A_UNDERLINE
 
         if user.cloner:
-            color |= curses.A_BLINK
+            color |= curses.A_ITALIC
 
         return color
 
     def show_chat(self, chat):
         """Display (append) `chat` in appropriate team window."""
 
-        line = f"{chat.seqno}: {chat.user.username:20.20}: {chat.msg}"
+        win = None
+        if chat.user.team == Team.RED:
+            win = self.chatwin_red
+        if not win:
+            win = self.chatwin_blu  # unassigned, or RED in shared window.
+        if not win:
+            return  # not showing chats
 
-        win = self.chatwin_blu if chat.user.team == Team.BLU else self.chatwin_red
         color = self.colormap[chat.user.team.name if chat.user.team else "user"]
         if chat.teamflag:
             color |= curses.A_UNDERLINE
 
         if sum(win.getyx()):
             win.addch("\n")
+        line = f"{chat.seqno}: {chat.user.username:20.20}: {chat.msg}"
         win.addstr(line, self.user_color(chat.user, color))
         win.noutrefresh()
 
@@ -460,25 +356,11 @@ class UI:
         """Clear the chat windows."""
 
         now = time.asctime()
-        for win in (self.chatwin_blu, self.chatwin_red):
+        for win in [x for x in (self.chatwin_blu, self.chatwin_red) if x]:
             win.erase()
             win.addstr(now)
 
-    #    def _show_chats(self, chats):
-    #
-    #        blu, red = [], []
-    #
-    #        for chat in chats:
-    #            s = f'{chat.seqno}: {chat.user.username:.20}: {chat.msg}\n'
-    #            if chat.team == Team.BLU:
-    #                blu.append(s)
-    #            else:
-    #                red.append(s)
-    #
-    #        self._show_lines('BLU', blu, self.chatwin_blu)
-    #        self._show_lines('RED', red, self.chatwin_red)
-
-    def _show_user(self, user):
+    def _format_duels(self, user):
 
         lines = []
         indent = " " * 12  # 12=len("99 and 99 vs")
@@ -495,13 +377,7 @@ class UI:
                 for weapon, count in opponent.nkills_by_opponent_by_weapon[user.key].items():
                     lines.append(f"{indent} D {count:2} {weapon}")
 
-        if self.show_actions.value:
-            lines.extend(user.actions)
-
-        if self.show_chats.value:
-            lines.extend([x.msg for x in user.chats])
-
-        self._show_lines("user", lines, self.user_win)
+        return lines
 
     def show_status(self):
         """Update status line."""
@@ -521,9 +397,10 @@ class UI:
 
         win.erase()
 
-        for line in lines:
-            with contextlib.suppress(curses.error):
+        with contextlib.suppress(curses.error):
+            for line in lines:
                 win.addstr(line + "\n", self.colormap[level])
+        win.noutrefresh()
 
     def show_help(self):
         """Show help."""

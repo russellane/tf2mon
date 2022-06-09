@@ -269,21 +269,30 @@ class FKeyManager:
                 cmd="KICKS-POP",
                 game_key="KP_HOME",
                 curses_key=curses.KEY_HOME,
-                handler=lambda m: self.monitor.kicks.pop(),
+                handler=lambda m: (
+                    self.monitor.kicks.pop(),
+                    self.monitor.ui.refresh_kicks(),
+                ),
                 action="tf2mon_kicks_pop",
             ),
             FKey(
                 cmd="KICKS-CLEAR",
                 game_key="KP_LEFTARROW",
                 curses_key=curses.KEY_LEFT,
-                handler=lambda m: self.monitor.kicks.clear(),
+                handler=lambda m: (
+                    self.monitor.kicks.clear(),
+                    self.monitor.ui.refresh_kicks(),
+                ),
                 action="tf2mon_kicks_clear",
             ),
             FKey(
                 cmd="KICKS-POPLEFT",
                 game_key="KP_END",
                 curses_key=curses.KEY_END,
-                handler=lambda m: self.monitor.kicks.popleft(),
+                handler=lambda m: (
+                    self.monitor.kicks.popleft(),
+                    self.monitor.ui.refresh_kicks(),
+                ),
                 action="tf2mon_kicks_popleft",
             ),
             # admin
@@ -298,7 +307,12 @@ class FKeyManager:
                 cmd="CLEAR-QUEUES",
                 game_key="KP_5",
                 curses_key=curses.KEY_B2,
-                handler=lambda m: self.monitor.msgqueues.clear(),
+                handler=lambda m: (
+                    self.monitor.kicks.clear(),
+                    self.monitor.ui.refresh_kicks(),
+                    self.monitor.spams.clear(),
+                    self.monitor.ui.refresh_spams(),
+                ),
                 action="tf2mon_clear_queues",
             ),
             FKey(
@@ -313,21 +327,30 @@ class FKeyManager:
                 cmd="SPAMS-POP",
                 game_key="KP_PGUP",
                 curses_key=curses.KEY_PPAGE,
-                handler=lambda m: self.monitor.spams.pop(),
+                handler=lambda m: (
+                    self.monitor.spams.pop(),
+                    self.monitor.ui.refresh_spams(),
+                ),
                 action="tf2mon_spams_pop",
             ),
             FKey(
                 cmd="SPAMS-CLEAR",
                 game_key="KP_RIGHTARROW",
                 curses_key=curses.KEY_RIGHT,
-                handler=lambda m: self.monitor.spams.clear(),
+                handler=lambda m: (
+                    self.monitor.spams.clear(),
+                    self.monitor.ui.refresh_spams(),
+                ),
                 action="tf2mon_spams_clear",
             ),
             FKey(
                 cmd="SPAMS-POPLEFT",
                 game_key="KP_PGDN",
                 curses_key=curses.KEY_NPAGE,
-                handler=lambda m: self.monitor.spams.popleft(),
+                handler=lambda m: (
+                    self.monitor.spams.popleft(),
+                    self.monitor.ui.refresh_spams(),
+                ),
                 action="tf2mon_spams_popleft",
             ),
         ]
