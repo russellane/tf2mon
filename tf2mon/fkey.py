@@ -86,7 +86,12 @@ class FKeyManager:
 
         FKey.cmd_prefix = monitor.cmd_prefix
         self.monitor = monitor
-        self._fkeys = self._load_fkeys()
+        self._fkeys = []
+
+    def add(self, fkey: FKey) -> None:
+        """Add `fkey` to collection."""
+
+        self._fkeys.append(fkey)
 
     def create_tf2_exec_script(self, path):
         """Create tf2 exec script of keyboard BIND commands.
@@ -131,76 +136,15 @@ class FKeyManager:
 
         return doc
 
-    def _load_fkeys(self):
+    def load_fkeys(self):
+        """Legacy."""
+
         def _on_off(k, v):
             return k.upper() if v else k
 
         monitor = self.monitor
 
-        return [
-            FKey(
-                cmd="HELP",
-                game_key="F1",
-                curses_key=curses.KEY_F1,
-                status=lambda: "HELP",
-                handler=lambda m: monitor.ui.show_help(),
-            ),
-            FKey(
-                cmd="TOGGLE-DEBUG",
-                game_key="F2",
-                curses_key=curses.KEY_F2,
-                status=lambda: _on_off("debug", monitor.ui.debug_flag.value),
-                handler=lambda m: monitor.toggle_debug_flag(),
-            ),
-            FKey(
-                cmd="TOGGLE-TAUNT",
-                game_key="F3",
-                curses_key=curses.KEY_F3,
-                status=lambda: _on_off("taunt", monitor.ui.taunt_flag.value),
-                handler=lambda m: monitor.toggle_taunt_flag(),
-            ),
-            FKey(
-                cmd="TOGGLE-KD",
-                game_key="F4",
-                curses_key=curses.KEY_F4,
-                status=lambda: _on_off("kd", monitor.ui.show_kd.value),
-                handler=lambda m: monitor.toggle_show_kd(),
-            ),
-            FKey(
-                cmd="TOGGLE-USER-PANEL",
-                game_key="F5",
-                curses_key=curses.KEY_F5,
-                status=lambda: monitor.ui.user_panel.value.name,
-                handler=lambda m: monitor.toggle_user_panel(),
-            ),
-            FKey(
-                cmd="SWITCH-MY-TEAM",
-                game_key="F6",
-                curses_key=curses.KEY_F6,
-                status=lambda: monitor.my.team.name if monitor.my.team else "blu",
-                handler=lambda m: monitor.join_other_team(),
-            ),
-            FKey(
-                cmd="TOGGLE-SORT",
-                game_key="F7",
-                curses_key=curses.KEY_F7,
-                status=lambda: monitor.ui.sort_order.value.name,
-                handler=lambda m: monitor.toggle_sort_order(),
-            ),
-            FKey(
-                cmd="TOGGLE-LOG-LOCATION",
-                game_key="F8",
-                curses_key=curses.KEY_F8,
-                status=lambda: monitor.ui.log_location.value.name,
-                handler=lambda m: monitor.toggle_log_location(),
-            ),
-            FKey(
-                cmd="TOGGLE-GRID-LAYOUT",
-                game_key="F9",
-                curses_key=curses.KEY_F9,
-                status=lambda: monitor.ui.grid_layout.value.name,
-                handler=lambda m: monitor.toggle_grid_layout(),
-            ),
+        fkeys = [
             FKey(
                 cmd="SINGLE-STEP",
                 game_key="KP_DEL",
@@ -335,3 +279,5 @@ class FKeyManager:
                 action="tf2mon_spams_popleft",
             ),
         ]
+
+        self._fkeys.extend(fkeys)

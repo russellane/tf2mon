@@ -13,7 +13,7 @@ from loguru import logger
 
 from tf2mon.admin import Admin
 from tf2mon.conlog import Conlog
-from tf2mon.fkey import FKeyManager
+from tf2mon.fkey import FKey, FKeyManager
 from tf2mon.gameplay import Gameplay
 from tf2mon.hacker import HackerManager
 from tf2mon.msgqueue import MsgQueueManager
@@ -32,6 +32,8 @@ class TF2Monitor:
 
     def __init__(self, options: argparse.Namespace, config: {}) -> None:
         """Initialize monitor."""
+
+        # pylint: disable=too-many-statements
 
         self.options = options
         self.config = config
@@ -104,6 +106,17 @@ class TF2Monitor:
 
         # function keys
         self.fkeys = FKeyManager(self)
+        self.fkeys.add(self._fkey_help("F1", curses.KEY_F1))
+        self.fkeys.add(self._fkey_debug_flag("F2", curses.KEY_F2))
+        self.fkeys.add(self._fkey_taunt_flag("F3", curses.KEY_F3))
+        self.fkeys.add(self._fkey_show_kd("F4", curses.KEY_F4))
+        self.fkeys.add(self._fkey_user_panel("F5", curses.KEY_F5))
+        self.fkeys.add(self._fkey_join_other_team("F6", curses.KEY_F6))
+        self.fkeys.add(self._fkey_sort_order("F7", curses.KEY_F7))
+        self.fkeys.add(self._fkey_log_location("F8", curses.KEY_F8))
+        self.fkeys.add(self._fkey_grid_layout("F9", curses.KEY_F9))
+
+        self.fkeys.load_fkeys()
         self.fkeys.create_tf2_exec_script(self.tf2_scripts_dir / "tf2-monitor-fkeys.cfg")
 
         # admin command handlers
@@ -213,47 +226,125 @@ class TF2Monitor:
 
         return self.conlog.is_eof or self.options.toggles or self.admin.is_single_stepping
 
-    def toggle_debug_flag(self) -> None:
-        """F2."""
-        if self.toggling_enabled:
-            _ = self.ui.debug_flag.toggle
-            self.ui.show_status()
+    @staticmethod
+    def _on_off(key, value):
+        return key.upper() if value else key
 
-    def toggle_taunt_flag(self) -> None:
-        """F3."""
-        if self.toggling_enabled:
-            _ = self.ui.taunt_flag.toggle
-            self.ui.show_status()
+    def _fkey_help(self, game_key: str, curses_key: int) -> FKey:
 
-    def toggle_show_kd(self) -> None:
-        """F4."""
-        if self.toggling_enabled:
-            _ = self.ui.show_kd.toggle
-            self.ui.show_status()
+        return FKey(
+            cmd="HELP",
+            game_key=game_key,
+            curses_key=curses_key,
+            status=lambda: "HELP",
+            handler=lambda m: self.ui.show_help(),
+        )
 
-    def toggle_user_panel(self) -> None:
-        """F5."""
-        _ = self.ui.user_panel.toggle
-        self.ui.update_display()
+    def _fkey_debug_flag(self, game_key: str, curses_key: int) -> FKey:
+        def _action() -> None:
+            if self.toggling_enabled:
+                _ = self.ui.debug_flag.toggle
+                self.ui.show_status()
 
-    def join_other_team(self) -> None:
-        """F6."""
-        if self.toggling_enabled:
-            self.me.assign_team(self.my.opposing_team)
+        return FKey(
+            cmd="TOGGLE-DEBUG",
+            game_key=game_key,
+            curses_key=curses_key,
+            status=lambda: self._on_off("debug", self.ui.debug_flag.value),
+            handler=lambda m: _action(),
+        )
+
+    def _fkey_taunt_flag(self, game_key: str, curses_key: int) -> FKey:
+        def _action() -> None:
+            if self.toggling_enabled:
+                _ = self.ui.taunt_flag.toggle
+                self.ui.show_status()
+
+        return FKey(
+            cmd="TOGGLE-TAUNT",
+            game_key=game_key,
+            curses_key=curses_key,
+            status=lambda: self._on_off("taunt", self.ui.taunt_flag.value),
+            handler=lambda m: _action(),
+        )
+
+    def _fkey_show_kd(self, game_key: str, curses_key: int) -> FKey:
+        def _action() -> None:
+            if self.toggling_enabled:
+                _ = self.ui.show_kd.toggle
+                self.ui.show_status()
+
+        return FKey(
+            cmd="TOGGLE-KD",
+            game_key=game_key,
+            curses_key=curses_key,
+            status=lambda: self._on_off("kd", self.ui.show_kd.value),
+            handler=lambda m: _action(),
+        )
+
+    def _fkey_user_panel(self, game_key: str, curses_key: int) -> FKey:
+        def _action() -> None:
+            _ = self.ui.user_panel.toggle
             self.ui.update_display()
 
-    def toggle_sort_order(self) -> None:
-        """F7."""
-        self.ui.set_sort_order(self.ui.sort_order.toggle)
-        self.ui.update_display()
+        return FKey(
+            cmd="TOGGLE-USER-PANEL",
+            game_key=game_key,
+            curses_key=curses_key,
+            status=lambda: self.ui.user_panel.value.name,
+            handler=lambda m: _action(),
+        )
 
-    def toggle_log_location(self) -> None:
-        """F8."""
-        self.ui.cycle_log_location()
-        self.ui.show_status()
+    def _fkey_join_other_team(self, game_key: str, curses_key: int) -> FKey:
+        def _action() -> None:
+            if self.toggling_enabled:
+                self.me.assign_team(self.my.opposing_team)
+                self.ui.update_display()
 
-    def toggle_grid_layout(self) -> None:
-        """F9."""
-        if self.toggling_enabled:  # not ready to disregard.
-            self.ui.cycle_grid_layout()
+        return FKey(
+            cmd="SWITCH-MY-TEAM",
+            game_key=game_key,
+            curses_key=curses_key,
+            status=lambda: self.my.team.name if self.my.team else "blu",
+            handler=lambda m: _action(),
+        )
+
+    def _fkey_sort_order(self, game_key: str, curses_key: int) -> FKey:
+        def _action() -> None:
+            self.ui.set_sort_order(self.ui.sort_order.toggle)
             self.ui.update_display()
+
+        return FKey(
+            cmd="TOGGLE-SORT",
+            game_key=game_key,
+            curses_key=curses_key,
+            status=lambda: self.ui.sort_order.value.name,
+            handler=lambda m: _action(),
+        )
+
+    def _fkey_log_location(self, game_key: str, curses_key: int) -> FKey:
+        def _action() -> None:
+            self.ui.cycle_log_location()
+            self.ui.show_status()
+
+        return FKey(
+            cmd="TOGGLE-LOG-LOCATION",
+            game_key=game_key,
+            curses_key=curses_key,
+            status=lambda: self.ui.log_location.value.name,
+            handler=lambda m: _action(),
+        )
+
+    def _fkey_grid_layout(self, game_key: str, curses_key: int) -> FKey:
+        def _action() -> None:
+            if self.toggling_enabled:  # not ready to disregard.
+                self.ui.cycle_grid_layout()
+                self.ui.update_display()
+
+        return FKey(
+            cmd="TOGGLE-GRID-LAYOUT",
+            game_key=game_key,
+            curses_key=curses_key,
+            status=lambda: self.ui.grid_layout.value.name,
+            handler=lambda m: _action(),
+        )
