@@ -2,6 +2,9 @@
 
 from enum import Enum
 
+import libcurses
+
+from tf2mon.baselayout import BaseLayout
 from tf2mon.layouts.default import DefaultLayout
 from tf2mon.layouts.full import FullLayout
 from tf2mon.layouts.tall import TallLayout
@@ -10,12 +13,24 @@ from tf2mon.layouts.wide import WideLayout
 GRID_LAYOUT = Enum("_grid_layout_enum", "DFLT FULL TALL WIDE")
 GRID_LAYOUT.__doc__ = "Grid layout."
 
-GRID_LAYOUT_CLASSES = {
+_grid_layout_classes = {
     GRID_LAYOUT.DFLT: DefaultLayout,
     GRID_LAYOUT.FULL: FullLayout,
     GRID_LAYOUT.TALL: TallLayout,
     GRID_LAYOUT.WIDE: WideLayout,
 }
+
+
+def get_grid_layout(grid: libcurses.Grid, layout: GRID_LAYOUT) -> BaseLayout:
+    """Return layout instance from enum value."""
+    return _grid_layout_classes[layout](grid)
+
+
+# def get_grid_layout_class(layout: GRID_LAYOUT) -> type[BaseLayout]:
+#     """Return layout class from enum value."""
+#
+#     return _grid_layout_classes[layout]
+
 
 # import importlib
 # import pkgutil
@@ -26,7 +41,7 @@ GRID_LAYOUT_CLASSES = {
 #   """Load all layouts in `tf2mon.layouts`."""
 #
 #   global GRID_LAYOUT  # noqa
-#   global GRID_LAYOUT_CLASSES  # noqa
+#   global _grid_layout_classes  # noqa
 #
 #   modname = "tf2mon.layouts"
 #   layouts_module_path = importlib.import_module(modname, __name__).__path__
@@ -44,4 +59,4 @@ GRID_LAYOUT_CLASSES = {
 #
 #   GRID_LAYOUT = Enum("_grid_layout_enum", " ".join(classes_by_name.keys()))
 #   GRID_LAYOUT.__doc__ = "Grid layout."
-#   GRID_LAYOUT_CLASSES = {x: classes_by_name[x.name] for x in list(GRID_LAYOUT)}
+#   _grid_layout_classes = {x: classes_by_name[x.name] for x in list(GRID_LAYOUT)}

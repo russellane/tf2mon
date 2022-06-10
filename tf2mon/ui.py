@@ -9,7 +9,7 @@ from enum import Enum
 import libcurses
 from loguru import logger
 
-from tf2mon.layouts import GRID_LAYOUT, GRID_LAYOUT_CLASSES
+from tf2mon.layouts import GRID_LAYOUT, get_grid_layout
 from tf2mon.scoreboard import Scoreboard
 from tf2mon.toggle import Toggle
 from tf2mon.user import Team, UserState
@@ -98,8 +98,7 @@ class UI:
 
         # the windows may be placed in different arrangements.
         self.grid_layout = Toggle("_grid_layout", GRID_LAYOUT)
-        self.grid_layout.start(self.monitor.options.layout or GRID_LAYOUT.DFLT)
-        self._grid_layout_class = GRID_LAYOUT_CLASSES[self.grid_layout.value]
+        self.grid_layout.start(self.monitor.options.layout)
 
         # `register_builder` 1) calls `_build_grid` and 2) configures
         # `KEY_RESIZE` to call it again each time that event occurs.
@@ -128,7 +127,7 @@ class UI:
     def cycle_grid_layout(self):
         """Use next grid layout."""
 
-        self._grid_layout_class = GRID_LAYOUT_CLASSES[self.grid_layout.cycle]
+        _ = self.grid_layout.cycle
 
         self.chatwin_blu = None
         self.chatwin_red = None
@@ -152,16 +151,25 @@ class UI:
     def _build_grid(self):
         """Add boxes to grid.
 
-        Called at init, on KEY_RESIZE events, and when grid_layout changes.
+        Called at init, on KEY_RESIZE events, and when layout changes.
         """
 
+        # pylint: disable=too-many-branches
+
         try:
-            layout = self._grid_layout_class(self.grid)
+            layout = get_grid_layout(self.grid, self.grid_layout.value)
         except AssertionError:
             curses.endwin()
             logger.error("Terminal too small; try `Maximize` and `Ctrl+Minus`.")
             raise
             sys.exit(0)  # noqa
+
+        if not layout.logger_win:
+            raise RuntimeError(f"undefined `logger_win` in {layout}.")
+        if not layout.status_win:
+            raise RuntimeError(f"undefined `status_win` in {layout}.")
+        if not layout.cmdline_win:
+            raise RuntimeError(f"undefined `cmdline_win` in {layout}.")
 
         # promote
         self.chatwin_blu = layout.chatwin_blu
@@ -284,12 +292,24 @@ class UI:
             if self.user_panel.value == USER_PANEL.KICKS or (
                 self.user_panel.value == USER_PANEL.AUTO and self.monitor.kicks.msgs
             ):
-                self._show_lines("KICKS", reversed(self.monitor.kicks.msgs), self.user_win)
+                self._show_lines(
+                    "KICKS",
+                    reversed(self.monitor.kicks.msgs)
+                    if self.monitor.kicks.msgs
+                    else ["No Kicks"],
+                    self.user_win,
+                )
             #
             elif self.user_panel.value == USER_PANEL.SPAMS or (
                 self.user_panel.value == USER_PANEL.AUTO and self.monitor.spams.msgs
             ):
-                self._show_lines("SPAMS", reversed(self.monitor.spams.msgs), self.user_win)
+                self._show_lines(
+                    "SPAMS",
+                    reversed(self.monitor.spams.msgs)
+                    if self.monitor.spams.msgs
+                    else ["No Spams"],
+                    self.user_win,
+                )
             #
             else:
                 self._show_lines("user", self._format_duels(user), self.user_win)

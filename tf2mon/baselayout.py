@@ -36,10 +36,5 @@ class BaseLayout:
 
     def __post_init__(self, grid: libcurses.Grid, max_users: int):
         """Build windows."""
-
         _ = grid  # unused
         _ = max_users  # unused
-
-        assert self.logger_win
-        assert self.status_win
-        assert self.cmdline_win
