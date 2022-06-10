@@ -1,6 +1,6 @@
 # russellane/Python.mk
 
-build::		__pypackages__ ctags lint test doc
+build::		__pypackages__ tags lint test doc
 		pdm build
 
 lint::		black isort flake8
@@ -15,10 +15,10 @@ publish_local::
 		cd dist; echo *.whl | cpio -pdmuv `pip config get global.find-links`
 
 publish_test::
-		python -m twine upload --verbose -r testpypi dist/*
+		twine upload --verbose -r testpypi dist/*
 
 publish_prod::
-		python -m twine upload --verbose -r pypi dist/*
+		twine upload --verbose -r pypi dist/*
 
 install::
 		-pipx uninstall $(PROJECT)
@@ -27,8 +27,8 @@ install::
 __pypackages__:
 		pdm install
 
-.PHONY:		ctags
-ctags::
+.PHONY:		tags
+tags::
 		ctags -R $(PROJECT) tests __pypackages__ 
 
 black::
