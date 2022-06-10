@@ -1,4 +1,4 @@
-"""Grid Layout."""
+"""Base class for display layout."""
 
 import curses
 from dataclasses import KW_ONLY, InitVar, dataclass
@@ -7,8 +7,15 @@ import libcurses
 
 
 @dataclass(slots=True)
-class Layout:
-    """Grid Layout."""
+class BaseLayout:
+    """Base class for display layout.
+
+    Each layout must initialize:
+        - logger_win
+        - status_win
+        - cmdline_win
+    others may remain undefined.
+    """
 
     # pylint: disable=too-many-instance-attributes
 
@@ -29,3 +36,10 @@ class Layout:
 
     def __post_init__(self, grid: libcurses.Grid, max_users: int):
         """Build windows."""
+
+        _ = grid  # unused
+        _ = max_users  # unused
+
+        assert self.logger_win
+        assert self.status_win
+        assert self.cmdline_win

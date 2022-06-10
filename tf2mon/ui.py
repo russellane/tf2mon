@@ -9,10 +9,7 @@ from enum import Enum
 import libcurses
 from loguru import logger
 
-from tf2mon.layouts.default import DefaultLayout
-from tf2mon.layouts.full import FullLayout
-from tf2mon.layouts.tall import TallLayout
-from tf2mon.layouts.wide import WideLayout
+from tf2mon.layouts import GRID_LAYOUT, GRID_LAYOUT_CLASSES
 from tf2mon.scoreboard import Scoreboard
 from tf2mon.toggle import Toggle
 from tf2mon.user import Team, UserState
@@ -22,10 +19,6 @@ from tf2mon.user import Team, UserState
 
 # These would have been defined within class UI (because they're only used internally)
 # but `pydoc` doesn't display their values when defined there; it does when defined here.
-
-# [no longer true: GRID_LAYOUT is referenced externally]
-GRID_LAYOUT = Enum("_grid_layout_enum", "DFLT FULL TALL WIDE")
-GRID_LAYOUT.__doc__ = "Grid layout."
 
 USER_PANEL = Enum("_user_panel_enum", "AUTO DUELS KICKS SPAMS")
 USER_PANEL.__doc__ = "Contents of user panel."
@@ -106,13 +99,7 @@ class UI:
         # the windows may be placed in different arrangements.
         self.grid_layout = Toggle("_grid_layout", GRID_LAYOUT)
         self.grid_layout.start(self.monitor.options.layout or GRID_LAYOUT.DFLT)
-        self._grid_layout_classes = {
-            GRID_LAYOUT.DFLT: DefaultLayout,
-            GRID_LAYOUT.FULL: FullLayout,
-            GRID_LAYOUT.TALL: TallLayout,
-            GRID_LAYOUT.WIDE: WideLayout,
-        }
-        self._grid_layout_class = self._grid_layout_classes[self.grid_layout.value]
+        self._grid_layout_class = GRID_LAYOUT_CLASSES[self.grid_layout.value]
 
         # `register_builder` 1) calls `_build_grid` and 2) configures
         # `KEY_RESIZE` to call it again each time that event occurs.
@@ -141,7 +128,7 @@ class UI:
     def cycle_grid_layout(self):
         """Use next grid layout."""
 
-        self._grid_layout_class = self._grid_layout_classes[self.grid_layout.cycle]
+        self._grid_layout_class = GRID_LAYOUT_CLASSES[self.grid_layout.cycle]
 
         self.chatwin_blu = None
         self.chatwin_red = None

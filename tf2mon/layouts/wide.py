@@ -2,10 +2,10 @@
 
 import libcurses
 
-from tf2mon.layout import Layout
+from tf2mon.baselayout import BaseLayout
 
 
-class WideLayout(Layout):
+class WideLayout(BaseLayout):
     """Wide layout.
 
     +-------------------+----------------------+

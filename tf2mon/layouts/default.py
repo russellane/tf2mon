@@ -2,27 +2,27 @@
 
 import libcurses
 
-from tf2mon.layout import Layout
+from tf2mon.baselayout import BaseLayout
 
 
-class DefaultLayout(Layout):
+class DefaultLayout(BaseLayout):
     """Default layout.
 
-       +-------------------+----------+--------+
-       | score blu         | kicks    | spams  |
-       |                   |          |        |
-       +-------------------+          |        |
-       | score red         |          |        |
-       |                   |          |        |
-    >  +-------------------+----------+--------+
-       | chats (merged)    | duels             |
-       |                   |                   |
-       +-------------------+                   |
-       | logger            |                   |
-       |                   |                   |
-    >  +-------------------+-------------------+
-       | status            | cmdline           |
-       +-------------------+-------------------+
+    +-------------------+----------+--------+
+    | score blu         | kicks    | spams  |
+    |                   |          |        |
+    +-------------------+          |        |
+    | score red         |          |        |
+    |                   |          |        |
+    +-------------------+----------+--------+
+    | chats (merged)    | duels             |
+    |                   |                   |
+    +-------------------+                   |
+    | logger            |                   |
+    |                   |                   |
+    +-------------------+-------------------+
+    | status            | cmdline           |
+    +-------------------+-------------------+
     """
 
     # pylint: disable=too-few-public-methods

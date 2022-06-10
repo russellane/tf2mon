@@ -43,7 +43,7 @@ By default, `tf2mon` starts reading the con_logfile from its end
     --tf2-install-dir DIR
                         TF2 installation directory (default: `~/tf2`).
     --layout {DFLT,FULL,TALL,WIDE}
-                        Display grid-layout (default: `DFLT`).
+                        Choose display layout (default: `DFLT`).
     --list-con-logfile  Show path to logfile and exit.
     --trunc-con-logfile
                         Truncate logfile and exit.

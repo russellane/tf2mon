@@ -11,9 +11,9 @@ from libcli import BaseCLI
 from loguru import logger
 
 from tf2mon.conlog import Conlog
+from tf2mon.layouts import GRID_LAYOUT
 from tf2mon.logger import configure_logger
 from tf2mon.tf2monitor import TF2Monitor
-from tf2mon.ui import GRID_LAYOUT
 
 
 class Tf2monCLI(BaseCLI):
