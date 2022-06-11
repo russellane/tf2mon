@@ -1,6 +1,6 @@
 [project]
 name = "tf2mon"
-version = "1.0.23"
+version = "1.0.24"
 description = "Team Fortress 2 Console Monitor"
 authors = [
     {name = "Russel Lane", email = "russel@rlane.com"}
