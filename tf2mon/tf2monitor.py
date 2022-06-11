@@ -45,10 +45,10 @@ class TF2Monitor:
         )
 
         # send data to tf2 by writing to an `exec` script
-        self.tf2_cfg_dir = Path(self.options.tf2_install_dir, "cfg")
-        self.tf2_scripts_dir = Path(self.tf2_cfg_dir, "user")
-        self.worker_path = Path(self.tf2_scripts_dir, "tf2-monitor-work.cfg")
-        self.msgqueues = MsgQueueManager(self, self.worker_path)
+        self.tf2_scripts_dir = Path(self.options.tf2_install_dir, "cfg", "user")
+        if not self.tf2_scripts_dir.is_dir():
+            logger.warning(f"Missing scripts at `{self.tf2_scripts_dir}`")
+        self.msgqueues = MsgQueueManager(self, self.tf2_scripts_dir / "tf2-monitor-work.cfg")
 
         # prepare to receive data from tf2 by reading its console logfile
         self.conlog = Conlog(self)
@@ -131,7 +131,8 @@ class TF2Monitor:
         self.fkeys.add(self._fkey_spams_clear("KP_RIGHTARROW", curses.KEY_RIGHT))
         self.fkeys.add(self._fkey_spams_popleft("KP_PGDN", curses.KEY_NPAGE))
         #
-        self.fkeys.create_tf2_exec_script(self.tf2_scripts_dir / "tf2-monitor-fkeys.cfg")
+        if self.tf2_scripts_dir.is_dir():
+            self.fkeys.create_tf2_exec_script(self.tf2_scripts_dir / "tf2-monitor-fkeys.cfg")
 
         # admin command handlers
         self.regex_list = self.admin.regex_list

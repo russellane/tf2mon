@@ -97,12 +97,12 @@ class MsgQueueManager:
         """Initialize collection of `MsgQueue`s."""
 
         self.monitor = monitor
-
-        # pylint: disable=consider-using-with
-        self._file = open(path, "w", encoding="utf-8")
-
         # list(MsgQueue)
         self._queues = []
+        self._file = None
+        if path and path.parent.is_dir():
+            # pylint: disable=consider-using-with
+            self._file = open(path, "w", encoding="utf-8")
 
     def addq(self, name):
         """Create `MsgQueue` with `name`, add to collection and return it."""
@@ -119,6 +119,9 @@ class MsgQueueManager:
 
     def send(self):
         """Send data to tf2 by writing aliases to an `exec` script."""
+
+        if not self._file:
+            return
 
         self._file.seek(0)
         self._file.truncate()

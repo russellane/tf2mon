@@ -42,6 +42,7 @@ class Tf2monCLI(BaseCLI):
         "players": _cachedir / "steamplayers.db",
         "hackers-base": _cachedir / "playerlist.milenko-list.json",
         "hackers-local": _cachedir / "playerlist.tf2mon-list.json",
+        "webapi_key": "",
         # this player.
         "player_name": "Bad Dad",
     }
@@ -422,8 +423,8 @@ class Tf2monCLI(BaseCLI):
 
         configure_logger()
 
-        if "webapi_key" not in self.config:
-            self.parser.error("Missing config `webapi_key`")
+        # if "webapi_key" not in self.config:
+        #     self.parser.error("Missing config `webapi_key`")
 
         if self.options.con_logfile == self.config["con_logfile"]:
             # Not given on command line; prefix with effective parent.

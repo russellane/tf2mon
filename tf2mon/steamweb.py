@@ -24,7 +24,7 @@ class SteamWebAPI:
 
         #
         self._webapi_key = webapi_key
-        self._webapi = steam.webapi.WebAPI(key=self._webapi_key)
+        self._webapi = steam.webapi.WebAPI(key=self._webapi_key) if webapi_key else None
 
         #
         self._dbpath = dbpath
@@ -155,6 +155,9 @@ class SteamWebAPI:
         return steamplayer
 
     def _get_player_summaries(self, steamids):
+
+        if not self._webapi:
+            return []
 
         jdoc = self._webapi.call(
             "ISteamUser.GetPlayerSummaries", steamids=",".join([str(x.as_64) for x in steamids])

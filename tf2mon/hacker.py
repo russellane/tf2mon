@@ -205,24 +205,37 @@ class HackerManager:
     def _load(self, path: Path, dbtype: DBTYPE):
         """Read playerlist at `path` loading `Hacker`s into collection."""
 
-        logger.info(f"Reading `{path}`")
+        name = f"`--hackers-{dbtype.value}` database `{path}`"
+        if not path.exists():
+            logger.warning("Missing " + name)
+            return
+
+        logger.info("Reading " + name)
         with open(path, encoding="utf-8") as file:
-            for json_player in json.load(file)["players"]:
-                hacker = Hacker(json_player, dbtype)
+            try:
+                jdoc = json.load(file)
+            except json.decoder.JSONDecodeError as err:
+                logger.error(f"{err} in {name}")
+                return
+
+            for player in jdoc.get("players"):
+                hacker = Hacker(player, dbtype)
                 self._hackers_by_steamid[hacker.steamid] = hacker
 
     def save_database(self):
         """Save LOCAL database to disk."""
 
-        logger.info(f"Writing {self._path_local}")
+        path = self._path_local
+        dbtype = DBTYPE.LOCAL
+        name = f"`--hackers-{dbtype.value}` database `{path}`"
+        logger.info("Writing " + name)
+
         jdoc = {
             "players": [
-                x.to_json()
-                for x in self._hackers_by_steamid.values()
-                if x.dbtype == DBTYPE.LOCAL
+                x.to_json() for x in self._hackers_by_steamid.values() if x.dbtype == dbtype
             ]
         }
-        with open(self._path_local, "w", encoding="utf-8") as file:
+        with open(path, "w", encoding="utf-8") as file:
             json.dump(jdoc, file, indent=4)
             print("", file=file)
 
