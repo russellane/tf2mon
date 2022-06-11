@@ -10,8 +10,8 @@ import xdg
 from libcli import BaseCLI
 from loguru import logger
 
+import tf2mon.layouts
 from tf2mon.conlog import Conlog
-from tf2mon.layouts import GRID_LAYOUT
 from tf2mon.logger import configure_logger
 from tf2mon.tf2monitor import TF2Monitor
 
@@ -130,8 +130,8 @@ class Tf2monCLI(BaseCLI):
 
         arg = self.parser.add_argument(
             "--layout",
-            choices=[x.name for x in list(GRID_LAYOUT)],
-            default=GRID_LAYOUT.DFLT.name,
+            choices=[x.name for x in list(tf2mon.layouts.LAYOUT_ENUM)],
+            default=list(tf2mon.layouts.LAYOUT_ENUM)[0].name,
             help="choose display layout",
         )
         self.add_default_to_help(arg)
@@ -468,7 +468,7 @@ class Tf2monCLI(BaseCLI):
             sys.exit(0)
 
         if self.options.layout:  # get enum from name
-            self.options.layout = GRID_LAYOUT.__dict__[self.options.layout]
+            self.options.layout = tf2mon.layouts.LAYOUT_ENUM.__dict__[self.options.layout]
 
         monitor.run()
 

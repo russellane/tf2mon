@@ -115,6 +115,7 @@ class TF2Monitor:
         self.fkeys.add(self._fkey_sort_order("F7", curses.KEY_F7))
         self.fkeys.add(self._fkey_log_location("F8", curses.KEY_F8))
         self.fkeys.add(self._fkey_grid_layout("F9", curses.KEY_F9))
+        self.fkeys.add(self._fkey_show_debug("KP_INS", curses.KEY_IC))
         self.fkeys.add(self._fkey_single_step("KP_DEL", curses.KEY_DC))
         self.fkeys.add(self._fkey_kick_last_cheater("[", None))
         self.fkeys.add(self._fkey_kick_last_racist("]", None))
@@ -350,12 +351,10 @@ class TF2Monitor:
 
     def _fkey_grid_layout(self, game_key: str, curses_key: int) -> FKey:
         def _action() -> None:
-            if self.toggling_enabled:  # not ready to disregard.
-                self.ui.cycle_grid_layout()
-                self.ui.update_display()
+            self.ui.cycle_grid_layout()
 
         return FKey(
-            cmd="TOGGLE-GRID-LAYOUT",
+            cmd="TOGGLE-LAYOUT",
             game_key=game_key,
             curses_key=curses_key,
             status=lambda: self.ui.grid_layout.value.name,
@@ -369,6 +368,15 @@ class TF2Monitor:
             game_key=game_key,
             curses_key=curses_key,
             handler=lambda m: self.admin.start_single_stepping(),
+        )
+
+    def _fkey_show_debug(self, game_key: str, curses_key: int) -> FKey:
+
+        return FKey(
+            cmd="SHOW-DEBUG",
+            game_key=game_key,
+            curses_key=curses_key,
+            handler=lambda m: self.ui.show_debug(),
         )
 
     def _fkey_kick_last_cheater(self, game_key: str, curses_key: int) -> FKey:

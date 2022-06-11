@@ -9,7 +9,7 @@ from enum import Enum
 import libcurses
 from loguru import logger
 
-from tf2mon.layouts import GRID_LAYOUT, get_grid_layout
+import tf2mon.layouts
 from tf2mon.scoreboard import Scoreboard
 from tf2mon.toggle import Toggle
 from tf2mon.user import Team, UserState
@@ -97,7 +97,7 @@ class UI:
         self.cmdline_win: curses.window = None
 
         # the windows may be placed in different arrangements.
-        self.grid_layout = Toggle("_grid_layout", GRID_LAYOUT)
+        self.grid_layout = Toggle("_grid_layout", tf2mon.layouts.LAYOUT_ENUM)
         self.grid_layout.start(self.monitor.options.layout)
 
         # `register_builder` 1) calls `_build_grid` and 2) configures
@@ -111,7 +111,7 @@ class UI:
         self._curses_logwin = libcurses.LoggerWindow(self.logger_win)
         self._curses_logwin.set_verbose(self.monitor.options.verbose)
         self._curses_logwin.set_location(self._log_locations[self.log_location.value])
-        self.colormap = self._curses_logwin.colormap
+        self.colormap = libcurses.get_colormap()
 
         #
         self._scoreboard = Scoreboard(
@@ -129,24 +129,9 @@ class UI:
 
         _ = self.grid_layout.cycle
 
-        self.chatwin_blu = None
-        self.chatwin_red = None
-        self.scorewin_blu = None
-        self.scorewin_red = None
-        self.user_win = None
-        self.kicks_win = None
-        self.spams_win = None
-        self.duels_win = None
-        self.logger_win = None
-        self.status_win = None
-        self.cmdline_win = None
-
-        # pylint: disable=protected-access
-        self.grid._handle_term_resized_event()
-        self.grid._draw_box(self.grid.nlines, self.grid.ncols, 0, 0)
-        self.grid.boxes = [self.grid.win]
-        self.grid.boxnames = {self.grid.win: "grid"}
-        logger.trace(self)
+        # self.grid.boxes = self.grid.boxes[:1]
+        self.grid.handle_term_resized_event()
+        self.show_status()
 
     def _build_grid(self):
         """Add boxes to grid.
@@ -156,12 +141,12 @@ class UI:
 
         # pylint: disable=too-many-branches
 
+        klass = tf2mon.layouts.LAYOUT_CLASSES[self.grid_layout.value]
         try:
-            layout = get_grid_layout(self.grid, self.grid_layout.value)
+            layout = klass(self.grid)
         except AssertionError:
             curses.endwin()
             logger.error("Terminal too small; try `Maximize` and `Ctrl+Minus`.")
-            raise
             sys.exit(0)  # noqa
 
         if not layout.logger_win:
@@ -254,7 +239,7 @@ class UI:
             team2=list(self.monitor.users.active_team_users(Team.RED)),
         )
         self.show_status()
-        self.grid.refresh()
+        self.grid.redraw()
 
     def refresh_kicks(self):
         """Refresh kicks panel."""
@@ -419,3 +404,10 @@ class UI:
         with open(motd, encoding="utf-8") as file:
             for line in file:
                 logger.log("help", line.strip())
+
+    def show_debug(self):
+        """Debug grid."""
+
+        logger.debug(self.grid)
+        for box in self.grid.boxes:
+            logger.debug(self.grid.winyx(box))

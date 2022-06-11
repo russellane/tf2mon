@@ -379,13 +379,13 @@ dependencies = [
 
 [[package]]
 name = "requests"
-version = "2.27.1"
-requires_python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*"
+version = "2.28.0"
+requires_python = ">=3.7, <4"
 summary = "Python HTTP for Humans."
 dependencies = [
     "certifi>=2017.4.17",
-    "charset-normalizer~=2.0.0; python_version >= \"3\"",
-    "idna<4,>=2.5; python_version >= \"3\"",
+    "charset-normalizer~=2.0.0",
+    "idna<4,>=2.5",
     "urllib3<1.27,>=1.21.1",
 ]
 
@@ -402,8 +402,8 @@ dependencies = [
 
 [[package]]
 name = "rlane-libcurses"
-version = "1.0.2"
-requires_python = ">=3.8"
+version = "1.0.4"
+requires_python = ">=3.10"
 summary = "Curses based boxes, menus, loggers"
 dependencies = [
     "loguru>=0.6.0",
@@ -411,7 +411,7 @@ dependencies = [
 
 [[package]]
 name = "setuptools"
-version = "62.3.2"
+version = "62.3.3"
 requires_python = ">=3.7"
 summary = "Easily download, build, install, upgrade, and uninstall Python packages"
 
@@ -487,7 +487,7 @@ summary = "Variables defined by the XDG Base Directory Specification"
 
 [metadata]
 lock_version = "3.1"
-content_hash = "sha256:bd29547adbadb313562414cb9349d4c58206bcf5245d22b387c16876c799ea5f"
+content_hash = "sha256:c60217f06b9a51acea91d9f8efbcc17624fcfc13056834269d3b660ff9a738bf"
 
 [metadata.files]
 "ansicolors 1.1.8" = [
@@ -804,21 +804,21 @@ content_hash = "sha256:bd29547adbadb313562414cb9349d4c58206bcf5245d22b387c16876c
 "python-levenshtein 0.12.2" = [
     {file = "python-Levenshtein-0.12.2.tar.gz", hash = "sha256:dc2395fbd148a1ab31090dd113c366695934b9e85fe5a4b2a032745efd0346f6"},
 ]
-"requests 2.27.1" = [
-    {file = "requests-2.27.1-py2.py3-none-any.whl", hash = "sha256:f22fa1e554c9ddfd16e6e41ac79759e17be9e492b3587efa038054674760e72d"},
-    {file = "requests-2.27.1.tar.gz", hash = "sha256:68d7c56fd5a8999887728ef304a6d12edc7be74f1cfa47714fc8b414525c9a61"},
+"requests 2.28.0" = [
+    {file = "requests-2.28.0-py3-none-any.whl", hash = "sha256:bc7861137fbce630f17b03d3ad02ad0bf978c844f3536d0edda6499dafce2b6f"},
+    {file = "requests-2.28.0.tar.gz", hash = "sha256:d568723a7ebd25875d8d1eaf5dfa068cd2fc8194b2e483d7b1f7c81918dbec6b"},
 ]
 "rlane-libcli 1.0.2" = [
     {file = "rlane_libcli-1.0.2-py3-none-any.whl", hash = "sha256:65add18dec61f27e89fe61ef77c7729c4dafd229640865ac8ce8dff6100efbbe"},
     {file = "rlane-libcli-1.0.2.tar.gz", hash = "sha256:f5fb9a8c0199484ae68a5566ad7894d6748235bd1d42317a480a2b686966578b"},
 ]
-"rlane-libcurses 1.0.2" = [
-    {file = "rlane_libcurses-1.0.2-py3-none-any.whl", hash = "sha256:1726cf9dba08b079bd14d6b9318271495cbfa1cbda74e591e567ed37cd094a40"},
-    {file = "rlane-libcurses-1.0.2.tar.gz", hash = "sha256:e42dac6d9ba9668a8ee27b6552ca5eec97d4f2e864c9335fdb9b9719cbee5b0c"},
+"rlane-libcurses 1.0.4" = [
+    {file = "rlane_libcurses-1.0.4-py3-none-any.whl", hash = "sha256:292d87a94450e10aeddde926a2cf22d97662888bd4b455c41f8a721b40e41f0b"},
+    {file = "rlane-libcurses-1.0.4.tar.gz", hash = "sha256:c6988c8aa54f86ee15ece89f2692e3f9d729c3237c6417e9b0d750f2981bb9a3"},
 ]
-"setuptools 62.3.2" = [
-    {file = "setuptools-62.3.2-py3-none-any.whl", hash = "sha256:68e45d17c9281ba25dc0104eadd2647172b3472d9e01f911efa57965e8d51a36"},
-    {file = "setuptools-62.3.2.tar.gz", hash = "sha256:a43bdedf853c670e5fed28e5623403bad2f73cf02f9a2774e91def6bda8265a7"},
+"setuptools 62.3.3" = [
+    {file = "setuptools-62.3.3-py3-none-any.whl", hash = "sha256:d1746e7fd520e83bbe210d02fff1aa1a425ad671c7a9da7d246ec2401a087198"},
+    {file = "setuptools-62.3.3.tar.gz", hash = "sha256:e7d11f3db616cda0751372244c2ba798e8e56a28e096ec4529010b803485f3fe"},
 ]
 "six 1.16.0" = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
