@@ -8,7 +8,7 @@
            [--inject-cmd LINENO:CMD] [--inject-file FILE] [--toggles]
            [--players FILE] [--hackers-base FILE] [--hackers-local FILE]
            [--print-steamid STEAMID] [-h] [-v] [-V] [--config FILE]
-           [--print-config] [--print-url]
+           [--print-config] [--print-url] [--completion [SHELL]]
            [con_logfile]
     
 Team Fortress II (`TF2`) Console Monitor (`tf2mon`) is an interactive
@@ -209,3 +209,6 @@ By default, `tf2mon` starts reading the con_logfile from its end
     --config FILE       Use config `FILE` (default: `~/.tf2mon.toml`).
     --print-config      Print effective config and exit.
     --print-url         Print project url and exit.
+    --completion [SHELL]
+                        Print completion scripts for `SHELL` and exit
+                        (default: `bash`).
