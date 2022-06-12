@@ -410,6 +410,7 @@ class UI:
     Press Enter to process next line.
     Enter "b 500" to set breakpoint at line 500.
     Enter "/pattern[/i]" to set search pattern.
+    Enter "/" to clear search pattern.
     Enter "c" to continue.
     Enter "quit" or press ^D to quit."
                 """
