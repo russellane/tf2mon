@@ -1,6 +1,5 @@
 """Command line interface."""
 
-import os
 import sys
 from pathlib import Path
 from typing import List, Optional
@@ -461,11 +460,6 @@ class Tf2monCLI(BaseCLI):
                 self.parser.error(f"invalid steamid `{self.options.print_steamid}`")
             sp = monitor.steam_web_api.find_steamid(steamid)  # noqa
             ic(sp)  # noqa
-            sys.exit(0)
-
-        if os.isatty(sys.stderr.fileno()):
-            cmd = " ".join([self.parser.prog] + sys.argv[1:] + ["2>x"])
-            logger.error(f"Please redirect `stderr`; try `{cmd}`")
             sys.exit(0)
 
         if self.options.layout:  # get enum from name

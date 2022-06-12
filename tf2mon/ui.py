@@ -2,6 +2,7 @@
 
 import contextlib
 import curses
+import os
 import sys
 import textwrap
 import time
@@ -141,6 +142,7 @@ class UI:
         """
 
         # pylint: disable=too-many-branches
+        # pylint: disable=too-many-statements
 
         klass = tf2mon.layouts.LAYOUT_CLASSES[self.grid_layout.value]
         try:
@@ -149,6 +151,9 @@ class UI:
             curses.endwin()
             logger.error("Terminal too small; try `Maximize` and `Ctrl+Minus`.")
             sys.exit(0)  # noqa
+
+        if os.isatty(sys.stderr.fileno()):
+            os.close(sys.stderr.fileno())
 
         if not layout.logger_win:
             raise RuntimeError(f"undefined `logger_win` in {layout}.")
