@@ -107,6 +107,7 @@ class TF2Monitor:
         # function keys
         self.fkeys = FKeyManager(self)
         self.fkeys.add(self._fkey_help("F1", curses.KEY_F1))
+        self.fkeys.add(self._fkey_motd(None, curses.KEY_F13))
         self.fkeys.add(self._fkey_debug_flag("F2", curses.KEY_F2))
         self.fkeys.add(self._fkey_taunt_flag("F3", curses.KEY_F3))
         self.fkeys.add(self._fkey_show_kd("F4", curses.KEY_F4))
@@ -253,6 +254,15 @@ class TF2Monitor:
             curses_key=curses_key,
             status=lambda: "HELP",
             handler=lambda m: self.ui.show_help(),
+        )
+
+    def _fkey_motd(self, game_key: str, curses_key: int) -> FKey:
+
+        return FKey(
+            cmd="MOTD",
+            game_key=game_key,
+            curses_key=curses_key,
+            handler=lambda m: self.ui.show_motd(),
         )
 
     def _fkey_debug_flag(self, game_key: str, curses_key: int) -> FKey:

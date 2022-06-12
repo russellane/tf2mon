@@ -3,6 +3,7 @@
 import contextlib
 import curses
 import sys
+import textwrap
 import time
 from enum import Enum
 
@@ -398,7 +399,25 @@ class UI:
     def show_help(self):
         """Show help."""
 
-        motd = self.monitor.tf2_cfg_dir / "motd.txt"
+        for line in (
+            textwrap.dedent(
+                """
+    Press Enter to process next line.
+    Enter "b 500" to set breakpoint at line 500.
+    Enter "/pattern[/i]" to set search pattern.
+    Enter "c" to continue.
+    Enter "quit" or press ^D to quit."
+                """
+            )
+            .strip()
+            .splitlines()
+        ):
+            logger.log("help", line)
+
+    def show_motd(self):
+        """Show message of the day."""
+
+        motd = self.monitor.tf2_scripts_dir.parent / "motd.txt"
         logger.log("help", f" {motd} ".center(80, "-"))
 
         with open(motd, encoding="utf-8") as file:
