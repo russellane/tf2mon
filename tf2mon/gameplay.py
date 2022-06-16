@@ -6,7 +6,7 @@ from tf2mon.chat import Chat
 from tf2mon.hacker import HackerAttr
 from tf2mon.regex import Regex
 from tf2mon.steamplayer import steamid_from_str
-from tf2mon.user import Team, UserState
+from tf2mon.user import Team
 
 
 class Gameplay:
@@ -359,44 +359,3 @@ class Gameplay:
             logger.log("PERK-OFF", f"{user} {user.perk!r}")
 
         user.perk = perk
-
-    def repl(self):
-        """Read the console log file and play game."""
-
-        self.monitor.steam_web_api.connect()
-        self.monitor.conlog.open()
-
-        #
-        while (line := self.monitor.conlog.readline()) is not None:
-
-            if not line:  # blank line
-                continue
-
-            regex = Regex.search_list(line, self.monitor.regex_list)
-            if not regex:
-                logger.log("ignore", self.monitor.conlog.last_line)
-                continue
-
-            self.monitor.admin.check_single_step(line)
-
-            regex.handler(regex.re_match_obj)
-
-            # Vet all unvetted users that can be vetted, and perform all
-            # postponed work that can be performed.
-
-            for user in self.monitor.users.active_users():
-
-                if not user.vetted and user.steamid:
-                    user.vet_player()
-
-                if user.vetted and user.work_attr:
-                    user.kick()
-
-                if user.state == UserState.DELETE:
-                    self.monitor.users.delete(user)
-
-            # push work to the game
-            self.monitor.msgqueues.send()
-
-            #
-            self.monitor.ui.update_display()

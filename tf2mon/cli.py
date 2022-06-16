@@ -2,6 +2,7 @@
 
 import sys
 from pathlib import Path
+from pprint import pformat
 from typing import List, Optional
 
 import steam.steamid
@@ -12,10 +13,10 @@ from loguru import logger
 import tf2mon.layouts
 from tf2mon.conlog import Conlog
 from tf2mon.logger import configure_logger
-from tf2mon.tf2monitor import TF2Monitor
+from tf2mon.monitor import Monitor
 
 
-class Tf2monCLI(BaseCLI):
+class CLI(BaseCLI):
     """Command line interface."""
 
     _cachedir = xdg.xdg_cache_home() / __package__
@@ -35,8 +36,6 @@ class Tf2monCLI(BaseCLI):
         # basename relative to `tf2_install_dir`.
         "con_logfile": Path("console.log"),
         #
-        # application name.
-        "app-name": "TF2MON",
         # databases.
         "players": _cachedir / "steamplayers.db",
         "hackers-base": _cachedir / "playerlist.milenko-list.json",
@@ -45,10 +44,6 @@ class Tf2monCLI(BaseCLI):
         # this player.
         "player_name": "Bad Dad",
     }
-
-    exclude_print_config = [
-        "app-name",
-    ]
 
     def init_parser(self) -> None:
         """Initialize argument parser."""
@@ -205,6 +200,13 @@ class Tf2monCLI(BaseCLI):
             help="allow toggles when `--rewind`",
         )
         self.add_default_to_help(arg)
+
+        group.add_argument(
+            "--stats",
+            metavar="FILE",
+            type=Path,
+            help="save statistics to `FILE` at exit.",
+        )
 
         group = self.parser.add_argument_group("Database options")
 
@@ -440,7 +442,7 @@ class Tf2monCLI(BaseCLI):
             print(self.options.con_logfile)
             sys.exit(0)
 
-        monitor = TF2Monitor(self.options, self.config)
+        monitor = Monitor(self.options, self.config)
 
         if self.options.trunc_con_logfile:
             Conlog(monitor).trunc()
@@ -466,8 +468,12 @@ class Tf2monCLI(BaseCLI):
             self.options.layout = tf2mon.layouts.LAYOUT_ENUM.__dict__[self.options.layout]
 
         monitor.run()
+        if self.options.stats:
+            self.options.stats.write_text(
+                "\n".join([pformat(x.__dict__) for x in monitor.users.active_users()]) + "\n"
+            )
 
 
 def main(args: Optional[List[str]] = None) -> None:
     """Command line interface entry point (function)."""
-    return Tf2monCLI(args).main()
+    return CLI(args).main()

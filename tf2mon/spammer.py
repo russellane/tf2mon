@@ -2,6 +2,7 @@
 
 from loguru import logger
 
+import tf2mon
 from tf2mon.toggle import Cycle
 
 
@@ -110,9 +111,7 @@ class Spammer:
         """Respond to SPAM command."""
 
         if spamno == 1:
-            msg = str(
-                "say Real-time stats brought to you by " f"{self.monitor.appname} bot detector"
-            )
+            msg = str("say Real-time stats brought to you by " f"{tf2mon.APPNAME} bot detector")
 
         else:
             logger.critical(f"bad spamno {spamno!r}")

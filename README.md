@@ -6,9 +6,10 @@
            [--list-con-logfile] [--trunc-con-logfile] [--clean-con-logfile]
            [--single-step] [--break LINENO] [--search PATTERN]
            [--inject-cmd LINENO:CMD] [--inject-file FILE] [--toggles]
-           [--players FILE] [--hackers-base FILE] [--hackers-local FILE]
-           [--print-steamid STEAMID] [-h] [-v] [-V] [--config FILE]
-           [--print-config] [--print-url] [--completion [SHELL]]
+           [--stats FILE] [--players FILE] [--hackers-base FILE]
+           [--hackers-local FILE] [--print-steamid STEAMID] [-h] [-v] [-V]
+           [--config FILE] [--print-config] [--print-url]
+           [--completion [SHELL]]
            [con_logfile]
     
 Team Fortress II (`TF2`) Console Monitor (`tf2mon`) is an interactive
@@ -60,6 +61,7 @@ By default, `tf2mon` starts reading the con_logfile from its end
                         Inject `CMD` before line `LINENO`.
     --inject-file FILE  Read list of inject commands from `FILE`.
     --toggles           Allow toggles when `--rewind` (default: `False`).
+    --stats FILE        Save statistics to `FILE` at exit.
 
 #### Database options
     --players FILE      Cache `steam` user data (default:

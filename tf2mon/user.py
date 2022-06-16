@@ -7,6 +7,7 @@ from typing import NewType
 from fuzzywuzzy import fuzz
 from loguru import logger
 
+import tf2mon
 from tf2mon.hacker import HackerAttr
 
 UserKey = NewType("UserKey", str)
@@ -311,7 +312,7 @@ class User:
         if self.hacker.is_milenko:
             # don't kick milenko
             msg = str(
-                f"say {self.monitor.appname} Hello Milenko "
+                f"say {tf2mon.APPNAME} Hello Milenko "
                 f"{self.username!r} steamid {self.steamid!r}, thank you."
             )
             self.monitor.kicks.push(msg)
@@ -324,7 +325,7 @@ class User:
 
         # work
 
-        msg = f"say {self.monitor.appname} ALERT: "
+        msg = f"say {tf2mon.APPNAME} ALERT: "
         if self.hacker.is_racist:
             msg += f"RACIST {self._clean_username!r}"
         elif self.clonee:

@@ -48,7 +48,7 @@ class UI:
         """Initialize User Interface instance.
 
         Args:
-            monitor:    `TF2Monitor` instance.
+            monitor:    `Monitor` instance.
             win:        curses window to use; likely `stdscr`.
         """
 
@@ -76,7 +76,7 @@ class UI:
 
         # Format of logger location field.
         self.log_location = Toggle("_ll", LOG_LOCATION)
-        self.log_location.start(LOG_LOCATION.MOD)
+        self.log_location.start(LOG_LOCATION.THREAD)
 
         # Scoreboard sort column.
         self.sort_order = Toggle("_so", SORT_ORDER)
@@ -110,9 +110,6 @@ class UI:
         self.monitor.fkeys.register_curses_handlers()
 
         #
-        self._curses_logwin = libcurses.LoggerWindow(self.logger_win)
-        self._curses_logwin.set_verbose(self.monitor.options.verbose)
-        self._curses_logwin.set_location(self._log_locations[self.log_location.value])
         self.colormap = libcurses.get_colormap()
 
         #
@@ -125,6 +122,7 @@ class UI:
         )
 
         self.set_sort_order(self.sort_order.value)
+        # self.grid.redraw()
 
     def cycle_grid_layout(self):
         """Use next grid layout."""
@@ -150,7 +148,7 @@ class UI:
         except AssertionError:
             curses.endwin()
             logger.error("Terminal too small; try `Maximize` and `Ctrl+Minus`.")
-            sys.exit(0)  # noqa
+            sys.exit(1)
 
         if os.isatty(sys.stderr.fileno()):
             os.close(sys.stderr.fileno())
@@ -201,27 +199,21 @@ class UI:
 
         self.grid.redraw()
 
+    def set_log_location(self) -> None:
+        """Set format of location in messages displayed in logger window."""
+
+        self.monitor.console.sink.set_location(self._log_locations[self.log_location.value])
+
     def cycle_log_location(self):
         """Cycle format of location in messages displayed in logger window."""
 
-        self._curses_logwin.set_location(self._log_locations[self.log_location.cycle])
+        self.monitor.console.sink.set_location(self._log_locations[self.log_location.cycle])
 
     def set_sort_order(self, sort_order):
         """Set scoreboard sort column."""
 
         self.monitor.users.set_sort_order(sort_order)
         self._scoreboard.set_sort_order(sort_order)
-
-    def getline(self, prompt=None):
-        """Read and return next line from keyboard."""
-
-        self.cmdline_win.erase()
-
-        if prompt:
-            self.cmdline_win.addstr(0, 0, prompt)
-            self.cmdline_win.noutrefresh()
-
-        return libcurses.getline(self.cmdline_win)
 
     def update_display(self):
         """Update display."""

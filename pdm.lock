@@ -404,6 +404,8 @@ dependencies = [
 name = "rlane-libcurses"
 version = "1.0.4"
 requires_python = ">=3.10"
+editable = true
+path = "../libcurses"
 summary = "Curses based boxes, menus, loggers"
 dependencies = [
     "loguru>=0.6.0",
@@ -487,7 +489,7 @@ summary = "Variables defined by the XDG Base Directory Specification"
 
 [metadata]
 lock_version = "3.1"
-content_hash = "sha256:93fc4450fd1789c80010ec3ab20abaff4ca3646f6595609b5dc6f0d4a06728ac"
+content_hash = "sha256:de84c18f1119105ccb395283b965c9a9df35a5c544ba5616e2cf504e92dfa972"
 
 [metadata.files]
 "ansicolors 1.1.8" = [
@@ -811,10 +813,6 @@ content_hash = "sha256:93fc4450fd1789c80010ec3ab20abaff4ca3646f6595609b5dc6f0d4a
 "rlane-libcli 1.0.3" = [
     {file = "rlane_libcli-1.0.3-py3-none-any.whl", hash = "sha256:80db0db729434d13a70ac4d0d1f1e6c6c1485b7e8918129734524a7a4ef151c1"},
     {file = "rlane-libcli-1.0.3.tar.gz", hash = "sha256:2d0139f3b09c62b2645adf92e2954dee843cecf53eee8268d98e7663ef30f634"},
-]
-"rlane-libcurses 1.0.4" = [
-    {file = "rlane_libcurses-1.0.4-py3-none-any.whl", hash = "sha256:292d87a94450e10aeddde926a2cf22d97662888bd4b455c41f8a721b40e41f0b"},
-    {file = "rlane-libcurses-1.0.4.tar.gz", hash = "sha256:c6988c8aa54f86ee15ece89f2692e3f9d729c3237c6417e9b0d750f2981bb9a3"},
 ]
 "setuptools 62.3.3" = [
     {file = "setuptools-62.3.3-py3-none-any.whl", hash = "sha256:d1746e7fd520e83bbe210d02fff1aa1a425ad671c7a9da7d246ec2401a087198"},

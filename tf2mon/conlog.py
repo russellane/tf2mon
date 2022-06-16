@@ -1,27 +1,31 @@
-"""TF2's console logfile."""
+"""TF2 console logfile."""
 
 import re
 import time
 from collections import namedtuple
+from pathlib import Path
 
 from loguru import logger
 
+import tf2mon
+
 
 class Conlog:
-    """TF2 writes console output to the file named in its `con_logfile` variable.
-
-    Options from our command line, and commands from our admin console, may
-    "inject" lines into the data stream read from the game console logfile.
-    """
+    """TF2 console logfile."""
 
     # pylint: disable=too-many-instance-attributes
 
     _cmd = namedtuple("_cmd", ["lineno", "cmd"])
 
-    def __init__(self, monitor) -> None:
-        """Prepare to open and read the console logfile."""
+    def __init__(self, path: Path, rewind: bool, follow: bool) -> None:
+        """Prepare to open and read TF2 console logfile.
 
-        self.monitor = monitor
+        TF2 logs messages to the file named in its `con_logfile` variable.
+        """
+
+        self.path = Path(path)
+        self.rewind = rewind
+        self.follow = follow
         self.lineno = 0
         self.is_eof = False
 
@@ -33,10 +37,9 @@ class Conlog:
 
         #
         self.last_line = None
-        self._fmt_last_line = "{lineno}: {line}"
 
         # ignore lines that contain these strings
-        self._excludes_re = re.compile(
+        self._re_ignore = re.compile(
             "|".join(
                 [
                     "Failed to find attachment point specified for",
@@ -65,17 +68,17 @@ class Conlog:
     def open(self):
         """Wait for existence of and open console logfile."""
 
-        while not self.monitor.options.con_logfile.exists():
-            logger.warning(f"waiting for {str(self.monitor.options.con_logfile)!r}...")
+        while not self.path.exists():
+            logger.warning(f"Waiting for {str(self.path)!r}...")
             time.sleep(3)
 
-        logger.info(f"Reading `{self.monitor.options.con_logfile}`")
+        logger.info(f"Reading `{self.path}`")
 
         self._fp = open(  # pylint: disable=consider-using-with
-            self.monitor.options.con_logfile, encoding="utf-8", errors="replace"
+            self.path, encoding="utf-8", errors="replace"
         )
 
-        if not self.monitor.options.rewind:
+        if not self.rewind:
             # would self._fp.seek(0, 2) but need lineno
             while self._fp.readline() != "":
                 self.lineno += 1
@@ -98,14 +101,14 @@ class Conlog:
     def inject_cmd(self, lineno, cmd):
         """Inject command into logfile before `lineno`."""
 
-        if not cmd.startswith(self.monitor.cmd_prefix):
-            cmd = self.monitor.cmd_prefix + cmd
+        if not cmd.startswith(tf2mon.APPTAG):
+            cmd = tf2mon.APPTAG + cmd
 
         self._inject_cmds.append(self._cmd(int(lineno) - 1, cmd))
         self._is_inject_sorted = False
 
     def readline(self):
-        """Read and return next line from console lofgile.
+        """Read and return next line from console logfile.
 
         Return None on end-of-file, else line.strip() (which may evaluate False).
         """
@@ -114,8 +117,9 @@ class Conlog:
 
             if _buffer := self._buffer:
                 self._buffer = None
-                self.last_line = self._fmt_last_line.format(lineno=self.lineno, line=_buffer)
-                return _buffer
+                self.last_line = "{self.lineno}: {_buffer}"
+                yield _buffer
+                continue
 
             if not self._is_inject_sorted:
                 self._inject_cmds.sort(key=lambda x: x.lineno)
@@ -129,9 +133,10 @@ class Conlog:
 
                 line = self._inject_cmds.pop(0).cmd
                 self._is_inject_paused = True
-                self.last_line = self._fmt_last_line.format(lineno=self.lineno + 1, line=line)
+                self.last_line = "{self.lineno + 1}: {line}"
                 logger.log("injected", self.last_line)
-                return line
+                yield line
+                continue
 
             self.lineno += 1
             self._is_inject_paused = False
@@ -144,33 +149,34 @@ class Conlog:
 
             if line:
                 line = line.strip()
-                if line.startswith(self.monitor.cmd_prefix) and " " in line:
+                if line.startswith(tf2mon.APPTAG) and " " in line:
                     # sometimes newlines get dropped and lines are combined
                     cmd, self._buffer = line.split(sep=" ", maxsplit=1)
-                    self.last_line = self._fmt_last_line.format(lineno=self.lineno, line=cmd)
-                    return cmd
-                if self._excludes_re.search(line):
-                    logger.log("exclude", self._fmt_last_line, lineno=self.lineno, line=line)
+                    self.last_line = "{self.lineno}: {cmd}"
+                    yield cmd
                     continue
-                self.last_line = self._fmt_last_line.format(lineno=self.lineno, line=line)
-                return line
+
+                self.last_line = "{self.lineno}: {line}"
+                if not self._re_ignore.search(line):
+                    yield line
+                continue
 
             self.is_eof = True
-            if not self.monitor.options.follow:
-                return None  # eof
+            if not self.follow:
+                return  # None  # eof
 
             time.sleep(1)  # find an alternative to polling
 
     def trunc(self):
         """Truncate console logfile."""
 
-        with open(self.monitor.options.con_logfile, "w", encoding="utf-8"):
+        with open(self.path, "w", encoding="utf-8"):
             pass
 
     def filter_excludes(self):
         """Return list of non-excluded lines from console logfile."""
 
-        with open(self.monitor.options.con_logfile, encoding="utf-8", errors="replace") as file:
+        with open(self.path, encoding="utf-8", errors="replace") as file:
             for line in file:
-                if not self._excludes_re.match(line):
+                if not self._re_ignore.search(line):
                     yield line.strip("\n")

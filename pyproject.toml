@@ -26,6 +26,7 @@ dependencies = [
     "rlane-libcurses>=1.0.4",
     "steam!=1.3.3,>=1.3.0",
     "xdg>=5.1.1",
+    "-e file:///home/russel/dev/libcurses#egg=rlane-libcurses",
 ]
 
 [project.urls]

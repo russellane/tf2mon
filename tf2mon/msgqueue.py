@@ -4,6 +4,8 @@ from collections import deque
 
 from loguru import logger
 
+import tf2mon
+
 
 class MsgQueue:
     """Communication mechanism to "send" data to the game."""
@@ -77,7 +79,7 @@ class MsgQueue:
 
         if self.msgs:
             last, first = self.msgs[-1], self.msgs[0]
-            last_ack = f" ; echo {self.monitor.cmd_prefix}{self.name.upper()}-POP"
+            last_ack = f" ; echo {tf2mon.APPTAG}{self.name.upper()}-POP"
             first_ack = last_ack + "LEFT"
         else:
             _echo = "say" if self.monitor.ui.debug_flag.value else "echo"
