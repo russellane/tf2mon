@@ -1,9 +1,8 @@
 """TF2 console logfile."""
 
 import re
-import time
 from collections import namedtuple
-from pathlib import Path
+from typing import TextIO
 
 from loguru import logger
 
@@ -15,88 +14,46 @@ class Conlog:
 
     # pylint: disable=too-many-instance-attributes
 
-    _cmd = namedtuple("_cmd", ["lineno", "cmd"])
+    _CMD = namedtuple("_cmd", ["lineno", "cmd"])
 
-    def __init__(self, path: Path, rewind: bool, follow: bool) -> None:
-        """Prepare to open and read TF2 console logfile.
+    def __init__(self, inject_cmds=None, inject_file=None):
+        """TF2 console logfile."""
 
-        TF2 logs messages to the file named in its `con_logfile` variable.
-        """
-
-        self.path = Path(path)
-        self.rewind = rewind
-        self.follow = follow
-        self.lineno = 0
-        self.is_eof = False
-
-        self._inject_cmds = []  # list(_cmd)
-        self._is_inject_sorted = False
-        self._is_inject_paused = False
-        self._buffer = None
-        self._fp = None
-
-        #
+        self.lineno: int = 0
         self.last_line = None
+        self._buffer = None
+        self._file: TextIO = None
+        self.re_exclude = re.compile("|".join(self._exclude_lines()))
+        self._inject_cmds = []  # list(_cmd)
+        self._is_inject_paused = False
+        self._is_inject_sorted = False
 
-        # ignore lines that contain these strings
-        self._re_ignore = re.compile(
-            "|".join(
-                [
-                    "Failed to find attachment point specified for",
-                    "# userid name",
-                    "##### CTexture::LoadTextureBitsFromFile",
-                    "CMaterialVar::GetVecValue: trying to get a vec value for",
-                    "Cannot update control point",
-                    "DataTable warning: tf_objective_resource: Out-of-range value",
-                    "EmitSound: pitch out of bounds",
-                    'Error: Material "models/workshop/player/items/all_class',
-                    "Lobby updated",
-                    "Missing Vgui material",
-                    'No such variable "',
-                    "Requesting texture value from var",
-                    "SOLID_VPHYSICS static prop with no vphysics model!",
-                    "SetupBones: invalid bone array size",
-                    "ertexlit_and_unlit_generic_bump_ps20b.vcs",
-                    "m_face->glyph->bitmap.width is 0 for ch:32",
-                    "to attach particle system",
-                    "to get specular",
-                    "unknown particle system",
-                ]
-            )
-        )
+        # group.add_argument(
+        #     "--inject-cmd",
+        #     dest="inject_cmds",
+        #     metavar="LINENO:CMD",
+        #     action="append",
+        #     help="inject `CMD` before line `LINENO`",
+        # )
+        if inject_cmds:
+            self._inject_cmd_list(inject_cmds)
 
-    def open(self):
-        """Wait for existence of and open console logfile."""
+        # group.add_argument(
+        #     "--inject-file",
+        #     metavar="FILE",
+        #     help="read list of inject commands from `FILE`",
+        # )
+        if inject_file:
+            logger.info(f"Reading `{inject_file}`")
+            with open(inject_file, encoding="utf-8") as file:
+                self._inject_cmd_list(file)
 
-        while not self.path.exists():
-            logger.warning(f"Waiting for {str(self.path)!r}...")
-            time.sleep(3)
+    def _inject_cmd_list(self, cmds):
+        """Inject list of commands into logfile."""
 
-        logger.info(f"Reading `{self.path}`")
-
-        self._fp = open(  # pylint: disable=consider-using-with
-            self.path, encoding="utf-8", errors="replace"
-        )
-
-        if not self.rewind:
-            # would self._fp.seek(0, 2) but need lineno
-            while self._fp.readline() != "":
-                self.lineno += 1
-
-            logger.log("ADMIN", f"lineno={self.lineno}")
-            self.is_eof = True
-
-    def inject_cmd_list(self, cmds):
-        """Inject list of commands into logfile.
-
-        Line numbers are found at the front of each command followed by a
-        colon; (then the command).
-        """
-
-        if cmds:
-            for line in cmds:
-                lineno, cmd = line.strip().split(":", maxsplit=1)
-                self.inject_cmd(lineno, cmd)
+        for line in cmds:
+            lineno, cmd = line.strip().split(":", maxsplit=1)
+            self.inject_cmd(lineno, cmd)
 
     def inject_cmd(self, lineno, cmd):
         """Inject command into logfile before `lineno`."""
@@ -104,11 +61,21 @@ class Conlog:
         if not cmd.startswith(tf2mon.APPTAG):
             cmd = tf2mon.APPTAG + cmd
 
-        self._inject_cmds.append(self._cmd(int(lineno) - 1, cmd))
+        self._inject_cmds.append(self._CMD(int(lineno) - 1, cmd))
         self._is_inject_sorted = False
 
-    def readline(self):
-        """Read and return next line from console logfile.
+    def is_open(self) -> bool:
+        """Return True if the conlog has been opened."""
+        return self._file is not None
+
+    # def read_lineno_line(self) -> (int, str):
+    #     """Read next line from console logfile and yield `(lineno, line)`."""
+
+    #     for line in self.readline():
+    #         yield self.lineno, line
+
+    def process_line(self, line: str) -> None:
+        """Read and yield next line from console logfile.
 
         Return None on end-of-file, else line.strip() (which may evaluate False).
         """
@@ -127,7 +94,7 @@ class Conlog:
 
             if (
                 self._inject_cmds
-                and (self.is_eof or not self._is_inject_paused)
+                # and (self.is_eof or not self._is_inject_paused)
                 and self._inject_cmds[0].lineno <= self.lineno
             ):
 
@@ -142,7 +109,7 @@ class Conlog:
             self._is_inject_paused = False
 
             try:
-                line = self._fp.readline()
+                line = self._file.readline()
             except UnicodeDecodeError as err:
                 logger.critical(err)
                 continue
@@ -157,26 +124,31 @@ class Conlog:
                     continue
 
                 self.last_line = "{self.lineno}: {line}"
-                if not self._re_ignore.search(line):
+                if not self.re_exclude.search(line):
                     yield line
                 continue
 
-            self.is_eof = True
-            if not self.follow:
-                return  # None  # eof
+    def _exclude_lines(self) -> [str]:
+        """Return list of lines to exclude."""
 
-            time.sleep(1)  # find an alternative to polling
-
-    def trunc(self):
-        """Truncate console logfile."""
-
-        with open(self.path, "w", encoding="utf-8"):
-            pass
-
-    def filter_excludes(self):
-        """Return list of non-excluded lines from console logfile."""
-
-        with open(self.path, encoding="utf-8", errors="replace") as file:
-            for line in file:
-                if not self._re_ignore.search(line):
-                    yield line.strip("\n")
+        return [
+            "Failed to find attachment point specified for",
+            "# userid name",
+            "##### CTexture::LoadTextureBitsFromFile",
+            "CMaterialVar::GetVecValue: trying to get a vec value for",
+            "Cannot update control point",
+            "DataTable warning: tf_objective_resource: Out-of-range value",
+            "EmitSound: pitch out of bounds",
+            'Error: Material "models/workshop/player/items/all_class',
+            "Lobby updated",
+            "Missing Vgui material",
+            'No such variable "',
+            "Requesting texture value from var",
+            "SOLID_VPHYSICS static prop with no vphysics model!",
+            "SetupBones: invalid bone array size",
+            "ertexlit_and_unlit_generic_bump_ps20b.vcs",
+            "m_face->glyph->bitmap.width is 0 for ch:32",
+            "to attach particle system",
+            "to get specular",
+            "unknown particle system",
+        ]

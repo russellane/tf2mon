@@ -1,6 +1,5 @@
 """Command line interface."""
 
-import sys
 from pathlib import Path
 from pprint import pformat
 from typing import List, Optional
@@ -12,7 +11,6 @@ from loguru import logger
 
 import tf2mon.layouts
 from tf2mon.conlog import Conlog
-from tf2mon.logger import configure_logger
 from tf2mon.monitor import Monitor
 
 
@@ -364,16 +362,15 @@ class CLI(BaseCLI):
     admin console to process the next line when in `--single-step` mode.
     Type `quit` or press `^D` to exit.
 
-        `Duel monitors`
-            Run `%(prog)s` on a secondary monitor, while playing the game on
-            the primary monitor. Best performance, but a pain to `Alt-Tab`
-            between monitor and game.
+        `One-machine, Two-monitors`
+            Run `%(prog)s` on a secondary monitor, while playing game on
+            primary monitor.
 
-        `Duel machines, ssh`
+        `Two-machines, SSH`
             ssh from another machine and run.
 
-        `Duel machines, nfs`
-            cross-mount TF2's directory to another box and run from there.
+        `Two-machines, NFS`
+            cross-mount TF2's `cfg` tree to another box and run from there.
                 """
             ),
         )
@@ -422,8 +419,6 @@ class CLI(BaseCLI):
     def main(self) -> None:
         """Command line interface entry point (method)."""
 
-        configure_logger()
-
         # if "webapi_key" not in self.config:
         #     self.parser.error("Missing config `webapi_key`")
 
@@ -440,29 +435,31 @@ class CLI(BaseCLI):
 
         if self.options.list_con_logfile:
             print(self.options.con_logfile)
-            sys.exit(0)
+            self.parser.exit()
 
         monitor = Monitor(self.options, self.config)
 
         if self.options.trunc_con_logfile:
-            Conlog(monitor).trunc()
-            logger.warning(f"con_logfile {str(self.options.con_logfile)!r} truncated; Exiting.")
-            sys.exit(0)
+            with open(self.options.con_logfile, "w", encoding="utf-8"):
+                pass
+            logger.info(f"con_logfile {str(self.options.con_logfile)!r} truncated; Exiting.")
+            self.parser.exit()
 
         if self.options.clean_con_logfile:
-            for line in Conlog(monitor).filter_excludes():
-                print(line)
-            logger.warning(f"con_logfile {str(self.options.con_logfile)!r} cleaned; Exiting.")
-            sys.exit(0)
+            conlog = Conlog()
+            with open(self.options.con_logfile, encoding="utf-8", errors="replace") as file:
+                for line in [x for x in file if not conlog.re_exclude.search(x)]:
+                    print(line)
+                logger.info(f"con_logfile {str(self.options.con_logfile)!r} cleaned; Exiting.")
+            self.parser.exit()
 
         if self.options.print_steamid:
-            monitor.steam_web_api.connect()
             steamid = steam.steamid.SteamID(self.options.print_steamid)
             if not steamid.is_valid():
                 self.parser.error(f"invalid steamid `{self.options.print_steamid}`")
             sp = monitor.steam_web_api.find_steamid(steamid)  # noqa
             ic(sp)  # noqa
-            sys.exit(0)
+            self.parser.exit()
 
         if self.options.layout:  # get enum from name
             self.options.layout = tf2mon.layouts.LAYOUT_ENUM.__dict__[self.options.layout]

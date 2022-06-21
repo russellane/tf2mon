@@ -4,11 +4,13 @@ import argparse
 import csv
 import curses
 import re
+import threading
+from collections import deque
 from pathlib import Path
 from pprint import pformat
 
 import libcurses
-from icecream import ic
+from libcurses.console import ConsoleMessageType
 from loguru import logger
 
 import tf2mon
@@ -18,6 +20,7 @@ from tf2mon.conlogfeed import ConlogFeed
 from tf2mon.fkey import FKey, FKeyManager
 from tf2mon.gameplay import Gameplay
 from tf2mon.hacker import HackerAttr, HackerManager
+from tf2mon.logctrl import LogCtrl
 from tf2mon.msgqueue import MsgQueueManager
 from tf2mon.regex import Regex
 from tf2mon.role import Role
@@ -40,13 +43,12 @@ class Monitor:
 
         self.options = options
         self.config = config
+        self.logctrl = LogCtrl()
 
-        #
         self.steam_web_api = SteamWebAPI(
             dbpath=self.options.players,
-            webapi_key=self.config["webapi_key"],
+            webapi_key=self.config.get("webapi_key"),
         )
-        self.steam_web_api.connect()
 
         # send data to tf2 by writing to an `exec` script
         self.tf2_scripts_dir = Path(self.options.tf2_install_dir, "cfg", "user")
@@ -54,21 +56,9 @@ class Monitor:
             logger.warning(f"Missing scripts at `{self.tf2_scripts_dir}`")
         self.msgqueues = MsgQueueManager(self, self.tf2_scripts_dir / "tf2-monitor-work.cfg")
 
-        # prepare to open and receive data from tf2 by reading its console logfile
-        self.conlog = Conlog(
-            self.options.con_logfile,
-            self.options.rewind,
-            self.options.follow,
-        )
-
-        # inject any commands from the command line into the conlog
-        self.conlog.inject_cmd_list(self.options.inject_cmds)
-
-        # inject any commands from a file into the conlog
-        if self.options.inject_file:
-            logger.info(f"Reading `{self.options.inject_file}`")
-            with open(self.options.inject_file, encoding="utf-8") as file:
-                self.conlog.inject_cmd_list(file)
+        # receive data from tf2 by reading its console logfile
+        self.conlog = Conlog(self.options.inject_cmds, self.options.inject_file)
+        self._single_steps = deque()
 
         # this application's admin console
         self.admin = Admin(self)
@@ -172,72 +162,29 @@ class Monitor:
 
         self.ui = UI(self, stdscr)
 
-        # Start threads.
+        threading.current_thread().name = "MAIN"
+
+        # Start thread to forward keyboard/mouse.
         self.console = libcurses.Console(
-            stdscr=stdscr,
-            # stdscr=self.ui.cmdline_win,
             logwin=self.ui.logger_win,
-            pre_block=self.pre_block,
-            dispatch=self.dispatch,
-            debug=True,
+            refresh=self._refresh,
         )
+        self.logctrl.console = self.console
+        self.logctrl.set_log_location()
 
-        self.ui.set_log_location()
-
-        # Add data feed.
-        self.conlogfeed = ConlogFeed(self.console.queue, self.conlog)
+        # Start thread to forward lines from con_logfile.
+        self.conlogfeed = ConlogFeed(
+            queue=self.console.queue,
+            path=self.options.con_logfile,
+            rewind=self.options.rewind,
+            follow=self.options.follow,
+        )
 
         # Run...
         self.repl()
 
-    def repl(self) -> None:
-        """Read, evaluate and process command lines ENTER'd by operator."""
-
-        while not self.conlog.is_eof or self.options.follow:
-
-            if self.options.single_step:
-                ic(self.conlogfeed.running.clear())
-            else:
-                ic(self.conlogfeed.running.set())
-
-            ic(self.conlogfeed.waiting.wait())
-            line = ic(next(self.console.getline()))
-
-            logger.log("console", f"194 line={line!r}")
-
-            # if self.options.single_step:
-            #     logger.error("CLEAR AFTER")
-            #     self.conlogfeed.running.clear()
-            # else:
-            #     logger.error("SET AFTER")
-            #     self.conlogfeed.running.set()
-
-            if line is None:
-                logger.error("console", "unexpected")
-                break
-
-            # if line == "":  # ENTER
-            #     if self.conlog.is_eof:
-            #         logger.log("console", "<EOF>")
-            #     else:
-            #         logger.trace("step...")
-            #     continue
-
-            logger.log("console", f"line={line!r}")
-
-            if line and "quit".find(line) == 0:
-                logger.log("console", "quit")
-                return
-
-            # if regex := Regex.search_list(line, self.regex_list):
-            #     regex.handler(regex.re_match_obj)
-            # else:
-            #     logger.error("bad command")
-
-        logger.log("console", "exit")
-
-    def pre_block(self, line: str) -> None:
-        """Prompt for and read a line from the keyboard."""
+    def _refresh(self, line: str) -> None:
+        """Called for each keystroke/mouse by `self.console` during equivalent of `getline`."""
 
         prompt = tf2mon.APPNAME
         if self.options.single_step:
@@ -254,29 +201,117 @@ class Monitor:
         self.ui.update_display()
         # self.grid.redraw()
 
-    def dispatch(self, msgtype: str, *args) -> None:
-        """Docstring."""
+    def repl(self) -> None:
+        """Read, evaluate and process loop.
 
-        if msgtype == "CONLOG":
-            (line,) = args
-            logger.trace(f"Received line: {line}")
-            self.conlogfeed.running.clear()
-            self.conlogfeed.waiting.wait()
-            self.conlogfeed.running.set()
-            self.process_line(line)
+        Loop over input messages:
+
+            - lines ENTER'd by operator on in `cmdline_win`.
+            - lines read from con_logfile; this includes any lines gamer types
+              into TF2's console, so... if running dual-monitors, no need to
+              alt-tab to Monitor to enter commands.
+        """
+
+        # pylint: disable=too-many-branches
+
+        # for msgtype, lineno, line in self.console.get_msgtype_lineno_line():
+
+        while True:
+            logger.warning(
+                f"nsteps {len(self._single_steps)} stepping {self.options.single_step}"
+            )
+
+            if len(self._single_steps) > 0:
+                if self.options.single_step:
+                    (nextlineno, nextline) = self._single_steps[0]
+                else:
+                    (nextlineno, nextline) = self._single_steps.popleft()
+            else:
+                (nextlineno, nextline) = (None, None)
+
+            if self.options.single_step:
+                logger.log("nextline", "-" * 80)
+                logger.log("nextline", f"lineno={nextlineno} line={nextline!r}")
+                # go to getline
+            else:
+                logger.log("logline", "-" * 80)
+                logger.log("logline", f"lineno={nextlineno} line={nextline!r}")
+                self.evaluate(nextlineno, nextline)
+                continue
+
+            try:
+                msgtype, lineno, line = next(self.console.getline())
+            except StopIteration:
+                time.sleep(1)
+                break  # end of file
+            except Exception as err:  # noqa
+                logger.error(err)
+                continue
+
+            if lineno <= 0:  # hard eof (--no-follow)
+                break
+
+            if msgtype == ConsoleMessageType.GETLINE.value:
+                if line and "quit".find(line) == 0:
+                    break
+                if line:
+                    logger.log("console", f"CMD: {line!r}")
+                    self.evaluate(lineno, line)
+                else:  # ENTER
+                    if nextlineno:
+                        self.evaluate(nextlineno, nextline)
+                        (_, _) = self._single_steps.popleft()
+                    else:
+                        logger.info("eof")
+                continue
+
+            if msgtype == self.conlogfeed.msgtype:
+                if self.options.single_step:
+                    # logger.log("logline", f"lineno={lineno} line={line!r}")
+                    self._single_steps.append((lineno, line))
+                else:
+                    if len(self._single_steps) > 0:
+                        self._single_steps.append((lineno, line))
+                        (lineno, line) = self._single_steps.popleft()
+
+                    logger.log("logline", "-" * 80)
+                    logger.log("logline", f"lineno={lineno} line={line!r}")
+                    self.evaluate(lineno, line)
+                continue
+
+            logger.error(f"invalid msgtype={msgtype!r}")
+
+    def evaluate(self, lineno: int, line: str) -> None:
+        """Evaluate `line` from `con_logfile`."""
+
+        if not line:
             return
 
-        raise ValueError(f"invalid msgtype={msgtype!r} args={args!r}")
+        line = line.strip()
+        if line.startswith(tf2mon.APPTAG) and " " in line:
+            # sometimes newlines get dropped and lines are combined
+            line, remainder = line.split(sep=" ", maxsplit=1)
+            self._single_steps.appendleft((lineno, remainder))
 
-    def process_line(self, line: str) -> None:
-        """Process `line` from console logfile."""
+        if self.conlog.re_exclude.search(line):
+            logger.warning(f"Excluding {line!r}")
+            return
+
+        if (self.admin.single_step_re and self.admin.single_step_re.search(line)):
+            flags = "i" if (self.admin.single_step_re.flags & re.IGNORECASE) else ""
+            logger.log("ADMIN", f"Break search /{self.admin.single_step_re.pattern}/{flags}")
+            self._single_steps.append((lineno, line))
+            self.admin.start_single_stepping()
+            return
 
         regex = Regex.search_list(line, self.regex_list)
         if not regex:
-            logger.log("ignore", self.conlog.last_line)
-            return
+            logger.log("ignore", line)
+        else:
+            self.process(regex)
 
-        self.admin.check_single_step(line)
+    def process(self, regex: Regex) -> None:
+        """Process `line` from `con_logfile`."""
 
         regex.handler(regex.re_match_obj)
 
@@ -314,10 +349,11 @@ class Monitor:
     def breakpoint(self):
         """Drop into python debugger."""
 
-        if self.conlog.is_eof:  # don't do this when replaying logfile from start
-            curses.reset_shell_mode()
-            breakpoint()  # pylint: disable=forgotten-debug-statement
-            curses.reset_prog_mode()
+        raise NotImplementedError
+        # if self.conlog.is_eof:  # don't do this when replaying logfile from start
+        #     curses.reset_shell_mode()
+        #     breakpoint()  # xylint: disable=forgotten-debug-statement
+        #     curses.reset_prog_mode()
 
     def kick_my_last_killer(self, attr):
         """Kick the last user who killed the operator."""
@@ -351,7 +387,7 @@ class Monitor:
         it is not checked by keys that only alter the display.
         """
 
-        return self.conlog.is_eof or self.options.toggles or not self.options.single_step
+        return self.conlogfeed.is_eof or self.options.toggles or not self.options.single_step
 
     @staticmethod
     def _on_off(key, value):
@@ -460,14 +496,14 @@ class Monitor:
 
     def _fkey_log_location(self, game_key: str, curses_key: int) -> FKey:
         def _action() -> None:
-            self.ui.cycle_log_location()
+            self.logctrl.cycle_log_location()
             self.ui.show_status()
 
         return FKey(
             cmd="TOGGLE-LOG-LOCATION",
             game_key=game_key,
             curses_key=curses_key,
-            status=lambda: self.ui.log_location.value.name,
+            status=lambda: self.logctrl.location.value.name,
             handler=lambda m: _action(),
         )
 

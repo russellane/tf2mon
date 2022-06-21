@@ -2,6 +2,9 @@ PROJECT = tf2mon
 include Python.mk
 doc :: README.md
 
+tags::
+		ctags -R $(PROJECT) tests ../libcurses/libcurses
+
 # ./.tf2 is a symlink to some .../SteamLibrary/steamapps/common/Team Fortress 2/tf/
 CONLOG_FILE := .tf2/console.log
 CONLOG_STAT := $(shell stat -c '%Y %s' $(CONLOG_FILE))

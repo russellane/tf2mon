@@ -1,62 +1,57 @@
 import sys
-import time
+from collections import namedtuple
 from queue import SimpleQueue
 
+import pytest
 from loguru import logger
 
-from tf2mon.conlog import Conlog
+from tests.testlib import slow
 from tf2mon.conlogfeed import ConlogFeed
 
-logger.remove(0)
-logger.add(
-    sys.stderr,
-    format="{time:HH:MM:SS} {thread.name} {name}.{function}:{line} {message}",
-    level="TRACE",
+DataFile = namedtuple("datafile", ["nlines", "path"])
+Null = DataFile(0, "/dev/null")
+Small = DataFile(12, "tests/data/bot-chain")
+Large = DataFile(1140, "tests/data/bots-orig")
+
+
+@pytest.mark.parametrize(
+    ("name", "nlines", "path", "rewind", "follow"),
+    [
+        ("--rewind", Null.nlines, Null.path, True, False),
+        ("--rewind", Small.nlines, Small.path, True, False),
+        ("--no-rewind", Null.nlines, Null.path, False, False),
+        ("--no-rewind", Small.nlines, Small.path, False, False),
+        ("--no-rewind", Large.nlines, Large.path, False, False),
+    ],
 )
+def test_queue_get(name, nlines, path, rewind, follow):
 
-DEBUG = True
-
-
-def _test_one():
-
-    conlog = Conlog("tests/data/bot-chain", rewind=True, follow=False)
-    feed = ConlogFeed(SimpleQueue(), conlog, debug=DEBUG)
-    logger.warning("feed.running.SET")
-    feed.running.set()
-    feed.run()
-
-    conlog.open()
-    for line in conlog.readline():
-        print(f"line={line!r}")
-
-
-def test_two():
-
-    print()
-    conlog = Conlog("tests/data/bot-1", rewind=True, follow=False)
-    feed = ConlogFeed(SimpleQueue(), conlog, debug=DEBUG)
-    logger.warning("feed.running.CLEAR")
-    feed.running.clear()
-    logger.warning("feed.waiting.SET")
-    feed.waiting.set()
-    feed.run()
+    _ = name  # unused
+    print(file=sys.stderr, flush=True)
+    feed = ConlogFeed(SimpleQueue(), path, rewind=rewind, follow=follow)
+    feed.debug = True
+    last_lineno = None
 
     while True:
-        logger.debug("feed.running.CLEAR")
-        feed.running.clear()
-
-        logger.debug("feed.waiting.WAIT")
-        feed.waiting.wait()
-
-        time.sleep(0.1)  # simulate press ENTER
-
-        # Wait for line.
-        try:
-            (msgtype, *args) = feed.queue.get()
-        except KeyboardInterrupt as err:
-            logger.error(err)
+        (msgtype, lineno, line) = feed.queue.get()
+        logger.debug(f"msgtype {msgtype} lineno {lineno} line `{line.strip()}`")
+        if lineno <= 0:
             break
+        last_lineno = lineno
 
-        logger.debug(f"msgtype={msgtype!r} args={args!r}\n")
-        logger.debug("feed.running.SET")
-        feed.running.set()
+    assert feed.lineno == nlines
+    if last_lineno is not None:
+        assert last_lineno == nlines
+
+    logger.debug(f"NLINES: {nlines}")
+
+
+@slow
+@pytest.mark.parametrize(
+    ("name", "nlines", "path", "rewind", "follow"),
+    [
+        ("--rewind", Large.nlines, Large.path, True, False),
+    ],
+)
+def test_queue_get_slow(name, nlines, path, rewind, follow):
+    test_queue_get(name, nlines, path, rewind, follow)

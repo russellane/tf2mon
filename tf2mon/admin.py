@@ -15,7 +15,7 @@ class Admin:
         """Initialize Admin Console."""
 
         self.monitor = monitor
-        self._single_step_re = None
+        self.single_step_re = None
 
         if self.monitor.options.breakpoint is not None:
             self.set_single_step_lineno(self.monitor.options.breakpoint)
@@ -30,7 +30,7 @@ class Admin:
         # Commands operator may type into monitor admin console:
         self.regex_list = [
             # stop single-stepping
-            Regex("^(c|cont|continue)$", lambda m: self.monitor.confeed.running.set()),
+            Regex("^(c|cont|continue)$", lambda m: self._stop_single_stepping()),
             # stop single-stepping until eof, then single-step again
             Regex("^(r|run|g|go)$", lambda m: self.set_single_step_lineno(0)),
             # dump internals
@@ -74,6 +74,18 @@ class Admin:
             Regex("^(QVALVE) (.*)", lambda m: logger.log(m.group(1), m.group(2))),
         ]
 
+    def start_single_stepping(self):
+        """Begin prompting operator before processing each line from con_logfile."""
+
+        logger.debug("start")
+        self.monitor.options.single_step = True
+
+    def _stop_single_stepping(self):
+        """End prompting operator before processing each line from con_logfile."""
+
+        logger.debug("stop")
+        self.monitor.options.single_step = False
+
     def set_single_step_lineno(self, lineno=0):
         """Begin single-stepping at `lineno` if given else at eof."""
 
@@ -81,7 +93,7 @@ class Admin:
             self.monitor.conlog.inject_cmd(lineno, "SINGLE-STEP")
         else:
             # stop single-stepping until eof, then single-step again
-            self.monitor.confeed.running.set()
+            self._stop_single_stepping()
             self._single_step_at_eof = True
 
     def set_single_step_pattern(self, pattern=None):
@@ -91,7 +103,7 @@ class Admin:
         """
 
         if not pattern:
-            self._single_step_re = None
+            self.single_step_re = None
             logger.log("ADMIN", "Search pattern cleared.")
         else:
             flags = 0
@@ -100,36 +112,5 @@ class Admin:
                 flags = re.IGNORECASE
             elif pattern.endswith("/"):
                 pattern = pattern[:-1]
-            self._single_step_re = re.compile(pattern, flags)
-            logger.log("ADMIN", f"Search pattern set: {self._single_step_re!r}")
-
-    def check_single_step(self, line):
-        """Involve operator if `line` requires single-step attention.
-
-        Called by the game thread (not the admin thread) for each line read
-        from conlog, to wait for the operator (when necessary) before
-        processing the line.
-
-        If there's an active single-step pattern and last `line` read from
-        con_logfile matches pattern, or if we are single-stepping, then
-        wait for admin thread to release the lock.
-
-        Args:
-            line: last string read from con_logfile.
-
-        Returns:
-            immediately if gate is clear, else waits for it.
-        """
-
-        # Start single-stepping on pattern match
-
-        running = self.monitor.confeed.running.is_set()
-
-        if running and self._single_step_re and self._single_step_re.search(line):
-            flags = "i" if (self._single_step_re.flags & re.IGNORECASE) else ""
-            logger.log("ADMIN", f"Break search /{self._single_step_re.pattern}/{flags}")
-            self.monitor.confeed.running.clear()
-
-        level = "nextline" if not running else "logline"
-        logger.log(level, "-" * 80)
-        logger.log(level, self.monitor.conlog.last_line)
+            self.single_step_re = re.compile(pattern, flags)
+            logger.log("ADMIN", f"Search pattern set: {self.single_step_re!r}")

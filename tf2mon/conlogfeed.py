@@ -1,11 +1,16 @@
-"""TF2 console logfile data feed."""
+"""Console Logfile Data Feed.
 
+Tail -f the con_logfile, forwarding lines
+through a SimpleQueue to the main-thread.
+"""
+
+import os
+import time
+from pathlib import Path
 from queue import SimpleQueue
-from threading import Event, Thread
+from threading import Thread
 
 from loguru import logger
-
-from tf2mon.conlog import Conlog
 
 
 class ConlogFeed:
@@ -13,45 +18,47 @@ class ConlogFeed:
 
     # pylint: disable=too-few-public-methods
 
-    name = "CONLOG"
+    msgtype = "CONLOG"
+    lineno: int = 0
+    is_eof: bool = False
 
-    def __init__(self, queue: SimpleQueue, conlog: Conlog, debug: bool = False):
-        """Start thread to produce lines from TF2 console logfile."""
+    def __init__(
+        self,
+        queue: SimpleQueue,
+        path: os.PathLike,
+        rewind: bool = True,
+        follow: bool = False,
+    ):
+        """Start thread to forward lines from con_logfile to application."""
 
         self.queue = queue
-        self.conlog = conlog
-        self.debug = debug
+        self.path = Path(path)
+        self.rewind = rewind
+        self.follow = follow
 
-        self.running = Event()
-        self.waiting = Event()
-        # self.running.set()
-        self.waiting.set()
-
-        Thread(target=self.run, name=self.name, daemon=True).start()
+        Thread(target=self.run, name=self.msgtype, daemon=True).start()
 
     def run(self) -> None:
-        """Feed lines from TF2 console logfile into queue."""
+        """Forward lines from con_logfile to application."""
 
-        self.conlog.open()
+        while not self.path.exists():
+            logger.warning(f"Waiting for {str(self.path)!r}...")
+            time.sleep(3)
 
-        for line in self.conlog.readline():
+        with open(self.path, encoding="utf-8", errors="replace") as file:
 
-            if not self.running.is_set():
-                if self.debug:
-                    logger.warning(f"PAUSING: line={line!r}")
+            if not self.rewind:
+                for _ in file:
+                    self.lineno += 1
 
-                if self.debug:
-                    logger.warning("self.waiting.SET")
-                self.waiting.set()
+            while True:
+                for line in file:
+                    self.lineno += 1
+                    self.queue.put((self.msgtype, self.lineno, line))
+                    time.sleep(0.001)  # need context switch
 
-                if self.debug:
-                    logger.warning("self.running.WAIT")
-                self.running.wait()
-
-                if self.debug:
-                    logger.warning("self.waiting.CLEAR")
-                self.waiting.clear()
-
-            if self.debug:
-                logger.warning(f"FEEDING: line={line!r}")
-            self.queue.put((self.name, line))
+                self.is_eof = True
+                if not self.follow:
+                    self.queue.put((self.msgtype, -self.lineno, ""))
+                    break
+                time.sleep(1)

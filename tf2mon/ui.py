@@ -25,9 +25,6 @@ from tf2mon.user import Team, UserState
 USER_PANEL = Enum("_user_panel_enum", "AUTO DUELS KICKS SPAMS")
 USER_PANEL.__doc__ = "Contents of user panel."
 
-LOG_LOCATION = Enum("_log_location_enum", "MOD FILE THREAD NOLOC")
-LOG_LOCATION.__doc__ = "Format of logger location field."
-
 SORT_ORDER = Enum("_sort_order_enum", "STEAMID K KD USERNAME")
 SORT_ORDER.__doc__ = "Scoreboard sort column."
 
@@ -36,13 +33,6 @@ class UI:
     """User Interface class."""
 
     # pylint: disable=too-many-instance-attributes
-
-    _log_locations = {
-        LOG_LOCATION.MOD: "{module}:{line}",
-        LOG_LOCATION.FILE: "{file}:{line}:{function}",
-        LOG_LOCATION.THREAD: "{thread.name}:{file}:{line}:{function}",
-        LOG_LOCATION.NOLOC: None,
-    }
 
     def __init__(self, monitor, win: curses.window):
         """Initialize User Interface instance.
@@ -73,10 +63,6 @@ class UI:
         # self.show_actions = Toggle("_sa", [True, False])
         # if self.show_actions.value:
         #     lines.extend(user.actions)
-
-        # Format of logger location field.
-        self.log_location = Toggle("_ll", LOG_LOCATION)
-        self.log_location.start(LOG_LOCATION.THREAD)
 
         # Scoreboard sort column.
         self.sort_order = Toggle("_so", SORT_ORDER)
@@ -198,16 +184,6 @@ class UI:
             self.cmdline_win.keypad(True)
 
         self.grid.redraw()
-
-    def set_log_location(self) -> None:
-        """Set format of location in messages displayed in logger window."""
-
-        self.monitor.console.sink.set_location(self._log_locations[self.log_location.value])
-
-    def cycle_log_location(self):
-        """Cycle format of location in messages displayed in logger window."""
-
-        self.monitor.console.sink.set_location(self._log_locations[self.log_location.cycle])
 
     def set_sort_order(self, sort_order):
         """Set scoreboard sort column."""
