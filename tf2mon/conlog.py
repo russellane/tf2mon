@@ -6,6 +6,8 @@ from collections import namedtuple
 
 from loguru import logger
 
+import tf2mon
+
 
 class Conlog:
     """TF2 writes console output to the file named in its `con_logfile` variable.
@@ -98,8 +100,8 @@ class Conlog:
     def inject_cmd(self, lineno, cmd):
         """Inject command into logfile before `lineno`."""
 
-        if not cmd.startswith(self.monitor.cmd_prefix):
-            cmd = self.monitor.cmd_prefix + cmd
+        if not cmd.startswith(tf2mon.APPTAG):
+            cmd = tf2mon.APPTAG + cmd
 
         self._inject_cmds.append(self._cmd(int(lineno) - 1, cmd))
         self._is_inject_sorted = False
@@ -144,7 +146,7 @@ class Conlog:
 
             if line:
                 line = line.strip()
-                if line.startswith(self.monitor.cmd_prefix) and " " in line:
+                if line.startswith(tf2mon.APPTAG) and " " in line:
                     # sometimes newlines get dropped and lines are combined
                     cmd, self._buffer = line.split(sep=" ", maxsplit=1)
                     self.last_line = self._fmt_last_line.format(lineno=self.lineno, line=cmd)

@@ -4,6 +4,7 @@ import time
 
 import libcurses
 
+import tf2mon
 from tf2mon.regex import Regex
 
 
@@ -18,8 +19,6 @@ class FKey:
 
     # pylint: disable=too-few-public-methods
     # pylint: disable=too-many-instance-attributes
-
-    cmd_prefix: str = None
 
     def __init__(
         self,
@@ -67,23 +66,21 @@ class FKey:
         self.doc = doc
 
         # configure tf2 to perform this action when key is pressed.
-        self.action = action or f"echo {self.cmd_prefix}{cmd}"
+        self.action = action or f"echo {tf2mon.APPTAG}{cmd}"
 
         # how to recognize tf2 performing this action in the con_logfile.
         leader = (
             r"^(\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}: )?"  # anchor to head; optional timestamp
         )
-        self.regex = Regex(leader + f"{self.cmd_prefix}{cmd}$", handler) if handler else None
+        self.regex = Regex(leader + f"{tf2mon.APPTAG}{cmd}$", handler) if handler else None
 
 
 class FKeyManager:
     """Collection of `FKey` objects."""
 
-    def __init__(self, monitor):
+    def __init__(self):
         """Initialize command and function key bindings."""
 
-        FKey.cmd_prefix = monitor.cmd_prefix
-        self.monitor = monitor
         self._fkeys = []
 
     def add(self, fkey: FKey) -> None:

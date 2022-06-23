@@ -5,6 +5,7 @@ import threading
 
 from loguru import logger
 
+import tf2mon
 from tf2mon.hacker import HackerAttr
 from tf2mon.regex import Regex
 
@@ -176,7 +177,7 @@ class Admin:
 
             self.monitor.ui.update_display()
 
-            prompt = self.monitor.appname
+            prompt = tf2mon.APPNAME
             if self.is_single_stepping:
                 prompt += " (single-stepping)"
             prompt += ": "
