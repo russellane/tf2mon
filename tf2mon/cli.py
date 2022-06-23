@@ -12,7 +12,7 @@ from loguru import logger
 import tf2mon.layouts
 from tf2mon.conlog import Conlog
 from tf2mon.logger import configure_logger
-from tf2mon.tf2monitor import TF2Monitor
+from tf2mon.monitor import Monitor
 
 
 class Tf2monCLI(BaseCLI):
@@ -440,7 +440,7 @@ class Tf2monCLI(BaseCLI):
             print(self.options.con_logfile)
             sys.exit(0)
 
-        monitor = TF2Monitor(self.options, self.config)
+        monitor = Monitor(self)
 
         if self.options.trunc_con_logfile:
             Conlog(monitor).trunc()

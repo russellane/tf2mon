@@ -1,6 +1,5 @@
 """Team Fortress 2 Console Monitor."""
 
-import argparse
 import csv
 import curses
 import re
@@ -25,18 +24,18 @@ from tf2mon.user import Team
 from tf2mon.usermanager import UserManager
 
 
-class TF2Monitor:
+class Monitor:
     """Team Fortress 2 Console Monitor."""
 
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, options: argparse.Namespace, config: {}) -> None:
+    def __init__(self, cli):
         """Initialize monitor."""
 
         # pylint: disable=too-many-statements
 
-        self.options = options
-        self.config = config
+        self.options = cli.options
+        self.config = cli.config
 
         #
         self.steam_web_api = SteamWebAPI(

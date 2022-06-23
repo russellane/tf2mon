@@ -45,12 +45,7 @@ class UI:
     }
 
     def __init__(self, monitor, win: curses.window):
-        """Initialize User Interface instance.
-
-        Args:
-            monitor:    `TF2Monitor` instance.
-            win:        curses window to use; likely `stdscr`.
-        """
+        """Initialize User Interface instance."""
 
         self.monitor = monitor
         self.notify_operator = False
