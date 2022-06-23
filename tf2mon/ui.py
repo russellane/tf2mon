@@ -245,7 +245,9 @@ class UI:
             team2=list(self.monitor.users.active_team_users(Team.RED)),
         )
         self.show_status()
-        self.grid.redraw()
+        for win in self.grid.boxes:
+            win.touchwin()
+            win.noutrefresh()
 
     def refresh_kicks(self):
         """Refresh kicks panel."""
