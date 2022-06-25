@@ -1,6 +1,53 @@
-PROJECT = tf2mon
-include Python.mk
-doc :: README.md
+# tf2mon/Makefile
+
+PROJECT		= tf2mon
+SOURCES		= $(PROJECT)
+
+build:		__pypackages__ tags lint pytest doc
+		pdm build
+
+__pypackages__:
+		pdm install
+
+.PHONY:		tags
+tags:
+		ctags -R $(SOURCES) __pypackages__ 
+
+lint:		black isort flake8
+
+black:
+		python -m black -q $(SOURCES)
+
+isort:
+		python -m isort $(SOURCES)
+
+flake8:
+		python -m flake8 $(SOURCES)
+
+pytest:
+		python -m pytest --exitfirst --showlocals --verbose tests
+
+pytest_debug:
+		python -m pytest --exitfirst --showlocals --verbose --capture=no tests
+
+doc:		README.md
+.PHONY:		README.md
+README.md:
+		python -m $(PROJECT) --md-help >$@
+
+clean:
+		rm -rf __pypackages__ dist tags 
+		find . -type f -name '*.py[co]' -delete
+		find . -type d -name __pycache__ -delete
+
+bump_micro:	_bump_micro clean build
+_bump_micro:
+		pdm bump micro
+
+upload:
+		twine upload --verbose -r pypi dist/*
+
+#-------------------------------------------------------------------------------
 
 # ./.tf2 is a symlink to some .../SteamLibrary/steamapps/common/Team Fortress 2/tf/
 CONLOG_FILE := .tf2/console.log
