@@ -1,6 +1,7 @@
 """Command line interface."""
 
 import sys
+import threading
 from pathlib import Path
 from typing import List, Optional
 
@@ -15,7 +16,7 @@ from tf2mon.logger import configure_logger
 from tf2mon.monitor import Monitor
 
 
-class Tf2monCLI(BaseCLI):
+class CLI(BaseCLI):
     """Command line interface."""
 
     _cachedir = xdg.xdg_cache_home() / __package__
@@ -49,6 +50,14 @@ class Tf2monCLI(BaseCLI):
     exclude_print_config = [
         "app-name",
     ]
+
+    def init_logging(self, verbose: int) -> None:
+        """Set logging levels based on `--verbose`."""
+
+        first_time = not self.init_logging_called
+        super().init_logging(verbose)
+        if first_time:
+            configure_logger()
 
     def init_parser(self) -> None:
         """Initialize argument parser."""
@@ -420,8 +429,6 @@ class Tf2monCLI(BaseCLI):
     def main(self) -> None:
         """Command line interface entry point (method)."""
 
-        configure_logger()
-
         # if "webapi_key" not in self.config:
         #     self.parser.error("Missing config `webapi_key`")
 
@@ -470,4 +477,6 @@ class Tf2monCLI(BaseCLI):
 
 def main(args: Optional[List[str]] = None) -> None:
     """Command line interface entry point (function)."""
-    return Tf2monCLI(args).main()
+
+    threading.current_thread().name = "MAIN"
+    return CLI(args).main()

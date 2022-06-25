@@ -1,4 +1,4 @@
-"""User Interface module."""
+"""User Interface."""
 
 import contextlib
 import curses
@@ -25,7 +25,10 @@ from tf2mon.user import Team, UserState
 USER_PANEL = Enum("_user_panel_enum", "AUTO DUELS KICKS SPAMS")
 USER_PANEL.__doc__ = "Contents of user panel."
 
-LOG_LOCATION = Enum("_log_location_enum", "MOD FILE THREAD NOLOC")
+LOG_LEVEL = Enum("_lvl_enum", "INFO DEBUG TRACE")
+LOG_LEVEL.__doc__ = "Logging level."
+
+LOG_LOCATION = Enum("_loc_enum", "MOD NAM THM THN FILE NUL")
 LOG_LOCATION.__doc__ = "Format of logger location field."
 
 SORT_ORDER = Enum("_sort_order_enum", "STEAMID K KD USERNAME")
@@ -33,19 +36,29 @@ SORT_ORDER.__doc__ = "Scoreboard sort column."
 
 
 class UI:
-    """User Interface class."""
+    """User Interface."""
 
     # pylint: disable=too-many-instance-attributes
 
-    _log_locations = {
-        LOG_LOCATION.MOD: "{module}:{line}",
-        LOG_LOCATION.FILE: "{file}:{line}:{function}",
-        LOG_LOCATION.THREAD: "{thread.name}:{file}:{line}:{function}",
-        LOG_LOCATION.NOLOC: None,
+    _log_levels = {
+        LOG_LEVEL.INFO: "INFO",  # ""
+        LOG_LEVEL.DEBUG: "DEBUG",  # "-v"
+        LOG_LEVEL.TRACE: "TRACE",  # "-vv"
     }
+    log_level = Toggle("_lvl_cycle", LOG_LEVEL)
+
+    _log_locations = {
+        LOG_LOCATION.MOD: "{module}.{function}:{line}",
+        LOG_LOCATION.NAM: "{name}.{function}:{line}",
+        LOG_LOCATION.THM: "{thread.name}.{module}.{function}:{line}",
+        LOG_LOCATION.THN: "{thread.name}.{name}.{function}:{line}",
+        LOG_LOCATION.FILE: "{file}:{function}:{line}",
+        LOG_LOCATION.NUL: None,
+    }
+    log_location = Toggle("_loc_cycle", LOG_LOCATION)
 
     def __init__(self, monitor, win: curses.window):
-        """Initialize User Interface instance."""
+        """Initialize User Interface."""
 
         self.monitor = monitor
         self.notify_operator = False
@@ -68,10 +81,6 @@ class UI:
         # self.show_actions = Toggle("_sa", [True, False])
         # if self.show_actions.value:
         #     lines.extend(user.actions)
-
-        # Format of logger location field.
-        self.log_location = Toggle("_ll", LOG_LOCATION)
-        self.log_location.start(LOG_LOCATION.MOD)
 
         # Scoreboard sort column.
         self.sort_order = Toggle("_so", SORT_ORDER)
@@ -105,11 +114,15 @@ class UI:
         self.monitor.fkeys.register_curses_handlers()
 
         #
-        self._curses_logwin = libcurses.LoggerWindow(self.logger_win)
-        self._curses_logwin.set_verbose(self.monitor.options.verbose)
-        self._curses_logwin.set_location(self._log_locations[self.log_location.value])
-        self.colormap = libcurses.get_colormap()
+        self.logsink = libcurses.Sink(self.logger_win)
+        #
+        self.logsink.set_verbose(self.monitor.options.verbose)
+        self.log_level.start([x for x in LOG_LEVEL if x.name == self.logsink.level][0])
+        #
+        self.log_location.start(LOG_LOCATION.MOD)
+        self.logsink.set_location(self._log_locations[self.log_location.value])
 
+        self.colormap = libcurses.get_colormap()
         #
         self._scoreboard = Scoreboard(
             self.monitor,
@@ -145,7 +158,7 @@ class UI:
         except AssertionError:
             curses.endwin()
             logger.error("Terminal too small; try `Maximize` and `Ctrl+Minus`.")
-            sys.exit(0)  # noqa
+            sys.exit(1)
 
         if os.isatty(sys.stderr.fileno()):
             os.close(sys.stderr.fileno())
@@ -196,10 +209,15 @@ class UI:
 
         self.grid.redraw()
 
-    def cycle_log_location(self):
+    def cycle_log_level(self) -> None:
+        """Cycle logging level in logger window."""
+
+        self.logsink.set_level(self._log_levels[self.log_level.cycle])
+
+    def cycle_log_location(self) -> None:
         """Cycle format of location in messages displayed in logger window."""
 
-        self._curses_logwin.set_location(self._log_locations[self.log_location.cycle])
+        self.logsink.set_location(self._log_locations[self.log_location.cycle])
 
     def set_sort_order(self, sort_order):
         """Set scoreboard sort column."""

@@ -113,6 +113,7 @@ class Monitor:
         self.fkeys.add(self._fkey_user_panel("F5", curses.KEY_F5))
         self.fkeys.add(self._fkey_join_other_team("F6", curses.KEY_F6))
         self.fkeys.add(self._fkey_sort_order("F7", curses.KEY_F7))
+        self.fkeys.add(self._fkey_log_level("F20", curses.KEY_F20))
         self.fkeys.add(self._fkey_log_location("F8", curses.KEY_F8))
         self.fkeys.add(self._fkey_grid_layout("F9", curses.KEY_F9))
         self.fkeys.add(self._fkey_show_debug("KP_INS", curses.KEY_IC))
@@ -164,11 +165,11 @@ class Monitor:
             return
 
         # Read from conlog, write to display.
-        thread = threading.Thread(name="game", target=self.gameplay.repl, daemon=True)
+        thread = threading.Thread(name="GAME", target=self.gameplay.repl, daemon=True)
         thread.start()
 
         # main thread reads from keyboard/mouse, and writes to display
-        threading.current_thread().name = "main"
+        # threading.current_thread().name = "MAIN"
         self.admin.repl()
 
     def reset_game(self):
@@ -329,6 +330,19 @@ class Monitor:
             game_key=game_key,
             curses_key=curses_key,
             status=lambda: self.ui.sort_order.value.name,
+            handler=lambda m: _action(),
+        )
+
+    def _fkey_log_level(self, game_key: str, curses_key: int) -> FKey:
+        def _action() -> None:
+            self.ui.cycle_log_level()
+            self.ui.show_status()
+
+        return FKey(
+            cmd="TOGGLE-LOG-LEVEL",
+            game_key=game_key,
+            curses_key=curses_key,
+            status=lambda: self.ui.log_level.value.name,
             handler=lambda m: _action(),
         )
 

@@ -1,10 +1,40 @@
 """Logger config."""
 
+import contextlib
+import sys
+
 from loguru import logger
 
 
 def configure_logger() -> None:
     """Logger config."""
+
+    configure_stderr()
+    add_logging_levels()
+
+
+def configure_stderr() -> None:
+    """Configure `stderr` logger; not reconfigurable."""
+
+    with contextlib.suppress(ValueError):
+        logger.remove(0)
+
+    logger.add(
+        sys.stderr,
+        level="TRACE",
+        format="|".join(
+            [
+                "{time:HH:mm:ss.SSS}",
+                "{thread.name}.{module}.{function}:{line}",
+                "{level}",
+                "{message}",
+            ]
+        ),
+    )
+
+
+def add_logging_levels() -> None:
+    """Add custom logging levels."""
 
     # pylint: disable=too-many-statements
 
