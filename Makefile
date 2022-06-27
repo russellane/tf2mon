@@ -75,5 +75,10 @@ cleanlog:	latest
 distclean::
 	rm -f cleanlog latest
 
+uml:
+	pdm run pyreverse -ASmy tf2mon ../libcli ../libcurses
+	dot -Tpdf classes.dot -o output.pdf
+	xdg-open output.pdf
+
 #-------------------------------------------------------------------------------
 # vim: set ts=8 sw=8 noet:

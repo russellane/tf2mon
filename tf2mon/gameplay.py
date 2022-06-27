@@ -13,7 +13,6 @@ class Gameplay:
     """Gameplay."""
 
     # pylint: disable=line-too-long
-    # pylint: disable=too-few-public-methods
 
     def __init__(self, monitor):
         """Initialize Gameplay."""
@@ -38,7 +37,7 @@ class Gameplay:
             Regex(
                 leader
                 + r"(?P<username>.*) (?P<action>(?:captured|defended)) (?P<capture_pt>.*) for team #(?P<teamno>\d)$",  # noqa
-                lambda m: self._capture(
+                lambda m: self.capture(
                     m.group("username"),
                     m.group("action"),
                     m.group("capture_pt"),
@@ -76,7 +75,7 @@ class Gameplay:
             Regex(
                 leader
                 + r"(?:(?P<dead>\*DEAD\*)?(?P<teamflag>\(TEAM\))? )?(?P<username>.*) :  ?(?P<msg>.*)$",  # noqa
-                lambda m: self._playerchat(
+                lambda m: self.playerchat(
                     m.group("teamflag"), m.group("username"), m.group("msg")
                 ),
             ),
@@ -84,14 +83,14 @@ class Gameplay:
             Regex(
                 leader
                 + r"(?P<killer>.*) killed (?P<victim>.*) with (?P<weapon>.*)\.(?P<crit> \(crit\))?$",  # noqa
-                lambda m: self._kill(
+                lambda m: self.kill(
                     m.group("killer"), m.group("victim"), m.group("weapon"), m.group("crit")
                 ),
             ),
             # connected
             Regex(
                 leader + "(?P<username>.*) connected$",
-                lambda m: self._connected(m.group("username")),
+                lambda m: self.connected(m.group("username")),
             ),
             # status
             # "# userid name                uniqueid            connected ping loss state"
@@ -99,7 +98,7 @@ class Gameplay:
             Regex(
                 leader
                 + r'#\s*(?P<userid>\d+) "(?P<username>.+)"\s+(?P<steamid>\S+)\s+(?P<elapsed>[\d:]+)\s+(?P<ping>\d+)',  # noqa
-                lambda m: self._status(
+                lambda m: self.status(
                     int(m.group("userid")),
                     m.group("username"),
                     m.group("steamid"),
@@ -111,7 +110,7 @@ class Gameplay:
             # "#      3 "Nobody"            BOT                                     active
             Regex(
                 leader + r'#\s*(?P<userid>\d+) "(?P<username>.+)"\s+(?P<steamid>BOT)\s+active',
-                lambda m: self._status(
+                lambda m: self.status(
                     int(m.group("userid")),
                     m.group("username"),
                     m.group("steamid"),
@@ -123,7 +122,7 @@ class Gameplay:
             Regex(
                 leader
                 + r"\s*(Member|Pending)\[\d+\] (?P<steamid>\S+)\s+team = (?P<teamname>\w+)",
-                lambda m: self._lobby(m.group("steamid"), m.group("teamname")),
+                lambda m: self.lobby(m.group("steamid"), m.group("teamname")),
             ),
             Regex(
                 leader + "Failed to find lobby shared object",
@@ -149,22 +148,23 @@ class Gameplay:
             # "FFD700[RTD] FF4040your mother rolled 32CD32PowerPlay."
             Regex(
                 r"[0-9A-F]{6}\[RTD\] [0-9A-F]{6}(?P<username>.*) rolled [0-9A-F]{6}(?P<perk>.*)",  # noqa
-                lambda m: self._perk(m.group("username"), m.group("perk")),
+                lambda m: self.perk(m.group("username"), m.group("perk")),
             ),
             Regex(
                 r"[0-9A-F]{6}\[RTD\] [0-9A-F]{6}(?P<username>.*)\'s perk has worn off.",
-                lambda m: self._perk(m.group("username"), None),
+                lambda m: self.perk(m.group("username"), None),
             ),
             Regex(
                 r"[0-9A-F]{6}\[RTD\] [0-9A-F]{6}(?P<username>.*) has changed class during their roll.",  # noqa
-                lambda m: self._perk(m.group("username"), None),
+                lambda m: self.perk(m.group("username"), None),
             ),
             Regex(
-                r"[0-9A-F]{6}\[RTD\] Your perk has worn off.", lambda m: self._perk(None, None)
+                r"[0-9A-F]{6}\[RTD\] Your perk has worn off.", lambda m: self.perk(None, None)
             ),
         ]
 
-    def _capture(self, username, action, capture_pt, teamno):
+    def capture(self, username, action, capture_pt, teamno):
+        """Handle message."""
 
         for name in username.split(", "):  # fix: names containing commas
 
@@ -183,7 +183,8 @@ class Gameplay:
             logger.log(level, f"{user} {capture_pt!r}")
             user.actions.append(f"{level} {capture_pt!r}")
 
-    def _playerchat(self, teamflag, username, msg):
+    def playerchat(self, teamflag, username, msg):
+        """Handle message."""
 
         user = self.monitor.users.find_username(username)
         chat = Chat(user, teamflag, msg)
@@ -221,7 +222,8 @@ class Gameplay:
         elif user.is_cheater_chat(chat):
             user.kick(HackerAttr.CHEATER)
 
-    def _kill(self, s_killer: str, s_victim: str, weapon: str, s_crit: str) -> None:
+    def kill(self, s_killer: str, s_victim: str, weapon: str, s_crit: str) -> None:
+        """Handle message."""
 
         # pylint: disable=too-many-branches
         # pylint: disable=too-many-statements
@@ -317,13 +319,15 @@ class Gameplay:
         elif not killer.team and victim.team:
             killer.assign_team(victim.opposing_team)
 
-    def _connected(self, username):
+    def connected(self, username):
+        """Handle message."""
 
         logger.log("CONNECT", self.monitor.users.find_username(username))
 
         self.monitor.ui.notify_operator = True
 
-    def _status(self, userid, username, s_steamid, ping):
+    def status(self, userid, username, s_steamid, ping):
+        """Handle message."""
 
         self.monitor.ui.notify_operator = False
         if not (steamid := steamid_from_str(s_steamid)):
@@ -331,7 +335,8 @@ class Gameplay:
 
         self.monitor.users.status(userid, username, steamid, ping)
 
-    def _lobby(self, s_steamid, teamname):
+    def lobby(self, s_steamid, teamname):
+        """Handle message."""
 
         # this will not be called for games on local server with bots
         # or community servers; only on valve matchmaking servers.
@@ -349,7 +354,8 @@ class Gameplay:
 
         self.monitor.users.lobby(steamid, team)
 
-    def _perk(self, username, perk):
+    def perk(self, username, perk):
+        """Handle message."""
 
         user = self.monitor.users.find_username(username) if username else self.monitor.me
 
@@ -377,7 +383,7 @@ class Gameplay:
                 logger.log("ignore", self.monitor.conlog.last_line)
                 continue
 
-            self.monitor.admin.check_single_step(line)
+            self.monitor.admin.step(line)
 
             regex.handler(regex.re_match_obj)
 

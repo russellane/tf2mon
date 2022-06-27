@@ -29,7 +29,7 @@ class Monitor:
 
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, cli):
+    def __init__(self, cli) -> None:
         """Initialize monitor."""
 
         # pylint: disable=too-many-statements
@@ -40,7 +40,7 @@ class Monitor:
         #
         self.steam_web_api = SteamWebAPI(
             dbpath=self.options.players,
-            webapi_key=self.config["webapi_key"],
+            webapi_key=self.config.get("webapi_key"),
         )
 
         # send data to tf2 by writing to an `exec` script
@@ -49,24 +49,17 @@ class Monitor:
             logger.warning(f"Missing scripts at `{self.tf2_scripts_dir}`")
         self.msgqueues = MsgQueueManager(self, self.tf2_scripts_dir / "tf2-monitor-work.cfg")
 
-        # prepare to receive data from tf2 by reading its console logfile
-        self.conlog = Conlog(self)
-
-        # inject any commands from the command line into the conlog
-        self.conlog.inject_cmd_list(self.options.inject_cmds)
-
-        # inject any commands from a file into the conlog
-        if self.options.inject_file:
-            logger.info(f"Reading `{self.options.inject_file}`")
-            with open(self.options.inject_file, encoding="utf-8") as file:
-                self.conlog.inject_cmd_list(file)
+        # receive data from tf2 by reading its console logfile
+        self.conlog = Conlog(
+            self.options.con_logfile,
+            rewind=self.options.rewind,
+            follow=self.options.follow,
+            inject_cmds=self.options.inject_cmds,
+            inject_file=self.options.inject_file,
+        )
 
         # this application's admin console
         self.admin = Admin(self)
-
-        # other options that inject commands...
-        if self.options.breakpoint is not None:
-            self.admin.set_single_step_lineno(self.options.breakpoint)
 
         #
         self.hackers = HackerManager(
@@ -108,13 +101,14 @@ class Monitor:
         self.fkeys.add(self._fkey_help("F1", curses.KEY_F1))
         self.fkeys.add(self._fkey_motd(None, curses.KEY_F13))
         self.fkeys.add(self._fkey_debug_flag("F2", curses.KEY_F2))
+        self.fkeys.add(self._fkey_log_level("F14", curses.KEY_F14))
         self.fkeys.add(self._fkey_taunt_flag("F3", curses.KEY_F3))
         self.fkeys.add(self._fkey_show_kd("F4", curses.KEY_F4))
         self.fkeys.add(self._fkey_user_panel("F5", curses.KEY_F5))
         self.fkeys.add(self._fkey_join_other_team("F6", curses.KEY_F6))
         self.fkeys.add(self._fkey_sort_order("F7", curses.KEY_F7))
-        self.fkeys.add(self._fkey_log_level("F20", curses.KEY_F20))
         self.fkeys.add(self._fkey_log_location("F8", curses.KEY_F8))
+        self.fkeys.add(self._fkey_reset_padding("F20", curses.KEY_F20))
         self.fkeys.add(self._fkey_grid_layout("F9", curses.KEY_F9))
         self.fkeys.add(self._fkey_show_debug("KP_INS", curses.KEY_IC))
         self.fkeys.add(self._fkey_single_step("KP_DEL", curses.KEY_DC))
@@ -357,6 +351,18 @@ class Monitor:
             curses_key=curses_key,
             status=lambda: self.ui.log_location.value.name,
             handler=lambda m: _action(),
+        )
+
+    def _fkey_reset_padding(self, game_key: str, curses_key: int) -> FKey:
+        def _action() -> None:
+            self.ui.logsink.reset_padding()
+            logger.info("padding reset")
+
+        return FKey(
+            game_key=game_key,
+            curses_key=curses_key,
+            handler=lambda m: _action(),
+            # handler=lambda m: self.ui.logsink.reset_padding(),
         )
 
     def _fkey_grid_layout(self, game_key: str, curses_key: int) -> FKey:

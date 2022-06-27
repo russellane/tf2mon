@@ -17,32 +17,24 @@ class SteamWebAPI:
     """
 
     def __init__(self, webapi_key, dbpath, max_age=2 * 60 * 60):
-        """Initialize interface to Steam_Web_API.
+        """Initialize interface."""
 
-        The interface cannot be used until `connect` is called.
-        """
+        if webapi_key:
+            self._webapi = steam.webapi.WebAPI(key=webapi_key)
+        else:
+            self._webapi = None
+            logger.warning("Running without `webapi_key`")
 
-        #
-        self._webapi_key = webapi_key
-        self._webapi = steam.webapi.WebAPI(key=self._webapi_key) if webapi_key else None
-
-        #
         self._dbpath = dbpath
         self._max_age = max_age
-        self._con = None  # set in `connect`.
-        self._cur = None  # set in `connect`.
-
-        #
-        self._nbots = 0  # incremented by `find_steamid`.
+        self._nbots = 0
+        self._con = None
+        self._cur = None
 
     def connect(self):
-        """Prepare to use interface to Steam_Web_API.
+        """Connect to cache."""
 
-        This step is separate from the constructor to allow connecting from
-        a different thread.
-        """
-
-        logger.debug(f"connecting to sqlite3 at `{self._dbpath}`")
+        logger.debug(f"sqlite3.connect(`{self._dbpath}`)")
         self._con = sqlite3.connect(self._dbpath)
         self._con.row_factory = sqlite3.Row
         self._cur = self._con.cursor()
@@ -126,10 +118,8 @@ class SteamWebAPI:
                 }
             )
 
-        # construct.
         steamplayer = SteamPlayer(player_summaries[0])
 
-        # update database.
         try:
             self._cur.execute(
                 "replace into steamplayers values(?,?,?,?,?,?,?,?,?,?)",

@@ -1,6 +1,5 @@
 """Command line interface."""
 
-import sys
 import threading
 from pathlib import Path
 from typing import List, Optional
@@ -14,6 +13,7 @@ import tf2mon.layouts
 from tf2mon.conlog import Conlog
 from tf2mon.logger import configure_logger
 from tf2mon.monitor import Monitor
+from tf2mon.steamweb import SteamWebAPI
 
 
 class CLI(BaseCLI):
@@ -36,8 +36,6 @@ class CLI(BaseCLI):
         # basename relative to `tf2_install_dir`.
         "con_logfile": Path("console.log"),
         #
-        # application name.
-        "app-name": "TF2MON",
         # databases.
         "players": _cachedir / "steamplayers.db",
         "hackers-base": _cachedir / "playerlist.milenko-list.json",
@@ -47,16 +45,12 @@ class CLI(BaseCLI):
         "player_name": "Bad Dad",
     }
 
-    exclude_print_config = [
-        "app-name",
-    ]
-
     def init_logging(self, verbose: int) -> None:
         """Set logging levels based on `--verbose`."""
 
-        first_time = not self.init_logging_called
+        init_logging_called = self.init_logging_called
         super().init_logging(verbose)
-        if first_time:
+        if not init_logging_called:
             configure_logger()
 
     def init_parser(self) -> None:
@@ -371,16 +365,15 @@ class CLI(BaseCLI):
     admin console to process the next line when in `--single-step` mode.
     Type `quit` or press `^D` to exit.
 
-        `Duel monitors`
-            Run `%(prog)s` on a secondary monitor, while playing the game on
-            the primary monitor. Best performance, but a pain to `Alt-Tab`
-            between monitor and game.
+        `One-machine, Two-monitors`
+            Run `%(prog)s` on a secondary monitor, while playing game on
+            primary monitor.
 
-        `Duel machines, ssh`
+        `Two-machines, SSH`
             ssh from another machine and run.
 
-        `Duel machines, nfs`
-            cross-mount TF2's directory to another box and run from there.
+        `Two-machines, NFS`
+            cross-mount TF2's `cfg` tree to another box and run from there.
                 """
             ),
         )
@@ -445,33 +438,35 @@ class CLI(BaseCLI):
 
         if self.options.list_con_logfile:
             print(self.options.con_logfile)
-            sys.exit(0)
-
-        monitor = Monitor(self)
+            self.parser.exit()
 
         if self.options.trunc_con_logfile:
-            Conlog(monitor).trunc()
-            logger.warning(f"con_logfile {str(self.options.con_logfile)!r} truncated; Exiting.")
-            sys.exit(0)
+            Conlog(self.options.con_logfile).trunc()
+            logger.info(f"con_logfile {str(self.options.con_logfile)!r} truncated; Exiting.")
+            self.parser.exit()
 
         if self.options.clean_con_logfile:
-            for line in Conlog(monitor).filter_excludes():
-                print(line)
-            logger.warning(f"con_logfile {str(self.options.con_logfile)!r} cleaned; Exiting.")
-            sys.exit(0)
+            Conlog(self.options.con_logfile).clean()
+            logger.info(f"con_logfile {str(self.options.con_logfile)!r} cleaned; Exiting.")
+            self.parser.exit()
 
         if self.options.print_steamid:
-            monitor.steam_web_api.connect()
+            api = SteamWebAPI(
+                dbpath=self.options.players,
+                webapi_key=self.config.get("webapi_key"),
+            )
+            api.connect()
             steamid = steam.steamid.SteamID(self.options.print_steamid)
             if not steamid.is_valid():
                 self.parser.error(f"invalid steamid `{self.options.print_steamid}`")
-            sp = monitor.steam_web_api.find_steamid(steamid)  # noqa
-            ic(sp)  # noqa
-            sys.exit(0)
+            steam_player = api.find_steamid(steamid)
+            print(steam_player)
+            self.parser.exit()
 
         if self.options.layout:  # get enum from name
             self.options.layout = tf2mon.layouts.LAYOUT_ENUM.__dict__[self.options.layout]
 
+        monitor = Monitor(self)
         monitor.run()
 
 

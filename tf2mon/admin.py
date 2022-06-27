@@ -133,7 +133,7 @@ class Admin:
             self._single_step_re = re.compile(pattern, flags)
             logger.log("ADMIN", f"set search={self._single_step_re}")
 
-    def check_single_step(self, line):
+    def step(self, line):
         """Involve operator if `line` requires single-step attention.
 
         Called by the game thread (not the admin thread) for each line read

@@ -1,6 +1,5 @@
 """Logger config."""
 
-import contextlib
 import sys
 
 from loguru import logger
@@ -9,28 +8,23 @@ from loguru import logger
 def configure_logger() -> None:
     """Logger config."""
 
-    configure_stderr()
-    add_logging_levels()
+    # Configure `stderr` logger; not reconfigurable.
 
-
-def configure_stderr() -> None:
-    """Configure `stderr` logger; not reconfigurable."""
-
-    with contextlib.suppress(ValueError):
-        logger.remove(0)
-
+    logger.remove()
     logger.add(
         sys.stderr,
         level="TRACE",
         format="|".join(
             [
                 "{time:HH:mm:ss.SSS}",
-                "{thread.name}.{module}.{function}:{line}",
+                "{thread.name}.{name}.{function}:{line}",
                 "{level}",
                 "{message}",
             ]
         ),
     )
+
+    add_logging_levels()
 
 
 def add_logging_levels() -> None:
@@ -39,8 +33,8 @@ def add_logging_levels() -> None:
     # pylint: disable=too-many-statements
 
     # remove bold from loguru default colors
-    # for lvl in logger._core.levels.values():
-    #    logger.level(lvl.name, color=lvl.color.replace('<bold>', ''))
+    for lvl in logger._core.levels.values():  # noqa: protected-access
+        logger.level(lvl.name, color=lvl.color.replace("<bold>", ""))
 
     # set severity of custom levels relative to the builtins
     _always = _warn = logger.level("WARNING").no

@@ -50,8 +50,8 @@ class UI:
     _log_locations = {
         LOG_LOCATION.MOD: "{module}.{function}:{line}",
         LOG_LOCATION.NAM: "{name}.{function}:{line}",
-        LOG_LOCATION.THM: "{thread.name}.{module}.{function}:{line}",
-        LOG_LOCATION.THN: "{thread.name}.{name}.{function}:{line}",
+        LOG_LOCATION.THM: "{thread.name}:{module}.{function}:{line}",
+        LOG_LOCATION.THN: "{thread.name}:{name}.{function}:{line}",
         LOG_LOCATION.FILE: "{file}:{function}:{line}",
         LOG_LOCATION.NUL: None,
     }
@@ -89,7 +89,7 @@ class UI:
         # create empty grid
         self.grid = libcurses.Grid(win)
 
-        # `self._build_grid` creates these windows, sized to fill `win`.
+        # `self.build_grid` creates these windows, sized to fill `win`.
         self.chatwin_blu: curses.window = None
         self.chatwin_red: curses.window = None
         self.scorewin_blu: curses.window = None
@@ -106,9 +106,9 @@ class UI:
         self.grid_layout = Toggle("_grid_layout", tf2mon.layouts.LAYOUT_ENUM)
         self.grid_layout.start(self.monitor.options.layout)
 
-        # `register_builder` 1) calls `_build_grid` and 2) configures
+        # `register_builder` 1) calls `build_grid` and 2) configures
         # `KEY_RESIZE` to call it again each time that event occurs.
-        self.grid.register_builder(self._build_grid)
+        self.grid.register_builder(self.build_grid)
 
         #
         self.monitor.fkeys.register_curses_handlers()
@@ -117,7 +117,7 @@ class UI:
         self.logsink = libcurses.Sink(self.logger_win)
         #
         self.logsink.set_verbose(self.monitor.options.verbose)
-        self.log_level.start([x for x in LOG_LEVEL if x.name == self.logsink.level][0])
+        self.log_level.start(LOG_LEVEL.__dict__[self.logsink.level])
         #
         self.log_location.start(LOG_LOCATION.MOD)
         self.logsink.set_location(self._log_locations[self.log_location.value])
@@ -143,7 +143,7 @@ class UI:
         self.grid.handle_term_resized_event()
         self.show_status()
 
-    def _build_grid(self):
+    def build_grid(self):
         """Add boxes to grid.
 
         Called at init, on KEY_RESIZE events, and when layout changes.
@@ -157,7 +157,10 @@ class UI:
             layout = klass(self.grid)
         except AssertionError:
             curses.endwin()
-            logger.error("Terminal too small; try `Maximize` and `Ctrl+Minus`.")
+            msg = "Terminal too small; try `Maximize` and `Ctrl+Minus`."
+            logger.error(msg)
+            if not os.isatty(sys.stderr.fileno()):
+                print(f"ERROR: {msg}")
             sys.exit(1)
 
         if os.isatty(sys.stderr.fileno()):
@@ -229,11 +232,8 @@ class UI:
         """Read and return next line from keyboard."""
 
         self.cmdline_win.erase()
-
         if prompt:
             self.cmdline_win.addstr(0, 0, prompt)
-            self.cmdline_win.noutrefresh()
-
         return libcurses.getline(self.cmdline_win)
 
     def update_display(self):
@@ -258,9 +258,7 @@ class UI:
             team2=list(self.monitor.users.active_team_users(Team.RED)),
         )
         self.show_status()
-        for win in self.grid.boxes:
-            win.touchwin()
-            win.noutrefresh()
+        self.grid.refresh()
 
     def refresh_kicks(self):
         """Refresh kicks panel."""

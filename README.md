@@ -168,16 +168,15 @@ By default, `tf2mon` starts reading the con_logfile from its end
   admin console to process the next line when in `--single-step` mode.
   Type `quit` or press `^D` to exit.
   
-      `Duel monitors`
-          Run `tf2mon` on a secondary monitor, while playing the game on
-          the primary monitor. Best performance, but a pain to `Alt-Tab`
-          between monitor and game.
+      `One-machine, Two-monitors`
+          Run `tf2mon` on a secondary monitor, while playing game on
+          primary monitor.
   
-      `Duel machines, ssh`
+      `Two-machines, SSH`
           ssh from another machine and run.
   
-      `Duel machines, nfs`
-          cross-mount TF2's directory to another box and run from there.
+      `Two-machines, NFS`
+          cross-mount TF2's `cfg` tree to another box and run from there.
 
 #### Terminal Size
   `tf2mon` requires a large terminal. Maximize the window, and use keys
