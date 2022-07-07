@@ -17,7 +17,7 @@ def configure_logger() -> None:
         format="|".join(
             [
                 "{time:HH:mm:ss.SSS}",
-                "{thread.name}.{name}.{function}:{line}",
+                "{thread.name}:{name}.{function}:{line}",
                 "{level}",
                 "{message}",
             ]

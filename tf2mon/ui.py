@@ -111,9 +111,6 @@ class UI:
         self.grid.register_builder(self.build_grid)
 
         #
-        self.monitor.fkeys.register_curses_handlers()
-
-        #
         self.logsink = libcurses.Sink(self.logger_win)
         #
         self.logsink.set_verbose(self.monitor.options.verbose)
@@ -394,7 +391,7 @@ class UI:
     def show_status(self):
         """Update status line."""
 
-        line = self.monitor.fkeys.get_status_line() + f" UID={self.monitor.my.userid}"
+        line = self.monitor.commands.get_status_line() + f" UID={self.monitor.my.userid}"
 
         try:
             self.status_win.addstr(

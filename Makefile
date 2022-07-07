@@ -1,9 +1,9 @@
 # tf2mon/Makefile
 
 PROJECT		= tf2mon
-SOURCES		= $(PROJECT)
+SOURCES		= $(PROJECT) tests
 
-build:		__pypackages__ tags lint pytest doc
+build:		__pypackages__ tags lint test doc
 		pdm build
 
 __pypackages__:
@@ -23,6 +23,8 @@ isort:
 
 flake8:
 		python -m flake8 $(SOURCES)
+
+test:		pytest
 
 pytest:
 		python -m pytest --exitfirst --showlocals --verbose tests

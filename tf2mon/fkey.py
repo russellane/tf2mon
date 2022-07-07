@@ -1,132 +1,116 @@
-"""Monitor Commands and their Function Keys."""
+"""Function Keys."""
 
-import time
+import curses
+import re
+from typing import ClassVar
 
-import libcurses
-
-import tf2mon
-from tf2mon.regex import Regex
+# Values for `modifier`; also used as `label` prefix.
+MOD_BASE = ""
+MOD_CTRL = "c"
+MOD_SHIFT = "s"
 
 
 class FKey:
-    """Monitor Commands and their Function Keys."""
+    """The simultaneous pressing of a base key and an optional modifier key."""
 
-    # A command may be invoked by:
-    #   1. keypress within game
-    #   2. keypress within monitor
-    #   3. commands typed into the game console
-    #   4. commands typed into the monitor console
+    pattern: ClassVar[re.Pattern] = re.compile(r"^(?:(SHIFT|CTRL)\+)?(F)?(.+)$")
 
-    # pylint: disable=too-few-public-methods
-    # pylint: disable=too-many-instance-attributes
+    curses_from_game: ClassVar[dict[str, int]] = {
+        "KP_HOME": curses.KEY_HOME,
+        "KP_END": curses.KEY_END,
+        "KP_UPARROW": curses.KEY_UP,
+        "KP_DOWNARROW": curses.KEY_DOWN,
+        "KP_LEFTARROW": curses.KEY_LEFT,
+        "KP_RIGHTARROW": curses.KEY_RIGHT,
+        "KP_PGUP": curses.KEY_PPAGE,
+        "KP_PGDN": curses.KEY_NPAGE,
+        "KP_5": curses.KEY_B2,
+        "KP_INS": curses.KEY_IC,
+        "KP_DEL": curses.KEY_DC,
+        # "xxx": curses.KEY_SR,
+        # "xxx": curses.KEY_SF,
+        # "xxx": curses.KEY_SLEFT,
+        # "xxx": curses.KEY_SRIGHT,
+        # "xxx": curses.KEY_SDC,  # can't do KEY_SIC
+    }
 
-    def __init__(
-        self,
-        cmd=None,
-        game_key=None,
-        curses_key=None,
-        status=None,
-        handler=None,
-        action=None,
-        doc=None,
-    ):
-        """Create fkey-driven monitor command.
+    def __init__(self, keyspec: str):
+        """Init `FKey` from `keyspec`.
 
-        Create a function to be performed when key is pressed in monitor and/or in game.
+        Keyname in TF2 terms, with optional modifier "shift+" or "ctrl+" (not both).
+        e.g., "A", "shift+A", "ctrl+KP_LEFTARROW".
 
-        Args:
-            cmd:        command name; 'HELP', 'TOGGLE-SORT', etc.
+        Case-insensitive:
+        >>> FKey("a").__dict__ == FKey("A").__dict__
+        True
+        >>> FKey("shift+a").__dict__ == FKey("shift+A").__dict__
+        True
 
-            game_key:   key to run command from within game; 'F1'.
-
-            curses_key: key to run command from monitor console; curses.KEY_F1.
-
-            status:     callable returning printable current value.
-
-            handler:    action to take when game or admin key is pressed;
-                        must take 1 argument: re_match_obj.
-
-            action:     Commands with an `action` (eg cmd='KICKS-POP' has
-                        action='tf2mon_kicks_pop') are bound to run their
-                        actions. Commands without an `action` (eg
-                        cmd='TOGGLE-SORT' has action=None) are bound to
-                        echo the command name to us (eg, "echo TF2MON-
-                        TOGGLE-SORT").
-
-            doc:        Documentation.
+        Note that:
+        >>> FKey("shift+a").__dict__ != FKey("A").__dict__
+        True
+        >>> FKey("shift+A").__dict__ != FKey("A").__dict__
+        True
         """
 
-        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-branches
 
-        self.cmd = cmd
-        self.game_key = game_key
-        self.curses_key = curses_key
-        self.status = status
-        self.handler = handler
-        self.doc = doc
+        if not keyspec:
+            raise ValueError("keyspec", keyspec)
+        self.keyspec = keyspec.upper()
 
-        # configure tf2 to perform this action when key is pressed.
-        self.action = action or f"echo {tf2mon.APPTAG}{cmd}"
+        matched = self.pattern.match(self.keyspec)
+        if not matched:
+            raise ValueError("keyspec", self.keyspec)
 
-        # how to recognize tf2 performing this action in the con_logfile.
-        leader = (
-            r"^(\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}: )?"  # anchor to head; optional timestamp
-        )
-        self.regex = Regex(leader + f"{tf2mon.APPTAG}{cmd}$", handler) if handler else None
+        mod, eff, key = matched.groups()
+        self.name: str = (eff or "") + key  # TF2 terms: "B", "KP_LEFTARROW", "F1"
 
+        self.modifier: str = MOD_BASE
+        if mod:
+            if mod == "SHIFT":
+                self.modifier = MOD_SHIFT
+            elif mod == "CTRL":
+                self.modifier = MOD_CTRL
+            else:
+                raise ValueError("keyspec", self.keyspec)
 
-class FKeyManager:
-    """Collection of `FKey` objects."""
+        self.key: int = None  # ord("B"), curses.KEY_LEFT, curses.KEY_F1
+        if eff:
+            self.key = curses.KEY_F0
+            try:
+                self.key += int(key)
+            except ValueError as exc:
+                raise ValueError("keyspec", self.keyspec) from exc
+        elif len(key) == 1:
+            self.key = ord(key)
+        elif (key := self.curses_from_game.get(key)) is not None:
+            self.key = key
+        else:
+            raise ValueError("keyspec", self.keyspec)
 
-    def __init__(self):
-        """Initialize command and function key bindings."""
+        if eff:
+            if self.modifier == MOD_SHIFT:
+                self.key += 12
+            elif self.modifier == MOD_CTRL:
+                self.key += 24
 
-        self._fkeys = []
+        self.label: str = self.modifier + self.name  # display name
 
-    def add(self, fkey: FKey) -> None:
-        """Add `fkey` to collection."""
+    def __repr__(self):
+        return str(self.__dict__)
 
-        self._fkeys.append(fkey)
+    @property
+    def is_base(self) -> bool:
+        """Return True if only `base` key was pressed."""
+        return self.modifier == MOD_BASE
 
-    def create_tf2_exec_script(self, path):
-        """Create tf2 exec script of keyboard BIND commands.
+    @property
+    def is_ctrl(self) -> bool:
+        """Return True if `ctrl` was also pressed."""
+        return self.modifier == MOD_CTRL
 
-        Args:
-            path:   tf2 exec script to create.
-        """
-
-        # write game key bindings to tf2 exec script
-        with open(path, "w", encoding="utf-8") as file:
-            print(f"// auto-generated {time.asctime()}", file=file)
-            print(
-                "\n".join(
-                    [f'bind "{x.game_key}" "{x.action}"' for x in self._fkeys if x.game_key]
-                ),
-                file=file,
-            )
-
-    def register_curses_handlers(self):
-        """Register curses key handlers."""
-
-        for fkey in [x for x in self._fkeys if x.handler and x.curses_key]:
-            libcurses.register_fkey(fkey.handler, fkey.curses_key)
-
-    def get_regex_list(self):
-        """Return list of `Regex` for all handlers."""
-
-        return [x.regex for x in self._fkeys if x.regex]
-
-    def get_status_line(self):
-        """Return 1-line string showing current state of function keys."""
-
-        return " ".join([x.game_key + "=" + x.status() for x in self._fkeys if x.status])
-
-    def get_help(self) -> str:
-        """Return formatted help text for man page."""
-
-        doc = "These function keys are available in-game and in the monitor:\n"
-
-        for fkey in [x for x in self._fkeys if x.doc]:
-            doc += f"    {fkey.game_key}={fkey.doc}\n"
-
-        return doc
+    @property
+    def is_shift(self) -> bool:
+        """Return True if `shift` was also pressed."""
+        return self.modifier == MOD_SHIFT
