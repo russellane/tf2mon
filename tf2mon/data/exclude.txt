@@ -1,0 +1,18 @@
+^ ##### CTexture::LoadTextureBitsFromFile
+^# userid name
+^--- Missing Vgui material
+^Cannot update control point
+^DataTable warning: .*clamping\.$
+^EmitSound: pitch out of bounds
+^Error: Material "models/workshop/player/items/all_class
+^Failed to find attachment point specified for
+^No such variable "
+^Requesting texture value from var
+^SOLID_VPHYSICS static prop with no vphysics model!
+^SetupBones: invalid bone array size
+^props_snowycoast.*mdl : material "models/props_snowycoast
+ertexlit_and_unlit_generic_bump_[pv]s20
+m_face->glyph->bitmap.width is 0 for ch:32
+to attach particle system
+to get specular
+unknown particle system

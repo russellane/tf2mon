@@ -8,8 +8,8 @@ from tf2mon.hacker import HackerManager
 
 icecream.ic.configureOutput(prefix="=====>\n", includeContext=True)
 CACHE = Path.home() / ".cache" / "tf2mon"
-BASE = CACHE / "playerlist.milenko-list.json"
-LOCAL = CACHE / "playerlist.tf2mon-list.json"
+BASE = CACHE / "hackers-base.json"
+LOCAL = CACHE / "hackers-local.json"
 # pylint: disable=protected-access
 # pylint: disable=using-constant-test
 

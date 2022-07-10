@@ -50,8 +50,10 @@ class Monitor:
         self.msgqueues = MsgQueueManager(self, self.tf2_scripts_dir / "tf2-monitor-work.cfg")
 
         # receive data from tf2 by reading its console logfile
+        # will wait until file exists.
         self.conlog = Conlog(
             self.options.con_logfile,
+            exclude_file=self.options.exclude_file,
             rewind=self.options.rewind,
             follow=self.options.follow,
             inject_cmds=self.options.inject_cmds,

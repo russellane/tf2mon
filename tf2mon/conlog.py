@@ -24,6 +24,7 @@ class Conlog:
     def __init__(
         self,
         path: Path | str,
+        exclude_file: Path | str = None,
         *,
         rewind: bool = True,
         follow: bool = False,
@@ -39,7 +40,11 @@ class Conlog:
         self.is_eof: bool = False
         self.last_line = None
         self.lineno: int = 0
-        self.re_exclude = re.compile("|".join(self._exclude_lines()))
+
+        logger.info(f"Reading `{exclude_file}`")
+        self.re_exclude = re.compile(
+            "|".join(exclude_file.read_text(encoding="utf-8").splitlines())
+        )
 
         self._buffer: str = None
         self._file = None

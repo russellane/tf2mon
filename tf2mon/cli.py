@@ -38,8 +38,9 @@ class CLI(BaseCLI):
         #
         # databases.
         "players": _cachedir / "steamplayers.db",
-        "hackers-base": _cachedir / "playerlist.milenko-list.json",
-        "hackers-local": _cachedir / "playerlist.tf2mon-list.json",
+        "hackers-base": _cachedir / "hackers-base.json",
+        "hackers-local": _cachedir / "hackers-local.json",
+        "exclude-file": Path(__file__).parent / "data" / "exclude.txt",
         "webapi_key": "",
         # this player.
         "player_name": "Bad Dad",
@@ -166,6 +167,15 @@ class CLI(BaseCLI):
             help="filter-out excluded lines from logfile to stdout and exit",
         )
 
+        arg = self.parser.add_argument(
+            "--exclude-file",
+            metavar="FILE",
+            default=Path(self.config["exclude-file"]),
+            type=Path,
+            help="exclude lines that match patterns in `FILE`",
+        )
+        self.add_default_to_help(arg)
+
         group = self.parser.add_argument_group("Debugging options")
 
         group.add_argument(
@@ -216,7 +226,7 @@ class CLI(BaseCLI):
             metavar="FILE",
             default=Path(self.config["players"]),
             type=Path,
-            help="cache `steam` user data" "",
+            help="cache `steam` user data",
         )
         self.add_default_to_help(arg)
 
@@ -241,7 +251,7 @@ class CLI(BaseCLI):
         group.add_argument(
             "--print-steamid",
             metavar="STEAMID",
-            help="print `ISteamUser.GetPlayerSummaries` for `STEAMID` and exit" "",
+            help="print `ISteamUser.GetPlayerSummaries` for `STEAMID` and exit",
         )
 
         self.parser.add_argument_group(
@@ -446,7 +456,7 @@ class CLI(BaseCLI):
             self.parser.exit()
 
         if self.options.clean_con_logfile:
-            Conlog(self.options.con_logfile).clean()
+            Conlog(self.options.con_logfile, exclude_file=self.options.exclude_file).clean()
             logger.info(f"con_logfile {str(self.options.con_logfile)!r} cleaned; Exiting.")
             self.parser.exit()
 

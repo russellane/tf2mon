@@ -4,9 +4,10 @@
     tf2mon [--rewind | --no-rewind] [--follow | --no-follow]
            [--tf2-install-dir DIR] [--layout {DFLT,FULL,TALL,WIDE}]
            [--list-con-logfile] [--trunc-con-logfile] [--clean-con-logfile]
-           [--single-step] [--break LINENO] [--search PATTERN]
-           [--inject-cmd LINENO:CMD] [--inject-file FILE] [--toggles]
-           [--players FILE] [--hackers-base FILE] [--hackers-local FILE]
+           [--exclude-file FILE] [--single-step] [--break LINENO]
+           [--search PATTERN] [--inject-cmd LINENO:CMD]
+           [--inject-file FILE] [--toggles] [--players FILE]
+           [--hackers-base FILE] [--hackers-local FILE]
            [--print-steamid STEAMID] [-h] [-v] [-V] [--config FILE]
            [--print-config] [--print-url] [--completion [SHELL]]
            [con_logfile]
@@ -50,6 +51,9 @@ By default, `tf2mon` starts reading the con_logfile from its end
     --clean-con-logfile
                         Filter-out excluded lines from logfile to stdout and
                         exit.
+    --exclude-file FILE
+                        Exclude lines that match patterns in `FILE` (default:
+                        `~/dev/tf2mon/tf2mon/data/exclude.txt`).
 
 #### Debugging options
     --single-step       Single-step at startup.
@@ -66,10 +70,10 @@ By default, `tf2mon` starts reading the con_logfile from its end
                         `~/.cache/tf2mon/steamplayers.db`).
     --hackers-base FILE
                         Upstream hackers database (default:
-                        `~/.cache/tf2mon/playerlist.milenko-list.json`).
+                        `~/.cache/tf2mon/hackers-base.json`).
     --hackers-local FILE
                         Local hackers database (default:
-                        `~/.cache/tf2mon/playerlist.tf2mon-list.json`).
+                        `~/.cache/tf2mon/hackers-local.json`).
     --print-steamid STEAMID
                         Print `ISteamUser.GetPlayerSummaries` for `STEAMID`
                         and exit.
