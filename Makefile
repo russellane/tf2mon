@@ -38,7 +38,7 @@ README.md:
 		python -m $(PROJECT) --md-help >$@
 
 clean:
-		rm -rf __pypackages__ dist tags 
+		rm -rf .pytest_cache __pypackages__ dist tags
 		find . -type f -name '*.py[co]' -delete
 		find . -type d -name __pycache__ -delete
 
