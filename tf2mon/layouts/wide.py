@@ -28,56 +28,59 @@ class WideLayout(BaseLayout):
     def __post_init__(self, grid: libcurses.Grid, max_users: int):
         """Build windows."""
 
-        #
-        #
+        _nlines = int(max_users / 2) + 2 + 1  # 2=borders (top and bottom), 1=header.
+        # 124=len(self._scoreboard._formatted_header) + 2=borders (left and right) + 1=padding
+        # _ncols = min(124, int(2 * grid.ncols / 3))
+        _ncols = int(grid.ncols / 2)
 
-        # section 1
+        # top-left
         self.chatwin_blu = grid.box(
             "chatwin_blu",
-            nlines=10,
-            ncols=int(grid.ncols / 2),
+            nlines=_nlines,
+            ncols=_ncols,
             left=grid,
             top=grid,
         )
 
-        self.chatwin_red = grid.box(
-            "chatwin_red",
-            nlines=0,
-            ncols=0,
-            left2r=self.chatwin_blu,
-            right=grid,
-            top=self.chatwin_blu,
-            bottom=self.chatwin_blu,
-        )
-
-        # section 2
+        # stack blu
         self.scorewin_blu = grid.box(
             "scorewin_blu",
-            nlines=int(max_users / 2) + 2 + 1,  # 2=borders (top and bottom), 1=header.
-            ncols=int(grid.ncols / 2),
-            left=grid,
+            nlines=_nlines,
+            ncols=_ncols,
+            left=self.chatwin_blu,
             top2b=self.chatwin_blu,
         )
 
+        # top-right
+        self.chatwin_red = grid.box(
+            "chatwin_red",
+            nlines=_nlines,
+            ncols=0,
+            left2r=self.chatwin_blu,
+            right=grid,
+            top=grid,
+        )
+
+        # stack red
         self.scorewin_red = grid.box(
             "scorewin_red",
-            nlines=0,
+            nlines=_nlines,
             ncols=0,
             left2r=self.scorewin_blu,
             right=grid,
-            top=self.scorewin_blu,
-            bottom=self.scorewin_blu,
+            top2b=self.chatwin_red,
         )
 
-        # section 4
+        # bottom-left
         self.status_win = grid.box(
             "status",
             nlines=3,
-            ncols=int(2 * grid.ncols / 3),
+            ncols=grid.ncols * 2 // 3,
             left=grid,
             bottom=grid,
         )
 
+        # bottom-right
         self.cmdline_win = grid.box(
             "cmdline",
             nlines=3,
@@ -91,7 +94,7 @@ class WideLayout(BaseLayout):
         self.user_win = grid.box(
             "user",
             nlines=0,
-            ncols=int(grid.ncols / 3),
+            ncols=min(62, grid.ncols // 2),  # 62: see get_weapon_state
             left=grid,
             top2b=self.scorewin_blu,
             bottom2t=self.status_win,

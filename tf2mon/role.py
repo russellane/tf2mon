@@ -45,6 +45,6 @@ class Role:
                 f"{self.name:8}",  # 8=len("engineer")
                 f"{crit:5}",  # 5=len("+crit")
                 f"{weapon:26}",  # 26=len("tf_projectile_pipe_remote")
-                perk,
+                perk,  # 20=len("Infinite Double Jump")
             ]
         ).rstrip()

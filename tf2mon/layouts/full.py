@@ -114,7 +114,7 @@ class FullLayout(BaseLayout):
         self.user_win = grid.box(
             "user",
             nlines=0,
-            ncols=int(grid.ncols / 3),
+            ncols=min(62, grid.ncols // 2),  # 62: see get_weapon_state
             left=grid,
             top2b=self.scorewin_red,
             bottom2t=self.status_win,

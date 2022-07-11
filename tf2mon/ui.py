@@ -146,9 +146,6 @@ class UI:
         Called at init, on KEY_RESIZE events, and when layout changes.
         """
 
-        # pylint: disable=too-many-branches
-        # pylint: disable=too-many-statements
-
         klass = tf2mon.layouts.LAYOUT_CLASSES[self.grid_layout.value]
         try:
             layout = klass(self.grid)
@@ -183,26 +180,27 @@ class UI:
         self.status_win = layout.status_win
         self.cmdline_win = layout.cmdline_win
 
-        if self.chatwin_blu:
-            self.chatwin_blu.scrollok(True)
-        if self.chatwin_red:
-            self.chatwin_red.scrollok(True)
-        if self.scorewin_blu:
-            self.scorewin_blu.scrollok(False)
-        if self.scorewin_red:
-            self.scorewin_red.scrollok(False)
-        if self.user_win:
-            self.user_win.scrollok(False)
-        if self.kicks_win:
-            self.kicks_win.scrollok(False)
-        if self.spams_win:
-            self.spams_win.scrollok(False)
-        if self.duels_win:
-            self.duels_win.scrollok(False)
-        if self.logger_win:
-            self.logger_win.scrollok(True)
-        if self.status_win:
-            self.status_win.scrollok(False)
+        for win in [
+            self.chatwin_blu,
+            self.chatwin_red,
+            self.logger_win,
+        ]:
+            if win:
+                win.scrollok(True)
+                win.move(win.getmaxyx()[0] - 1, 0)
+
+        for win in [
+            self.scorewin_blu,
+            self.scorewin_red,
+            self.user_win,
+            self.kicks_win,
+            self.spams_win,
+            self.duels_win,
+            self.status_win,
+        ]:
+            if win:
+                win.scrollok(False)
+
         if self.cmdline_win:
             self.cmdline_win.scrollok(True)
             self.cmdline_win.keypad(True)

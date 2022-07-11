@@ -77,7 +77,9 @@ pyro,scorch_shot
 pyro,shotgun_pyro
 pyro,sledgehammer
 pyro,taunt_pyro
+scout,ball
 scout,bat
+scout,bleed_kill
 scout,boston_basher
 scout,candy_cane
 scout,force_a_nature
