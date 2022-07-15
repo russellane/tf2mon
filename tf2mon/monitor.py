@@ -32,8 +32,6 @@ class Monitor:
     def __init__(self, cli) -> None:
         """Initialize monitor."""
 
-        # pylint: disable=too-many-statements
-
         self.options = cli.options
         self.config = cli.config
 
@@ -43,14 +41,20 @@ class Monitor:
             webapi_key=self.config.get("webapi_key"),
         )
 
-        # send data to tf2 by writing to an `exec` script
+        # Location of TF2 `exec` scripts.
         self.tf2_scripts_dir = Path(self.options.tf2_install_dir, "cfg", "user")
         if not self.tf2_scripts_dir.is_dir():
-            logger.warning(f"Missing scripts at `{self.tf2_scripts_dir}`")
-        self.msgqueues = MsgQueueManager(self, self.tf2_scripts_dir / "tf2-monitor-work.cfg")
+            logger.warning(f"Missing TF2 scripts dir `{self.tf2_scripts_dir}`")
 
-        # receive data from tf2 by reading its console logfile
-        # will wait until file exists.
+        # Monitor aliases and key bindings.
+        self.path_static_script = self.tf2_scripts_dir / "tf2mon.cfg"  # created once
+
+        # "Send" to TF2 through `msgqueues`.
+        self.path_dynamic_script = self.tf2_scripts_dir / "tf2mon-pull.cfg"  # created often
+        self.msgqueues = MsgQueueManager(self, self.path_dynamic_script)
+
+        # "Receive" from TF2 through `conlog`.
+        # Wait for con_logfile to exist, then open it.
         self.conlog = Conlog(
             self.options.con_logfile,
             exclude_file=self.options.exclude_file,
@@ -98,40 +102,8 @@ class Monitor:
         #
         self.spammer = Spammer(self)
 
-        # function keys
-        self.commands = CommandManager()
-        self.commands.bind(self._cmd_help, "F1")
-        self.commands.bind(self._cmd_motd, "Ctrl+F1")
-        self.commands.bind(self._cmd_debug_flag, "F2")
-        self.commands.bind(self._cmd_taunt_flag, "F3")
-        self.commands.bind(self._cmd_show_kd, "F4")
-        self.commands.bind(self._cmd_user_panel, "F5")
-        self.commands.bind(self._cmd_join_other_team, "F6")
-        self.commands.bind(self._cmd_sort_order, "F7")
-        self.commands.bind(self._cmd_log_location, "F8")
-        self.commands.bind(self._cmd_log_level, "Shift+F8")
-        self.commands.bind(self._cmd_reset_padding, "Ctrl+F8")
-        self.commands.bind(self._cmd_grid_layout, "F9")
-        self.commands.bind(self._cmd_show_debug, "KP_INS")
-        self.commands.bind(self._cmd_single_step, "KP_DEL")
-        self.commands.bind(self._cmd_kick_last_cheater, "[", game_only=True)
-        self.commands.bind(self._cmd_kick_last_racist, "]", game_only=True)
-        self.commands.bind(self._cmd_kick_last_suspect, "\\", game_only=True)
-        # numpad
-        self.commands.bind(self._cmd_kicks_pop, "KP_HOME")
-        self.commands.bind(self._cmd_kicks_clear, "KP_LEFTARROW")
-        self.commands.bind(self._cmd_kicks_popleft, "KP_END")
-        self.commands.bind(self._cmd_pull, "KP_UPARROW")
-        self.commands.bind(self._cmd_clear_queues, "KP_5")
-        self.commands.bind(self._cmd_push, "KP_DOWNARROW")
-        self.commands.bind(self._cmd_spams_pop, "KP_PGUP")
-        self.commands.bind(self._cmd_spams_clear, "KP_RIGHTARROW")
-        self.commands.bind(self._cmd_spams_popleft, "KP_PGDN")
-
-        if self.tf2_scripts_dir.is_dir():
-            path = self.tf2_scripts_dir / "tf2-monitor-fkeys.cfg"
-            logger.info(f"Writing `{path}`")
-            path.write_text(self.commands.as_tf2_exec_script(), encoding="utf-8")
+        #
+        self.commands: CommandManager = self._commands()
 
         # admin command handlers
         self.regex_list = self.admin.regex_list
@@ -226,6 +198,51 @@ class Monitor:
         """
 
         return self.conlog.is_eof or self.options.toggles or self.admin.is_single_stepping
+
+    def _commands(self) -> CommandManager:
+        """Init and return `CommandManager`."""
+
+        commands = CommandManager()
+        commands.bind(self._cmd_help, "F1")
+        commands.bind(self._cmd_motd, "Ctrl+F1")
+        commands.bind(self._cmd_debug_flag, "F2")
+        commands.bind(self._cmd_taunt_flag, "F3")
+        commands.bind(self._cmd_show_kd, "F4")
+        commands.bind(self._cmd_user_panel, "F5")
+        commands.bind(self._cmd_join_other_team, "F6")
+        commands.bind(self._cmd_sort_order, "F7")
+        commands.bind(self._cmd_log_location, "F8")
+        commands.bind(self._cmd_log_level, "Shift+F8")
+        commands.bind(self._cmd_reset_padding, "Ctrl+F8")
+        commands.bind(self._cmd_grid_layout, "F9")
+        commands.bind(self._cmd_show_debug, "KP_INS")
+        commands.bind(self._cmd_single_step, "KP_DEL")
+        commands.bind(self._cmd_kick_last_cheater, "[", game_only=True)
+        commands.bind(self._cmd_kick_last_racist, "]", game_only=True)
+        commands.bind(self._cmd_kick_last_suspect, "\\", game_only=True)
+
+        # numpad
+        commands.bind(self._cmd_kicks_pop, "KP_HOME")
+        commands.bind(self._cmd_kicks_clear, "KP_LEFTARROW")
+        commands.bind(self._cmd_kicks_popleft, "KP_END")
+        commands.bind(self._cmd_pull, "KP_UPARROW")
+        commands.bind(self._cmd_clear_queues, "KP_5")
+        commands.bind(self._cmd_push, "KP_DOWNARROW")
+        commands.bind(self._cmd_spams_pop, "KP_PGUP")
+        commands.bind(self._cmd_spams_clear, "KP_RIGHTARROW")
+        commands.bind(self._cmd_spams_popleft, "KP_PGDN")
+
+        if self.tf2_scripts_dir.is_dir():
+            logger.info(f"Writing `{self.path_static_script}`")
+            script = commands.as_tf2_exec_script(
+                str(self.path_static_script.relative_to(self.tf2_scripts_dir.parent)),
+                str(self.path_dynamic_script.relative_to(self.tf2_scripts_dir.parent)),
+            )
+            self.path_static_script.write_text(script, encoding="utf-8")
+        else:
+            logger.warning(f"Not writing `{self.path_static_script}`")
+
+        return commands
 
     @staticmethod
     def _on_off(key, value):
