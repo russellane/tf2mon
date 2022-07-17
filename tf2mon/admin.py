@@ -188,7 +188,7 @@ class Admin:
 
             if line == "":  # enter
                 if self.monitor.conlog.is_eof:
-                    logger.log("console", "<EOF>")
+                    logger.log("console", f"lineno={self.monitor.conlog.lineno} <EOF>")
                 else:
                     logger.trace("step...")
                 self._single_step_event.set()

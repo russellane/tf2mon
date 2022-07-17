@@ -125,7 +125,6 @@ class Conlog:
                 logger.log("injected", self.last_line)
                 return line
 
-            self.lineno += 1
             self._is_inject_paused = False
 
             try:
@@ -135,6 +134,8 @@ class Conlog:
                 continue
 
             if line:
+                self.lineno += 1
+
                 line = line.strip()
                 if line.startswith(tf2mon.APPTAG) and " " in line:
                     # sometimes newlines get dropped and lines are combined
