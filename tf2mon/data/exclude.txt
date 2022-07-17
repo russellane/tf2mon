@@ -9,6 +9,7 @@
 ^Failed to find attachment point specified for
 ^No such variable "
 ^Requesting texture value from var
+^Restoring player view height at
 ^SOLID_VPHYSICS static prop with no vphysics model!
 ^SetupBones: invalid bone array size
 ^Soundscape: 
