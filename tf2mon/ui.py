@@ -5,7 +5,6 @@ import curses
 import os
 import sys
 import textwrap
-import time
 from enum import Enum
 
 import libcurses
@@ -187,7 +186,6 @@ class UI:
         ]:
             if win:
                 win.scrollok(True)
-                win.move(win.getmaxyx()[0] - 1, 0)
 
         for win in [
             self.scorewin_blu,
@@ -205,6 +203,7 @@ class UI:
             self.cmdline_win.scrollok(True)
             self.cmdline_win.keypad(True)
 
+        self.refresh_chats()
         self.grid.redraw()
 
     def cycle_log_level(self) -> None:
@@ -254,6 +253,19 @@ class UI:
         )
         self.show_status()
         self.grid.refresh()
+
+    def refresh_chats(self):
+        """Refresh chat panel(s)."""
+
+        for win in [
+            self.chatwin_blu,
+            self.chatwin_red,
+        ]:
+            if win:
+                win.erase()
+
+        for chat in self.monitor.chats:
+            self.show_chat(chat)
 
     def refresh_kicks(self):
         """Refresh kicks panel."""
@@ -358,14 +370,6 @@ class UI:
         line = f"{chat.seqno}: {chat.user.username:20.20}: {chat.msg}"
         win.addstr(line, self.user_color(chat.user, color))
         win.noutrefresh()
-
-    def clear_chats(self):
-        """Clear the chat windows."""
-
-        now = time.asctime()
-        for win in [x for x in (self.chatwin_blu, self.chatwin_red) if x]:
-            win.erase()
-            win.addstr(now)
 
     def _format_duels(self, user):
 

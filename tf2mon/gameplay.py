@@ -190,6 +190,7 @@ class Gameplay:
         chat = Chat(user, teamflag, msg)
 
         user.chats.append(chat)
+        self.monitor.chats.append(chat)
         self.monitor.ui.show_chat(chat)
 
         # if this is a team chat, then we know we're on the same team, and

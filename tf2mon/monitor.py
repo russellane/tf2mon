@@ -95,6 +95,9 @@ class Monitor:
         # users
         self.users = None
 
+        # chats
+        self.chats = []
+
         # message queues
         self.kicks = self.msgqueues.addq("kicks")
         self.spams = self.msgqueues.addq("spams")
@@ -152,10 +155,8 @@ class Monitor:
         self.me = self.my = self.users.find_username(self.config["player_name"])
         self.me.assign_team(Team.BLU)
         self.my.display_level = "user"
-
+        self.chats = []
         self.msgqueues.clear()
-        if self.ui:
-            self.ui.clear_chats()
 
     def breakpoint(self):
         """Drop into python debugger."""
