@@ -183,17 +183,17 @@ class CommandManager:
         for key in [x for x in self.key_by_name.values() if x.name and (x.ctrl or x.shift)]:
             if key.base and key.base.command.action:
                 alias = f"_b{key.name}"
-                lines.append(f'alias "{alias}" "{key.base.command.action}"')
+                lines.append(f'alias {alias} "{key.base.command.action}"')
                 _base.append(f"bind {key.name} {alias}")
 
             if key.ctrl and key.ctrl.command.action:
                 alias = f"_c{key.name}"
-                lines.append(f'alias "{alias}" "{key.ctrl.command.action}"')
+                lines.append(f'alias {alias} "{key.ctrl.command.action}"')
                 _ctrl.append(f"bind {key.name} {alias}")
 
             if key.shift and key.shift.command.action:
                 alias = f"_s{key.name}"
-                lines.append(f'alias "{alias}" "{key.shift.command.action}"')
+                lines.append(f'alias {alias} "{key.shift.command.action}"')
                 _shift.append(f"bind {key.name} {alias}")
 
         lines.extend(
