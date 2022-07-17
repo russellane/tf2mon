@@ -61,25 +61,26 @@ class CLI(BaseCLI):
             prog=__package__,
             description=self.dedent(
                 """
-    Team Fortress II (`TF2`) Console Monitor (`%(prog)s`) is an interactive
-    terminal application that displays real-time game state and player
-    statistics of an actively running TF2 game.
+    Team Fortress II (`TF2`) Console Monitor, `%(prog)s`, is an interactive
+    terminal application that displays scoreboards and player statistics of
+    an active game. `%(prog)s` can also `--rewind` and `--single-step`
+    through previous games.
 
-    `%(prog)s` recognizes and tracks `cathook-bots`, and provides both
-    application and in-game key-bindings to quickly `CALLVOTE KICK`
-    hackers, mark players as racist, suspect, etc.
+    `%(prog)s` recognizes and tracks abusive players, such as racists and
+    `cathook-bots`. It provides application and in-game key-bindings to
+    `CALLVOTE KICK` cheaters/hackers, or mark as racist or suspect.
 
     `%(prog)s` reads TF2's console logfile (`con_logfile`), creates action
-    scripts in TF2's `cfg` directory, and binds keys for the gamer to press
-    in-game to take those actions; such as issue `SAY` and `CALLVOTE KICK`
+    scripts in TF2's `cfg/user` directory, and binds keys for gamer to
+    press to take those actions, such as issue `SAY` and `CALLVOTE KICK`
     commands.
 
     Other in-game key-bindings taunt gamer's last victim/killer with a
-    `CHAT` message customized with their name, k/d ratio, weapon and duel-
-    score (`Taunt` and `Throe`).
+    `CHAT` message customized with their name, k/d ratio, rotating spam,
+    weapon and duel-scores (`Taunt` and `Throe`).
 
-    By default, `%(prog)s` starts reading the con_logfile from its end
-    (`--no-rewind`), and continues to `--follow` it until interrupted.
+    By default, `%(prog)s` starts reading `con_logfile` from its end
+    (`--no-rewind`), and `--follow`s its tail.
                 """
             ),
         )
@@ -281,24 +282,23 @@ class CLI(BaseCLI):
         Queues -->    Kicks     Admin     Spams
                         |         |         |
                         v         v         v
-                   +-----------------------------+
+                   +---------+---------+---------+
         last/      |         |         |         |
-        newest --> |   pop   |  pull   |   pop   |
+        newest --> |   pop   |         |   pop   |
                    |         |         |         |
-                   |---------+---------+---------|
+                   +---------+---------+---------+
                    |         |         |         |
                    |  clear  |  clear  |  clear  |
                    |         |  both   |         |
-                   |---------+---------+---------|
+                   +---------+---------+---------+
         first/     |         |         |         |
-        oldest --> | popleft |  push   | popleft |
+        oldest --> | popleft |  vet    | popleft |
                    |         |         |         |
-                   +-----------------------------+
+                   +---------+---------+---------+
 
-    To vet new players that have joined the game, and to remove inactive
-    players, press `NUMPAD-DOWNARROW`. The monitor indicates when new
-    players have arrived and that key should be pressed; or press it each
-    time you die.
+    To vet new players that have joined the game, `%(prog)s` needs their
+    `steamid`s, and to get them, gamer must press `NUMPAD-DOWNARROW`. The
+    `status` panel will be highlighted when the monitor needs steamids.
 
     When detected, `%(prog)s` pushes hackers onto the `Kicks` queue, and
     alerts the gamer, who may then press `HOME`/`END` to issue `CHAT`

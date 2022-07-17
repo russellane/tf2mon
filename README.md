@@ -2,7 +2,7 @@
 
 #### Usage
     tf2mon [--rewind | --no-rewind] [--follow | --no-follow]
-           [--tf2-install-dir DIR] [--layout {DFLT,FULL,TALL,WIDE}]
+           [--tf2-install-dir DIR] [--layout {DFLT,FULL,TALL,MRGD,WIDE}]
            [--list-con-logfile] [--trunc-con-logfile] [--clean-con-logfile]
            [--exclude-file FILE] [--single-step] [--break LINENO]
            [--search PATTERN] [--inject-cmd LINENO:CMD]
@@ -12,25 +12,26 @@
            [--print-config] [--print-url] [--completion [SHELL]]
            [con_logfile]
     
-Team Fortress II (`TF2`) Console Monitor (`tf2mon`) is an interactive
-terminal application that displays real-time game state and player
-statistics of an actively running TF2 game.
+Team Fortress II (`TF2`) Console Monitor, `tf2mon`, is an interactive
+terminal application that displays scoreboards and player statistics of
+an active game. `tf2mon` can also `--rewind` and `--single-step`
+through previous games.
 
-`tf2mon` recognizes and tracks `cathook-bots`, and provides both
-application and in-game key-bindings to quickly `CALLVOTE KICK`
-hackers, mark players as racist, suspect, etc.
+`tf2mon` recognizes and tracks abusive players, such as racists and
+`cathook-bots`. It provides application and in-game key-bindings to
+`CALLVOTE KICK` cheaters/hackers, or mark as racist or suspect.
 
 `tf2mon` reads TF2's console logfile (`con_logfile`), creates action
-scripts in TF2's `cfg` directory, and binds keys for the gamer to press
-in-game to take those actions; such as issue `SAY` and `CALLVOTE KICK`
+scripts in TF2's `cfg/user` directory, and binds keys for gamer to
+press to take those actions, such as issue `SAY` and `CALLVOTE KICK`
 commands.
 
 Other in-game key-bindings taunt gamer's last victim/killer with a
-`CHAT` message customized with their name, k/d ratio, weapon and duel-
-score (`Taunt` and `Throe`).
+`CHAT` message customized with their name, k/d ratio, rotating spam,
+weapon and duel-scores (`Taunt` and `Throe`).
 
-By default, `tf2mon` starts reading the con_logfile from its end
-(`--no-rewind`), and continues to `--follow` it until interrupted.
+By default, `tf2mon` starts reading `con_logfile` from its end
+(`--no-rewind`), and `--follow`s its tail.
 
 #### Positional Arguments
     con_logfile         TF2 console logfile; relative to `--tf2-install-dir`
@@ -43,7 +44,7 @@ By default, `tf2mon` starts reading the con_logfile from its end
     --no-follow         Exit at end of logfile (default: `False`).
     --tf2-install-dir DIR
                         TF2 installation directory (default: `~/tf2`).
-    --layout {DFLT,FULL,TALL,WIDE}
+    --layout {DFLT,FULL,TALL,MRGD,WIDE}
                         Choose display layout (default: `DFLT`).
     --list-con-logfile  Show path to logfile and exit.
     --trunc-con-logfile
@@ -96,24 +97,23 @@ By default, `tf2mon` starts reading the con_logfile from its end
       Queues -->    Kicks     Admin     Spams
                       |         |         |
                       v         v         v
-                 +-----------------------------+
+                 +---------+---------+---------+
       last/      |         |         |         |
-      newest --> |   pop   |  pull   |   pop   |
+      newest --> |   pop   |         |   pop   |
                  |         |         |         |
-                 |---------+---------+---------|
+                 +---------+---------+---------+
                  |         |         |         |
                  |  clear  |  clear  |  clear  |
                  |         |  both   |         |
-                 |---------+---------+---------|
+                 +---------+---------+---------+
       first/     |         |         |         |
-      oldest --> | popleft |  push   | popleft |
+      oldest --> | popleft |  vet    | popleft |
                  |         |         |         |
-                 +-----------------------------+
+                 +---------+---------+---------+
   
-  To vet new players that have joined the game, and to remove inactive
-  players, press `NUMPAD-DOWNARROW`. The monitor indicates when new
-  players have arrived and that key should be pressed; or press it each
-  time you die.
+  To vet new players that have joined the game, `tf2mon` needs their
+  `steamid`s, and to get them, gamer must press `NUMPAD-DOWNARROW`. The
+  `status` panel will be highlighted when the monitor needs steamids.
   
   When detected, `tf2mon` pushes hackers onto the `Kicks` queue, and
   alerts the gamer, who may then press `HOME`/`END` to issue `CHAT`
