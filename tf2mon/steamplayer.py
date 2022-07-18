@@ -4,7 +4,6 @@ See https://developer.valvesoftware.com/wiki/Steam_Web_API
 """
 import time
 
-import humanize
 import steam.steamid
 from loguru import logger
 
@@ -46,7 +45,7 @@ class SteamPlayer:
             logger.warning(f"no timecreated {str(self.__dict__)}")
 
         now = int(time.time())
-        self.age = humanize.naturaldelta(now - self.timecreated) if self.timecreated else ""
+        self.age = (now - self.timecreated) // 86400 if self.timecreated else ""
         self.mtime = jdoc.get("mtime", now)
 
     def __repr__(self):

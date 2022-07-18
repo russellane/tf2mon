@@ -36,13 +36,12 @@ class Scoreboard:
     ]
 
     _columns_steamplayer = [
-        Column(20, "{:20}", "{:20}", "PERSONANAME"),
-        Column(20, "{:20}", "{:20}", "REALNAME"),
+        Column(4, "{:>4}", "{:>4}", "AGE"),
         Column(1, "{:1}", "{:1}", "P"),
         Column(2, "{:2}", "{:2}", "CC"),
         Column(2, "{:2}", "{:2}", "SC"),
-        Column(4, "{:4}", "{:4}", "CI"),
-        Column(0, "{}", "{}", "AGE"),
+        # Column(4, "{:4}", "{:4}", "CI"),
+        Column(0, "{}", "{}", "REALNAME"),
     ]
 
     _columns = _columns_user + _columns_steamplayer
@@ -147,16 +146,18 @@ class Scoreboard:
             if user.perk:
                 line += " +" + user.perk
             elif _sp := user.steamplayer:
+                names = []
+                if _sp.personaname and _sp.personaname != user.username:
+                    names.append(_sp.personaname)
+                if _sp.realname:
+                    names.append(_sp.realname)
                 line += " " + self._fmt_steamplayer.format(
-                    _sp.personaname
-                    if (_sp.personaname and _sp.personaname != user.username)
-                    else "",
-                    _sp.realname or "",
+                    _sp.age or "",
                     _sp.personastate or "",
                     _sp.loccountrycode or "",
                     _sp.locstatecode or "",
-                    _sp.loccityid or "",
-                    _sp.age or "",
+                    # _sp.loccityid or "",
+                    " ".join(names),
                 )
 
             try:
