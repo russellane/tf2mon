@@ -59,6 +59,7 @@ class User:
         "|".join(
             [
                 "UNCLETOPIA.COM BEST MODERATED SERVERS! NO BOTS NO CHEATERS!",
+                "m4gic m4gic",
             ]
         )
     )
