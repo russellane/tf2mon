@@ -72,6 +72,7 @@ class Function:
 
     keystroke: FKey
     command: Command
+    game_only: bool
 
     def __repr__(self):
         return str(self.__dict__)
@@ -109,14 +110,12 @@ class CommandManager:
         """Bind `Command` returned by `cmd_factory` with `keyspec`."""
 
         command = cmd_factory()
-        if game_only:
-            command.handler = None
 
         keystroke = FKey(keyspec)
         if (key := self.key_by_name.get(keystroke.name)) is None:
             key = Key(keystroke.name)
 
-        function = Function(keystroke, command)
+        function = Function(keystroke, command, game_only)
 
         if keystroke.is_ctrl:
             if key.ctrl:
@@ -254,7 +253,7 @@ class CommandManager:
 
         for key in self.key_by_name.values():
             for function in key.functions:
-                if function.command.handler:
+                if function.command.handler and not function.game_only:
                     register_fkey(function.command.handler, function.keystroke.key)
 
     def get_regex_list(self):
