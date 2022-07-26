@@ -1,10 +1,10 @@
 """Two-Team Scoreboard."""
 
 import curses
-from collections import namedtuple
 
 import libcurses
 
+from tf2mon.column import Column, Table
 from tf2mon.hacker import HackerAttr
 
 
@@ -13,38 +13,30 @@ class Scoreboard:
 
     # pylint: disable=too-many-instance-attributes
 
-    Column = namedtuple(
-        "Column",
+    _table_user = Table(
         [
-            "width",
-            "th",  # format when building heading line
-            "td",  # format when building detail line
-            "heading",
-        ],
+            Column(-10, "STEAMID"),
+            Column(1, "C"),
+            Column(-3, "K"),
+            Column(-3, "D"),
+            Column(4.1, "KD"),
+            Column(-3, "SNI"),
+            Column(1, "S"),
+            Column(-4, "UID"),
+            Column(25, "USERNAME"),
+        ]
     )
 
-    _columns_user = [
-        Column(10, "{:>10}", "{:>10}", "STEAMID"),
-        Column(1, "{:1}", "{:1}", "C"),
-        Column(3, "{:>3}", "{:>3}", "K"),
-        Column(3, "{:>3}", "{:>3}", "D"),
-        Column(4, "{:>4}", "{:4.1f}", "KD"),
-        Column(3, "{:>3}", "{:>3}", "SNI"),
-        Column(1, "{:1}", "{:1}", "S"),
-        Column(4, "{:>4}", "{:>4}", "UID"),
-        Column(25, "{:25}", "{:25}", "USERNAME"),
-    ]
-
-    _columns_steamplayer = [
-        Column(4, "{:>4}", "{:>4}", "AGE"),
-        Column(1, "{:1}", "{:1}", "P"),
-        Column(2, "{:2}", "{:2}", "CC"),
-        Column(2, "{:2}", "{:2}", "SC"),
-        # Column(4, "{:4}", "{:4}", "CI"),
-        Column(0, "{}", "{}", "REALNAME"),
-    ]
-
-    _columns = _columns_user + _columns_steamplayer
+    _table_steamplayer = Table(
+        [
+            Column(-4, "AGE"),
+            Column(1, "P"),
+            Column(2, "CC"),
+            Column(2, "SC"),
+            # Column(4, "CI"),
+            Column(0, "REALNAME"),
+        ]
+    )
 
     def __init__(self, monitor, win1, color1, win2, color2):
         """Create scoreboard for two teams.
@@ -69,22 +61,17 @@ class Scoreboard:
         self._fmt_user = None
         self._fmt_steamplayer = None
 
-        # build the format string to build the header now
-        fmt = " ".join([x.th for x in self._columns])
-
-        # build the header now
-        self._formatted_header = fmt.format(*[x.heading for x in self._columns])
-
-        # build the format string to build detail lines later
-        self._fmt_user = " ".join([x.td for x in self._columns_user])
-
-        # build the format string to build detail lines later
-        self._fmt_steamplayer = " ".join([x.td for x in self._columns_steamplayer])
+        self._formatted_header = " ".join(
+            [
+                self._table_user.formatted_header,
+                self._table_steamplayer.formatted_header,
+            ]
+        )
 
         # calculate each column's x-ordinate for lookup by `heading`.
         self._col_x_width_by_heading = {}
         i = 0
-        for col in self._columns:
+        for col in self._table_user.columns + self._table_steamplayer.columns:
             self._col_x_width_by_heading[col.heading] = (i, col.width)
             i += col.width + 1
 
@@ -132,7 +119,7 @@ class Scoreboard:
         for lineno, user in enumerate(team, start=1):
             if not user.username:
                 continue
-            line = self._fmt_user.format(
+            line = self._table_user.format_detail(
                 user.steamid.id if user.steamid else 0,
                 user.role.display,
                 user.nkills,
@@ -151,7 +138,7 @@ class Scoreboard:
                     names.append(_sp.personaname)
                 if _sp.realname:
                     names.append(_sp.realname)
-                line += " " + self._fmt_steamplayer.format(
+                line += " " + self._table_steamplayer.format_detail(
                     _sp.age or "",
                     _sp.personastate or "",
                     _sp.loccountrycode or "",

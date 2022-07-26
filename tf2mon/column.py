@@ -1,0 +1,112 @@
+"""Table/Column formatters."""
+
+from dataclasses import dataclass, field
+
+
+@dataclass
+class Column:
+    """Column formatter."""
+
+    width: int | float
+    heading: str
+    fmt_heading: str = field(default=None, init=False)
+    fmt_detail: str = field(default=None, init=False)
+
+    def __post_init__(self):
+        """Init table column."""
+
+        if isinstance(self.width, float):
+            _width, _precision = [int(x) for x in str(self.width).split(".")]
+            self.width = _width
+            _right = True
+        elif isinstance(self.width, int):
+            _precision = None
+            if self.width < 0:
+                _width = self.width = abs(self.width)
+                _right = True
+            else:
+                _width = self.width
+                _right = False
+        else:
+            raise TypeError("width must be int|float")
+
+        # build format string for the header
+        self.fmt_heading = "{:"
+        if _right:
+            self.fmt_heading += ">"
+        self.fmt_heading += str(_width) + "}"
+
+        # build format string for the detail
+        self.fmt_detail = "{:"
+        if _right:
+            self.fmt_detail += ">"
+        self.fmt_detail += str(_width)
+        if _precision:
+            self.fmt_detail += f".{_precision}f"
+        self.fmt_detail += "}"
+
+
+@dataclass
+class Table:
+    """Table formatter."""
+
+    columns: list[Column] = None
+    _formatted_header: str = field(default=None, init=False)
+    _fmt_detail: str = field(default=None, init=False)
+
+    @property
+    def formatted_header(self) -> str:
+        """Docstring."""
+
+        if not self._formatted_header:
+            fmt = " ".join([x.fmt_heading for x in self.columns])
+            self._formatted_header = fmt.format(*[x.heading for x in self.columns])
+
+        return self._formatted_header
+
+    def format_detail(self, *values) -> str:
+        """Docstring."""
+
+        result = []
+        for column, value in zip(self.columns, values):
+            if value is None:
+                result.append(column.fmt_heading.format(""))
+            else:
+                result.append(column.fmt_detail.format(value))
+
+        return " ".join(result)
+
+
+if __name__ == "__main__":
+
+    table = Table(
+        [
+            Column(-10, "STEAMID"),
+            Column(4.1, "KD"),
+            Column(-4, "AGE"),
+            Column(1, "P"),
+            Column(2, "CC"),
+            Column(2, "SC"),
+            Column(4, "CI"),
+            Column(25, "PERSONANAME"),
+            Column(0, "REALNAME"),
+        ]
+    )
+
+    for col in table.columns:
+        print(col)
+
+    print(table.formatted_header)
+    print(
+        table.format_detail(
+            12345,
+            3.14159,
+            60,
+            "1",
+            "2",
+            "3",
+            "4",
+            "Persona Name",
+            "Real Name",
+        )
+    )
