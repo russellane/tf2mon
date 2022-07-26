@@ -1,8 +1,9 @@
 """Command line interface."""
 
+import contextlib
 import threading
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 import steam.steamid
 import xdg
@@ -11,6 +12,7 @@ from loguru import logger
 
 import tf2mon.layouts
 from tf2mon.conlog import Conlog
+from tf2mon.hacker import HackerManager
 from tf2mon.logger import configure_logger
 from tf2mon.monitor import Monitor
 from tf2mon.steamweb import SteamWebAPI
@@ -38,13 +40,16 @@ class CLI(BaseCLI):
         #
         # databases.
         "players": _cachedir / "steamplayers.db",
-        "hackers-base": _cachedir / "hackers-base.json",
-        "hackers-local": _cachedir / "hackers-local.json",
+        "hackers": _cachedir / "hackers.json",
         "exclude-file": Path(__file__).parent / "data" / "exclude.txt",
         "webapi_key": "",
         # this player.
         "player_name": "Bad Dad",
     }
+
+    # def debug(self, text: str) -> None:
+    #     """Override to silence."""
+    # for --merge-hackers
 
     def init_logging(self, verbose: int) -> None:
         """Set logging levels based on `--verbose`."""
@@ -232,20 +237,11 @@ class CLI(BaseCLI):
         self.add_default_to_help(arg)
 
         arg = group.add_argument(
-            "--hackers-base",
+            "--hackers",
             metavar="FILE",
-            default=Path(self.config["hackers-base"]),
+            default=Path(self.config["hackers"]),
             type=Path,
-            help="upstream hackers database",
-        )
-        self.add_default_to_help(arg)
-
-        arg = group.add_argument(
-            "--hackers-local",
-            metavar="FILE",
-            default=Path(self.config["hackers-local"]),
-            type=Path,
-            help="local hackers database",
+            help="hackers database",
         )
         self.add_default_to_help(arg)
 
@@ -254,6 +250,19 @@ class CLI(BaseCLI):
             metavar="STEAMID",
             help="print `ISteamUser.GetPlayerSummaries` for `STEAMID` and exit",
         )
+
+        group.add_argument(
+            "--print-hackers",
+            action="store_true",
+            help="print hackers database and exit",
+        )
+
+        # group.add_argument(
+        #     "--merge-hackers",
+        #     metavar="FILE",
+        #     type=Path,
+        #     help="merge `FILE` with `--hackers FILE` to `stdout` and exit",
+        # )
 
         self.parser.add_argument_group(
             "Configuration file",
@@ -473,14 +482,23 @@ class CLI(BaseCLI):
             print(steam_player)
             self.parser.exit()
 
-        if self.options.layout:  # get enum from name
-            self.options.layout = tf2mon.layouts.LAYOUT_ENUM.__dict__[self.options.layout]
+        if self.options.print_hackers:
+            hackers = HackerManager(self.options.hackers)
+            with contextlib.suppress(BrokenPipeError):
+                hackers.print_report()
+            self.parser.exit()
+
+        # if self.options.merge_hackers:
+        #     hackers = HackerManager(self.options.hackers)
+        #     hackers.load(self.options.merge_hackers)
+        #     print(str(hackers))
+        #     self.parser.exit()
 
         monitor = Monitor(self)
         monitor.run()
 
 
-def main(args: Optional[List[str]] = None) -> None:
+def main(args: Optional[list[str]] = None) -> None:
     """Command line interface entry point (function)."""
 
     threading.current_thread().name = "MAIN"

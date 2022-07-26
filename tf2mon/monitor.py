@@ -66,12 +66,11 @@ class Monitor:
 
         # this application's admin console
         self.admin = Admin(self)
+        if self.options.breakpoint is not None:
+            self.admin.set_single_step_lineno(self.options.breakpoint)
 
         #
-        self.hackers = HackerManager(
-            base=self.options.hackers_base,
-            local=self.options.hackers_local,
-        )
+        self.hackers = HackerManager(self.options.hackers)
 
         #
         self.roles = Role.get_roles_by_name()
@@ -88,7 +87,7 @@ class Monitor:
         path = Path(__file__).parent / "data" / "racist.txt"
         logger.info(f"Reading `{path}`")
         lines = path.read_text(encoding="utf-8").splitlines()
-        self._racist_re = (
+        self._re_racist = (
             re.compile("|".join(lines), flags=re.IGNORECASE) if len(lines) > 0 else None
         )
 
@@ -176,7 +175,7 @@ class Monitor:
 
     def is_racist_text(self, text):
         """Return True if this user appears to be racist."""
-        return self._racist_re.search(text)
+        return self._re_racist.search(text)
 
     def dump(self) -> None:
         """Dump stuff."""
