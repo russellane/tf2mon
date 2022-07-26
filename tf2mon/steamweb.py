@@ -55,6 +55,12 @@ class SteamWebAPI:
 
         self._con.commit()
 
+    def players(self) -> list[SteamPlayer]:
+        """Return list of `SteamPlayer`s in database."""
+
+        for row in self._cur.execute("select * from steamplayers"):
+            yield SteamPlayer({k: row[k] for k in row.keys()})
+
     def find_steamid(self, steamid):
         """Lookup and return `SteamPlayer` with matching `steamid`.
 
