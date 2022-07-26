@@ -103,7 +103,9 @@ class UI:
 
         # the windows may be placed in different arrangements.
         self.grid_layout = Toggle("_grid_layout", tf2mon.layouts.LAYOUT_ENUM)
-        self.grid_layout.start(self.monitor.options.layout)
+        # enum from name
+        layout = tf2mon.layouts.LAYOUT_ENUM.__dict__[self.monitor.options.layout]
+        self.grid_layout.start(layout)
 
         # `register_builder` 1) calls `build_grid` and 2) configures
         # `KEY_RESIZE` to call it again each time that event occurs.
