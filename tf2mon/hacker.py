@@ -1,7 +1,4 @@
-"""Represent milenko's playerlist.
-
-See https://raw.githubusercontent.com/PazerOP/tf2_bot_detector/master/schemas/v3/playerlist.schema.json
-"""  # noqa
+"""Hacker database."""
 
 import csv
 import json
@@ -10,16 +7,19 @@ from collections import defaultdict
 from enum import Enum
 from pathlib import Path
 
-import steam.steamid
 from loguru import logger
+from steam.steamid import SteamID
 
+from tf2mon.column import Column, Table
 from tf2mon.steamplayer import SteamPlayer
+
+JsonType = dict[str, object]
 
 
 class HackerAttr(Enum):
     """Valid Hacker Attributes."""
 
-    # milenko's values
+    # base values
     CHEATER = "cheater"
     SUSPECT = "suspect"
     EXPLOITER = "exploiter"
@@ -29,15 +29,11 @@ class HackerAttr(Enum):
     GAMEBOT = "bot"  # legitimate gamebot; eg `Numnutz`
 
 
-class DBTYPE(Enum):
-    """Valid database types."""
-
-    BASE = "base"  # milenko's database
-    LOCAL = "local"  # local addendums
+FMT_TIME = "%FT%T"
 
 
 class Hacker:
-    """Example from milenko's playerlist.
+    """Example record from upstream file.
 
     "players": [
         {
@@ -51,71 +47,45 @@ class Hacker:
             "steamid": "[U:1:1254884]"
         },
 
-    Hackers in tf2mon's list have additional properties:
+    We add additional properties:
         {
-
+            "last_seen": {
+                "time_string": "mm-dd-yy hh:mm:ss",
+            },
             "names": [],
         }
     """
 
-    def __init__(
-        self,
-        json_player=None,
-        dbtype: DBTYPE = None,
-        steamid=None,
-        attribute=None,
-        name=None,
-    ):
-        """Create Hacker.
-
-        Create Hacker either from json record, or the given values.
-        The json record may be from milenko's file or a local file. Loose
-        values are given when we insert a new hacker. The json record and
-        the loose values are mutually exclusive, and one of them is
-        required.
-        """
-
-        # pylint: disable=too-many-arguments
-
-        if json_player:
-            assert steamid is attribute is name is None
-            self._from_json(json_player)
-            assert dbtype in DBTYPE
-            self.dbtype = dbtype
-        else:
-            assert steamid
-            assert attribute
-            assert name
-            self.steamid = steamid
-            self.attributes = [HackerAttr(attribute)]
-            self.names = [name]
-            self.last_name_seen = name
-            self.last_time_seen = int(time.time())
-            assert dbtype in (None, DBTYPE.LOCAL)
-            self.dbtype = DBTYPE.LOCAL
-
-    def _from_json(self, jdoc):
+    def __init__(self, player: JsonType):
+        """Init `Hacker` from `player`."""
 
         # required: unique id
-        self.steamid = steam.steamid.SteamID(jdoc["steamid"])
+        self.steamid = SteamID(player["steamid"])
 
         # required: type of hacker
-        self.attributes = [HackerAttr(x) for x in jdoc["attributes"]]
+        self.attributes = [HackerAttr(x) for x in player["attributes"]]
 
         # optional tf2mon extension: names this hacker has used
-        self.names = jdoc.get("names", [])
-        self.last_name_seen = None
-        self.last_time_seen = 0
+        self.names = player.get("names", [])
+        self.last_name = None
+        self.last_time = 0
+        # optional tf2mon extension: last_time as string
+        self.s_last_time = None
 
         # optional: previous appearance
-        if last_seen := jdoc.get("last_seen"):
-            # optional
+        if last_seen := player.get("last_seen"):
             if name := last_seen.get("player_name"):
                 if name not in self.names:
                     self.names.append(name)
-                self.last_name_seen = name
-            # required
-            self.last_time_seen = last_seen["time"]
+                self.last_name = name
+            self.last_time = last_seen["time"]
+            self.s_last_time = last_seen.get(
+                "time_string",
+                time.strftime(
+                    FMT_TIME,
+                    time.localtime(self.last_time),
+                ),
+            )
 
     @property
     def is_suspect(self):
@@ -150,19 +120,21 @@ class Hacker:
     def __repr__(self):
         return str(self.__dict__)
 
-    def to_json(self):
-        """Return json document for this `Hacker`."""
+    @property
+    def as_json(self) -> JsonType:
+        """Return json `player` record for this `Hacker`."""
 
-        jdoc = {"attributes": [x.value for x in self.attributes]}
-        if self.last_time_seen:
-            last_seen = jdoc["last_seen"] = {}
-            if self.last_name_seen:
-                last_seen["player_name"] = self.last_name_seen
-            last_seen["time"] = self.last_time_seen
-        jdoc["steamid"] = self.steamid.id
+        player = {"attributes": [x.value for x in self.attributes]}
+        if self.last_time:
+            player["last_seen"] = {}
+            if self.last_name:
+                player["last_seen"]["player_name"] = self.last_name
+            player["last_seen"]["time"] = self.last_time
+            player["last_seen"]["time_string"] = self.s_last_time
+        player["steamid"] = self.steamid.as_steam3
         if self.names:
-            jdoc["names"] = self.names
-        return jdoc
+            player["names"] = self.names
+        return player
 
     def track_appearance(self, name):
         """Record user appearing as given name."""
@@ -171,102 +143,187 @@ class Hacker:
             logger.warning(f"adding name {name!r}")
             self.names.append(name)
 
-        self.last_name_seen = name
-        self.last_time_seen = int(time.time())
-        logger.warning(f"time {self.last_time_seen} name {self.last_name_seen!r}")
+        self.last_name = name
+        self.last_time = int(time.time())
+        self.s_last_time = time.strftime(FMT_TIME, time.localtime(self.last_time))
+        logger.warning(f"time {self.s_last_time} name {self.last_name!r}")
 
 
 class HackerManager:
     """Collection of `Hacker`s."""
 
-    def __init__(self, *, base: Path = None, local: Path = None):
-        """Connect to `Hacker` database.
+    def __init__(self, path: Path):
+        """Read `Hacker` database at `path`."""
 
-        Load records from `base`, and overlay with records from
-        `local`. Save `local_path` for `save_database` to use, and
-        make the records accessible via `lookup_steamid`.
-        """
-
-        self._hackers_by_steamid = {}
-        if base:
-            self._load(base, DBTYPE.BASE)  # load the base list
-        if local:
-            self._load(local, DBTYPE.LOCAL)  # merge our addendums
-
-        # self._base = base        # we only read from this file
-        self._path_local = local  # we will write to this file
-
-        # for `lookup_name`
+        self._path = path
+        self._hackers_by_steamid: dict[SteamID, Hacker] = {}
         self._hackers_by_name = defaultdict(list)
-        for hacker in self._hackers_by_steamid.values():
-            for name in hacker.names:
-                self._hackers_by_name[name].append(hacker)
+        self.load(self._path)
 
-    def _load(self, path: Path, dbtype: DBTYPE):
-        """Read playerlist at `path` loading `Hacker`s into collection."""
+    def __call__(self) -> dict[SteamID, Hacker]:
+        """Return map of steamids to hackers."""
 
-        name = f"`--hackers-{dbtype.value}` database `{path}`"
-        if not path.exists():
-            logger.warning("Missing " + name)
+        return self._hackers_by_steamid
+
+    def load(self, path: Path):
+        """Merge database at `path` into this database."""
+
+        msg = f"`--hackers` database at `{path}`"
+        if not self._path.exists():
+            logger.warning(f"Missing {msg}")
             return
 
-        logger.info("Reading " + name)
+        logger.info(f"Reading {msg}")
         with open(path, encoding="utf-8") as file:
             try:
                 jdoc = json.load(file)
             except json.decoder.JSONDecodeError as err:
-                logger.error(f"{err} in {name}")
+                logger.error(f"{err} in {msg}")
                 return
 
-            for player in jdoc.get("players"):
-                hacker = Hacker(player, dbtype)
-                self._hackers_by_steamid[hacker.steamid] = hacker
+        for player in jdoc.get("players"):
+            #
+            hacker = Hacker(player)
 
-    def save_database(self):
-        """Save LOCAL database to disk."""
+            if cached := self._hackers_by_steamid.get(hacker.steamid):
+                logger.warning(f"Merging steamid `{hacker.steamid.id}")
+                # Merge attributes and names; keep latest time.
 
-        path = self._path_local
-        dbtype = DBTYPE.LOCAL
-        name = f"`--hackers-{dbtype.value}` database `{path}`"
-        logger.info("Writing " + name)
+                for attr in hacker.attributes:
+                    logger.debug(f"HATTR {attr.value}")
+
+                for attr in cached.attributes:
+                    if attr not in hacker.attributes:
+                        hacker.attributes.append(attr)
+                        logger.debug(f"CATTR {attr.value}")
+
+                for name in hacker.names:
+                    logger.debug("HNAME " + name.replace("\n", "."))
+
+                for name in cached.names:
+                    if name not in hacker.names:
+                        hacker.names.append(name)
+                        logger.debug("CNAME " + name.replace("\n", "."))
+
+                if hacker.last_time < cached.last_time:
+                    logger.warning("hacker.last_time < cached.last_time")
+                    hacker.last_name = cached.last_name
+                    hacker.last_time = cached.last_time
+                    hacker.s_last_time = cached.s_last_time
+
+            self._hackers_by_steamid[hacker.steamid] = hacker
+            for name in hacker.names:
+                self._hackers_by_name[name].append(hacker)
+
+    def __str__(self):
+        """Return database as `json` document."""
 
         jdoc = {
-            "players": [
-                x.to_json() for x in self._hackers_by_steamid.values() if x.dbtype == dbtype
-            ]
+            "$schema": "https://raw.githubusercontent.com/PazerOP/tf2_bot_detector/master/schemas/v3/playerlist.schema.json",  # noqa
+            "file_info": {
+                "authors": ["pazer"],
+                "description": "Official player blacklist for TF2 Bot Detector.",
+                "title": "Official player blacklist",
+                "update_url": "https://raw.githubusercontent.com/PazerOP/tf2_bot_detector/master/staging/cfg/playerlist.official.json",  # noqa
+            },
+            "players": [x.as_json for x in self._hackers_by_steamid.values()],
         }
-        with open(path, "w", encoding="utf-8") as file:
-            json.dump(jdoc, file, indent=4)
-            print("", file=file)
+        return json.dumps(jdoc, indent=4) + "\n"
 
-    def lookup_name(self, name):
+    def save_database(self):
+        """Write database to disk."""
+
+        logger.info(f"Writing `--hackers` database at `{self._path}`")
+        self._path.write_text(str(self), encoding="utf-8")
+
+    def lookup_name(self, name) -> Hacker:
         """Return `Hacker` for given name, else None if not found."""
 
         logger.trace(f"name {name}")
         return self._hackers_by_name.get(name)
 
-    def lookup_steamid(self, steamid):
+    def lookup_steamid(self, steamid) -> Hacker:
         """Return `Hacker` for given steamid, else None if not found."""
 
-        logger.trace(f"steamid {steamid}")
+        logger.trace(f"steamid {steamid.id}")
         return self._hackers_by_steamid.get(steamid)
 
-    def add(self, steamid, attribute, name):
-        """Create new `Hacker`, add to LOCAL database, return new `Hacker`."""
+    def add(self, steamid, attribute, name) -> Hacker:
+        """Create new `Hacker`, add to database, and return it."""
 
-        hacker = Hacker(steamid=steamid, attribute=attribute, name=name)
+        now = int(time.time())
+        hacker = Hacker(
+            {
+                "attributes": [HackerAttr(attribute)],
+                "last_seen": {
+                    "player_name": name,
+                    "time": now,
+                    "time_string": time.strftime(FMT_TIME, time.localtime(now)),
+                },
+                "steamid": steamid,
+                "names": [name],
+            }
+        )
         self._hackers_by_steamid[hacker.steamid] = hacker
         self._hackers_by_name[name].append(hacker)
         return hacker
 
-    def load_gamebots(self, path):
+    def load_gamebots(self, path) -> None:
         """Read and create `GAMEBOT`s from list of names read from `path`.
 
         Used by qvalve; not used by tf2mon.
         """
 
-        steamid = steam.steamid.SteamID(SteamPlayer.BOT_S_STEAMID)
+        steamid = SteamID(SteamPlayer.BOT_S_STEAMID)
 
         with open(path, encoding="utf-8") as file:
             for (name,) in csv.reader(file):
                 self.add(steamid, HackerAttr.GAMEBOT, name)
+
+    def print_report(self) -> None:
+        """Print database report."""
+
+        table = Table(
+            [
+                Column(-10, "STEAMID"),
+                Column(10, "ATTRS"),
+                Column(25, "LASTTIME"),
+                Column(30, "LASTNAME"),
+                Column(0, "NAMES"),
+            ]
+        )
+
+        print(table.formatted_header)
+
+        last_id = None  # check for duplicates
+
+        for hacker in sorted(
+            self._hackers_by_steamid.values(),
+            key=lambda x: x.last_time,
+            reverse=True,
+        ):
+            assert last_id != hacker.steamid.id
+            last_id = hacker.steamid.id
+
+            attributes = hacker.attributes.copy()
+            attr = attributes.pop(0).value if len(attributes) > 0 else ""
+
+            names = hacker.names.copy()
+            name = names.pop(0).replace("\n", ".") if len(names) > 0 else ""
+
+            print(
+                table.format_detail(
+                    hacker.steamid.id,
+                    attr,
+                    hacker.s_last_time or "",
+                    hacker.last_name.replace("\n", ".") if hacker.last_name else "",
+                    name.replace("\n", "."),
+                )
+            )
+
+            while True:
+                attr = attributes.pop(0).value if len(attributes) > 0 else ""
+                name = names.pop(0).replace("\n", ".") if len(names) > 0 else ""
+                if not attr and not name:
+                    break
+                print(table.format_detail(hacker.steamid.id, attr, "", "", name))
