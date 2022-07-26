@@ -53,7 +53,7 @@ def add_logging_levels() -> None:
 
     # users
     logger.level("ADDUSER", no=_always, color="<yellow><italic>")
-    logger.level("Inactive", no=_always, color="<yellow>")
+    logger.level("INACTIVE", no=_always, color="<white>")
 
     # lobby
     logger.level("ADDLOBBY", no=_trace, color="<yellow><italic><bold>")

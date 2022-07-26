@@ -82,6 +82,9 @@ class UserManager:
             logger.log("ADDUSER", user)
 
         # reset inactivity counter
+        if user.state == UserState.INACTIVE:
+            logger.debug(f"Active again {user}")
+            user.state = UserState.ACTIVE
         user.n_status_checks = 0
         return user
 
@@ -94,16 +97,25 @@ class UserManager:
             user := self._users_by_steamid.get(steamid)
         ):
             if user.username and user.username != username:
-                logger.warning(f"{steamid} changed username from {user.username} to {username}")
+                logger.warning(f"{steamid.id} change username `{user.username}` to `{username}`")
+                user.username = username
+                if user.hacker:
+                    user.hacker.track_appearance(username)
+                    self.monitor.hackers.save_database()
+
             if user.userid and user.userid != userid:
-                logger.warning(f"{steamid} changed userid from {user.userid} to {userid}")
+                logger.warning(f"{steamid.id} change userid `{user.userid}` to `{userid}`")
+                user.userid = userid
 
         if not user:
             user = self.find_username(username)
-            if user.userid and user.userid != userid:
-                logger.warning(f"{username} changed userid from {user.userid} to {userid}")
-            if user.steamid and user.steamid != steamid:
-                logger.error(f"{username} changed steamid from {user.steamid} to {steamid}")
+            # if user.userid and user.userid != userid:
+            #     logger.warning(f"{username} change userid `{user.userid}` to `{userid}`")
+            #     user.userid = userid
+            # if user.steamid and user.steamid != steamid:
+            #     logger.error(f"{username} change steamid ....\
+            #           `{user.steamid.id}` to `{steamid.id}`")
+            #     user.steamid = steamid
 
         if not user.userid:
             user.userid = userid
@@ -128,9 +140,9 @@ class UserManager:
             # if we've seen this steamid before...
             if old_team != team:
                 # ...and
-                logger.warning(f"{steamid} changed team from {old_team} to {team}")
+                logger.warning(f"{steamid.id} change team `{old_team}` to `{team}`")
         else:
-            logger.log("ADDLOBBY", f"{team} {steamid}")
+            logger.log("ADDLOBBY", f"{team} {steamid.id}")
 
         #
         self._teams_by_steamid[steamid] = team
@@ -162,7 +174,7 @@ class UserManager:
         else:
             logger.error(f"bad userid {userid!r}")
 
-    _max_status_checks = 2
+    _max_status_checks = 4
 
     def check_status(self):
         """Delete users that appear to have left the game.
@@ -177,12 +189,10 @@ class UserManager:
             if user == self.monitor.me:
                 continue
             user.n_status_checks += 1
-            if user.n_status_checks >= self._max_status_checks:
-                logger.log(
-                    "Inactive",
-                    f"{user.n_status_checks} >= {self._max_status_checks} {user.username!r}",
-                )
-                self.delete(user)
+            if user.n_status_checks == self._max_status_checks:
+                logger.log("INACTIVE", user)
+                user.state = UserState.INACTIVE
+                # self.delete(user)
 
     def switch_teams(self):
         """Switch teams."""

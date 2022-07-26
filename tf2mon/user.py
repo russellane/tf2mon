@@ -34,28 +34,7 @@ class User:
 
     # pylint: disable=too-many-instance-attributes
 
-    _milenko_re = re.compile(
-        "|".join(
-            [
-                "I am a bot. I will leave in 15 seconds if there are no malicious"
-                " bots to kick. https://milenko-tf2.github.io/",
-                "No bots detected. GLHF! Anti-bot FAQ, Discord, and donations can"
-                " be found at https://milenko-tf2.github.io/",
-                "No bots detected. GLHF! https://incontestableness.github.io/milenko",
-                "I am an anti-bot bot. I will leave in 15 seconds if there are no"
-                " malicious bots to kick.",
-                "Please press F2 to vote No, I leave automatically after about 15"
-                " seconds if there are no malicious bots!",
-                "No bots detected. Good luck, have fun!",
-            ]
-        )
-    )
-
-    def is_milenko_chat(self, chat):
-        """Return True if this user appears to be milenko."""
-        return self._milenko_re.search(chat.msg)
-
-    _cheater_re = re.compile(
+    _re_cheater_chats = re.compile(
         "|".join(
             [
                 "UNCLETOPIA.COM BEST MODERATED SERVERS! NO BOTS NO CHEATERS!",
@@ -69,7 +48,7 @@ class User:
 
         if self.cheater_chat_seen:
             return False
-        self.cheater_chat_seen = self._cheater_re.search(chat.msg)
+        self.cheater_chat_seen = self._re_cheater_chats.search(chat.msg)
         return self.cheater_chat_seen
 
     def __init__(self, monitor, username):
@@ -78,7 +57,7 @@ class User:
         self.monitor = monitor
         self.username = username.replace(";", ".")
 
-        if m := self.monitor._racist_re.search(self.username):
+        if m := self.monitor._re_racist.search(self.username):
             self._clean_username = (
                 m.string[: m.start()] + str("n" * (m.end() - m.start())) + m.string[m.end() :]
             )
@@ -87,7 +66,7 @@ class User:
 
         # too strict?
         if "\u0e31" in self.username:
-            self.username = self.username.replace("\u0e31", "?")
+            # self.username = self.username.replace("\u0e31", "?")
             logger.warning(f"'\u0e31' in {self.username!r}")
 
         #
@@ -255,21 +234,6 @@ class User:
 
         logger.debug(f"{self} SteamPlayer={self.steamplayer}")
 
-        # has an existing user changed his name to this self.username?
-        #  user := self._is_alias():
-        #   vetted = "vetted" if user.vetted else "unvetted"
-        #   logger.log("ALIAS", f"{self} steamid matches {vetted} {user}")
-        #   # delete this alias from list
-        #   self.state = UserState.DELETE
-        #   # change name
-        #   user.username = self.username
-        #   user.username_upper = self.username.upper()
-        #   # re-vet with new name
-        #   user.vetted = False
-        #   user.hacker = None
-        #   user.vet_player()
-        #   return
-
         # known hacker?
         self.hacker = self.monitor.hackers.lookup_steamid(self.steamid)
         if self.hacker:
@@ -292,7 +256,7 @@ class User:
 
             if self.hacker.is_banned:
                 self.kick()
-            elif self.hacker.is_suspect:
+            else:  # elif self.hacker.is_suspect:
                 logger.log(self.display_level, f"{self._clean_username!r} is here")
 
         # vet only once
@@ -308,15 +272,6 @@ class User:
 
         if self._track(attr or HackerAttr.CHEATER):
             # work postponed until steamid becomes available
-            return
-
-        if self.hacker.is_milenko:
-            # don't kick milenko
-            msg = str(
-                f"say {tf2mon.APPNAME} Hello Milenko "
-                f"{self.username!r} steamid {self.steamid!r}, thank you."
-            )
-            self.monitor.kicks.push(msg)
             return
 
         if self.hacker.is_suspect:
@@ -378,20 +333,21 @@ class User:
         self.work_attr = None
         return False
 
-    _cheaters_re = re.compile(
+    _re_cheater_names = re.compile(
         "|".join(
             [
                 r"^(\(\d+\))?Sydney",
                 r"Swonk Bot",
                 r"spoooky braaaap",
                 r"Bot Removal Service",
+                r"^\[g0tb0t\]Church-of-myg0t",
             ]
         )
     )
 
     def _is_cheater_name(self, name):
 
-        if self._cheaters_re.search(name):
+        if self._re_cheater_names.search(name):
             return True
 
         for user in [x for x in self.monitor.users.active_users() if x.vetted and not x.hacker]:
@@ -404,13 +360,3 @@ class User:
                 return True
 
         return False
-
-    def _is_alias(self):
-        """Return the `User` that matches this user's steamid, else None."""
-
-        users = [
-            x
-            for x in self.monitor.users.active_users()
-            if x != self and x.steamid == self.steamid
-        ]
-        return users[0] if users else None
