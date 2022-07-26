@@ -106,7 +106,7 @@ class Conlog:
 
             if _buffer := self._buffer:
                 self._buffer = None
-                self.last_line = "{self.lineno}: {_buffer}"
+                self.last_line = f"{self.lineno}: {_buffer}"
                 return _buffer
 
             if not self._is_inject_sorted:
@@ -121,7 +121,7 @@ class Conlog:
 
                 line = self._inject_cmds.pop(0).cmd
                 self._is_inject_paused = True
-                self.last_line = "{self.lineno + 1}: {line}"
+                self.last_line = f"{self.lineno + 1}: {line}"
                 logger.log("injected", self.last_line)
                 return line
 
