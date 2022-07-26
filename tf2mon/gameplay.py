@@ -24,10 +24,6 @@ class Gameplay:
         self.monitor = monitor
 
         self.regex_list = [
-            # key_listboundkeys
-            # Regex(
-            #    '^".*" = ".*"$',
-            #    lambda m: logger.debug('key_listboundkeys')),
             # new server
             Regex(
                 leader + "(Client reached server_spawn.$|Connected to [0-9])",
@@ -55,18 +51,18 @@ class Gameplay:
             # edicts  : 1378 used of 2048 max
             Regex(
                 leader + r"(account|version|map|udp\/ip|tags|steamid|players|edicts)\s+: (.*)",
-                lambda m: logger.log("server", m.group(0)),
+                lambda m: ...,  # logger.log("server", m.group(0)),
             ),
             # "06/05/2022 - 13:54:19: Client ping times:"
             Regex(
                 leader + r"Client ping times:",
-                lambda m: logger.log("server", m.group(0)),
+                lambda m: ...,  # logger.log("server", m.group(0)),
             ),
             # "06/05/2022 - 13:54:19:   67 ms : luft"
             # "06/05/2022 - 13:54:19:xy 87 ms : BananaHatTaco"
             Regex(
                 leader + r"\s*\d+ ms .*",
-                lambda m: logger.log("server", m.group(0)),
+                lambda m: ...,  # logger.log("server", m.group(0)),
             ),
             # chat
             # 'Bad Dad :  hello'
@@ -140,10 +136,7 @@ class Gameplay:
             # hostname: Valve Matchmaking Server (Virginia iad-1/srcds148 #53)
             Regex(
                 "^hostname: (.*)",
-                lambda m: (
-                    logger.log("server", m.group(0)),
-                    self.monitor.users.check_status(),
-                ),
+                lambda m: self.monitor.users.check_status(),
             ),
             # "FFD700[RTD] FF4040your mother rolled 32CD32PowerPlay."
             Regex(
@@ -209,16 +202,6 @@ class Gameplay:
         # inspect msg
         if self.monitor.is_racist_text(chat.msg):
             user.kick(HackerAttr.RACIST)
-
-        # If this looks like a milenko chat, mark him to be tracked when
-        # his steamid becomes available. Doing this now to notify the
-        # operator asap to `TF2MON-PUSH` steamids to us.
-        #
-        # Why track them? No requirement; curious to see relationship
-        # between names and steamids... one-to-one, many-to-one?
-
-        elif user.is_milenko_chat(chat):
-            user.kick(HackerAttr.MILENKO)
 
         elif user.is_cheater_chat(chat):
             user.kick(HackerAttr.CHEATER)

@@ -41,8 +41,8 @@ class SteamPlayer:
             self.profileurl = None  # indicate long noisy determinable value
 
         #
-        if not self.timecreated:
-            logger.warning(f"no timecreated {str(self.__dict__)}")
+        # if not self.timecreated:
+        #     logger.warning(f"no timecreated {str(self.__dict__)}")
 
         now = int(time.time())
         self.age = (now - self.timecreated) // 86400 if self.timecreated else ""
