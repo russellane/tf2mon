@@ -7,8 +7,8 @@
            [--exclude-file FILE] [--single-step] [--break LINENO]
            [--search PATTERN] [--inject-cmd LINENO:CMD]
            [--inject-file FILE] [--toggles] [--players FILE]
-           [--hackers-base FILE] [--hackers-local FILE]
-           [--print-steamid STEAMID] [-h] [-v] [-V] [--config FILE]
+           [--hackers FILE] [--print-steamid STEAMID [STEAMID ...]]
+           [--print-hackers] [-h] [-v] [-V] [--config FILE]
            [--print-config] [--print-url] [--completion [SHELL]]
            [con_logfile]
     
@@ -69,15 +69,12 @@ By default, `tf2mon` starts reading `con_logfile` from its end
 #### Database options
     --players FILE      Cache `steam` user data (default:
                         `~/.cache/tf2mon/steamplayers.db`).
-    --hackers-base FILE
-                        Upstream hackers database (default:
-                        `~/.cache/tf2mon/hackers-base.json`).
-    --hackers-local FILE
-                        Local hackers database (default:
-                        `~/.cache/tf2mon/hackers-local.json`).
-    --print-steamid STEAMID
+    --hackers FILE      Hackers database (default:
+                        `~/.cache/tf2mon/hackers.json`).
+    --print-steamid STEAMID [STEAMID ...]
                         Print `ISteamUser.GetPlayerSummaries` for `STEAMID`
                         and exit.
+    --print-hackers     Print hackers database and exit.
 
 #### Configuration file
   The configuration file (see `--config FILE` below) defines local
