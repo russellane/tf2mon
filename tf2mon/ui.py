@@ -30,7 +30,7 @@ LOG_LEVEL.__doc__ = "Logging level."
 LOG_LOCATION = Enum("_loc_enum", "MOD NAM THM THN FILE NUL")
 LOG_LOCATION.__doc__ = "Format of logger location field."
 
-SORT_ORDER = Enum("_sort_order_enum", "STEAMID K KD USERNAME")
+SORT_ORDER = Enum("_sort_order_enum", "STEAMID K KD CONN USERNAME")
 SORT_ORDER.__doc__ = "Scoreboard sort column."
 
 

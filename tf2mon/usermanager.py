@@ -32,6 +32,7 @@ class UserManager:
             SORT_ORDER.K: lambda x: (-x.nkills, x.username_upper),
             SORT_ORDER.KD: lambda x: (-x.kdratio, -x.nkills, x.username_upper),
             SORT_ORDER.STEAMID: lambda x: (x.steamid.id if x.steamid else 0, x.username_upper),
+            SORT_ORDER.CONN: lambda x: x.elapsed,
             SORT_ORDER.USERNAME: lambda x: x.username_upper,
         }
         self._sort_key = self._sort_keys[SORT_ORDER.KD]
@@ -88,8 +89,11 @@ class UserManager:
         user.n_status_checks = 0
         return user
 
-    def status(self, userid, username, steamid, ping) -> None:
+    def status(self, userid, username, steamid, s_elapsed: str, ping) -> None:
         """Respond to `gameplay.status` event."""
+
+        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-branches
 
         user = None
 
@@ -124,6 +128,29 @@ class UserManager:
         if not user.steamid:
             user.steamid = steamid
             self._users_by_steamid[steamid] = user
+
+        #
+        mdy = s_elapsed.split(":")
+        if len(mdy) == 2:
+            _h, _m, _s = 0, int(mdy[0]), int(mdy[1])
+            user.elapsed = (_m * 60) + _s
+        elif len(mdy) == 3:
+            _h, _m, _s = int(mdy[0]), int(mdy[1]), int(mdy[2])
+            user.elapsed = (_h * 3600) + (_m * 60) + _s
+        else:
+            _h, _m, _s = 0, 0, 0
+            user.elapsed = 0
+
+        # hh:mm:ss
+        #     0:00
+        _ss = f"{_s:02}"
+        if not _h:
+            _mm = f"{_m:5}"
+            user.s_elapsed = _mm + ":" + _ss
+        else:
+            _hh = f"{_h:2}"
+            _mm = f"{_m:02}"
+            user.s_elapsed = _hh + ":" + _mm + ":" + _ss
 
         #
         user.ping = ping

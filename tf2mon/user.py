@@ -74,6 +74,8 @@ class User:
         self.userid = 0  # from status command
         self.steamid = None  # from status and tf_lobby_debug commands
         self.team = None
+        self.elapsed: int = 0
+        self.s_elapsed: str = ""
         self.ping = 0
 
         self.state = UserState.ACTIVE

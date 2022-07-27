@@ -23,6 +23,7 @@ class Scoreboard:
             Column(-3, "SNI"),
             Column(1, "S"),
             Column(-4, "UID"),
+            Column(-8, "CONN"),
             Column(25, "USERNAME"),
         ]
     )
@@ -128,6 +129,7 @@ class Scoreboard:
                 user.nsnipes,
                 user.n_status_checks,
                 user.userid,
+                user.s_elapsed,
                 user.username,
             )
             if user.perk:

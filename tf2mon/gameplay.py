@@ -65,9 +65,9 @@ class Gameplay:
                 lambda m: ...,  # logger.log("server", m.group(0)),
             ),
             # chat
-            # 'Bad Dad :  hello'
-            # '*DEAD* Bad Dad :  hello'
-            # '*DEAD*(TEAM) Bad Dad :  hello'
+            # 'Bob :  hello'
+            # '*DEAD* Bob :  hello'
+            # '*DEAD*(TEAM) Bob :  hello'
             Regex(
                 leader
                 + r"(?:(?P<dead>\*DEAD\*)?(?P<teamflag>\(TEAM\))? )?(?P<username>.*) :  ?(?P<msg>.*)$",  # noqa
@@ -90,7 +90,8 @@ class Gameplay:
             ),
             # status
             # "# userid name                uniqueid            connected ping loss state"
-            # "#     29 "Bad Dad"           [U:1:42708103]      01:24       67    0 active"
+            # "#     29 "Bob"               [U:1:99999999]      01:24       67    0 active"
+            # "#    158 "Jones"             [U:1:9999999999]     2:21:27    78    0 active
             Regex(
                 leader
                 + r'#\s*(?P<userid>\d+) "(?P<username>.+)"\s+(?P<steamid>\S+)\s+(?P<elapsed>[\d:]+)\s+(?P<ping>\d+)',  # noqa
@@ -98,6 +99,7 @@ class Gameplay:
                     int(m.group("userid")),
                     m.group("username"),
                     m.group("steamid"),
+                    m.group("elapsed"),
                     m.group("ping"),
                 ),
             ),
@@ -110,11 +112,12 @@ class Gameplay:
                     int(m.group("userid")),
                     m.group("username"),
                     m.group("steamid"),
-                    0,
+                    "",  # elapsed
+                    0,  # ping
                 ),
             ),
             # tf_lobby_debug
-            # "Member[22] [U:1:42708103]  team = TF_GC_TEAM_INVADERS  type = MATCH_PLAYER"
+            # "Member[22] [U:1:99999999]  team = TF_GC_TEAM_INVADERS  type = MATCH_PLAYER"
             Regex(
                 leader
                 + r"\s*(Member|Pending)\[\d+\] (?P<steamid>\S+)\s+team = (?P<teamname>\w+)",
@@ -310,14 +313,16 @@ class Gameplay:
 
         self.monitor.ui.notify_operator = True
 
-    def status(self, userid, username, s_steamid, ping):
+    def status(self, userid, username, s_steamid, s_elapsed: str, ping):
         """Handle message."""
+
+        # pylint: disable=too-many-arguments
 
         self.monitor.ui.notify_operator = False
         if not (steamid := steamid_from_str(s_steamid)):
             return  # invalid
 
-        self.monitor.users.status(userid, username, steamid, ping)
+        self.monitor.users.status(userid, username, steamid, s_elapsed, ping)
 
     def lobby(self, s_steamid, teamname):
         """Handle message."""
