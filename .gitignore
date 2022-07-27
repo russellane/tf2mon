@@ -1,5 +1,6 @@
 *.egg-info/
 *.swp
+.cache
 .coverage
 .junk/
 .pdm.toml
@@ -8,7 +9,7 @@
 __pycache__/
 __pypackages__/
 cleanlog
-conlogs/
+conlogs
 dist/
 latest
 tags
