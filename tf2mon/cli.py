@@ -246,7 +246,7 @@ class CLI(BaseCLI):
         self.add_default_to_help(arg)
 
         group.add_argument(
-            "--print-steamid",
+            "--print-steamids",
             nargs="+",
             metavar="STEAMID",
             help="print `ISteamUser.GetPlayerSummaries` for `STEAMID` and exit",
@@ -470,13 +470,13 @@ class CLI(BaseCLI):
             logger.info(f"con_logfile {str(self.options.con_logfile)!r} cleaned; Exiting.")
             self.parser.exit()
 
-        if self.options.print_steamid:
+        if self.options.print_steamids:
             api = SteamWebAPI(
                 dbpath=self.options.players,
                 webapi_key=self.config.get("webapi_key"),
             )
             api.connect()
-            for rawid in self.options.print_steamid:
+            for rawid in self.options.print_steamids:
                 steamid = steam.steamid.SteamID(rawid)
                 if not steamid.is_valid():
                     logger.error(f"invalid steamid `{self.options.print_steamid}`")

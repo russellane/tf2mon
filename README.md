@@ -7,7 +7,7 @@
            [--exclude-file FILE] [--single-step] [--break LINENO]
            [--search PATTERN] [--inject-cmd LINENO:CMD]
            [--inject-file FILE] [--toggles] [--players FILE]
-           [--hackers FILE] [--print-steamid STEAMID [STEAMID ...]]
+           [--hackers FILE] [--print-steamids STEAMID [STEAMID ...]]
            [--print-hackers] [-h] [-v] [-V] [--config FILE]
            [--print-config] [--print-url] [--completion [SHELL]]
            [con_logfile]
@@ -71,7 +71,7 @@ By default, `tf2mon` starts reading `con_logfile` from its end
                         `~/.cache/tf2mon/steamplayers.db`).
     --hackers FILE      Hackers database (default:
                         `~/.cache/tf2mon/hackers.json`).
-    --print-steamid STEAMID [STEAMID ...]
+    --print-steamids STEAMID [STEAMID ...]
                         Print `ISteamUser.GetPlayerSummaries` for `STEAMID`
                         and exit.
     --print-hackers     Print hackers database and exit.
