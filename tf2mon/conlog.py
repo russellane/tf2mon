@@ -85,9 +85,7 @@ class Conlog:
 
         logger.info(f"Reading `{self.path}`")
 
-        self._file = open(  # pylint: disable=consider-using-with
-            self.path, encoding="utf-8", errors="replace"
-        )
+        self._file = open(self.path, encoding="utf-8", errors="replace")  # noqa
 
         if not self.rewind:
             while self._file.readline() != "":

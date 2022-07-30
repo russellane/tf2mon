@@ -104,7 +104,7 @@ class MsgQueueManager:
         self._file = None
         if path and path.parent.is_dir():
             # pylint: disable=consider-using-with
-            self._file = open(path, "w", encoding="utf-8")
+            self._file = open(path, "w", encoding="utf-8")  # noqa
 
     def addq(self, name):
         """Create `MsgQueue` with `name`, add to collection and return it."""
