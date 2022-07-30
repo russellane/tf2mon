@@ -120,37 +120,46 @@ class Scoreboard:
         for lineno, user in enumerate(team, start=1):
             if not user.username:
                 continue
-            line = self._table_user.format_detail(
-                user.steamid.id if user.steamid else 0,
-                user.role.display,
-                user.nkills,
-                user.ndeaths,
-                user.kdratio,
-                user.nsnipes,
-                user.n_status_checks,
-                user.userid,
-                user.s_elapsed,
-                user.username,
-            )
-            if user.perk:
-                line += " +" + user.perk
-            elif _sp := user.steamplayer:
-                names = []
-                if _sp.personaname and _sp.personaname != user.username:
-                    names.append(_sp.personaname)
-                if _sp.realname:
-                    names.append(_sp.realname)
-                line += " " + self._table_steamplayer.format_detail(
-                    _sp.age or "",
-                    _sp.personastate or "",
-                    _sp.loccountrycode or "",
-                    _sp.locstatecode or "",
-                    # _sp.loccityid or "",
-                    " ".join(names),
+
+            if user.dirty:
+                user.dirty = False
+                user.last_scoreboard_line = self._table_user.format_detail(
+                    user.steamid.id if user.steamid else 0,
+                    user.role.display,
+                    user.nkills,
+                    user.ndeaths,
+                    user.kdratio,
+                    user.nsnipes,
+                    user.n_status_checks,
+                    user.userid,
+                    user.s_elapsed,
+                    user.username,
                 )
+                if user.perk:
+                    user.last_scoreboard_line += " +" + user.perk
+                elif _sp := user.steamplayer:
+                    names = []
+                    if _sp.personaname and _sp.personaname != user.username:
+                        names.append(_sp.personaname)
+                    if _sp.realname:
+                        names.append(_sp.realname)
+                    user.last_scoreboard_line += " " + self._table_steamplayer.format_detail(
+                        _sp.age or "",
+                        _sp.personastate or "",
+                        _sp.loccountrycode or "",
+                        _sp.locstatecode or "",
+                        # _sp.loccityid or "",
+                        " ".join(names),
+                    )
 
             try:
-                win.addnstr(lineno, 0, line, ncols, self.monitor.ui.user_color(user, color))
+                win.addnstr(
+                    lineno,
+                    0,
+                    user.last_scoreboard_line,
+                    ncols,
+                    self.monitor.ui.user_color(user, color),
+                )
             except curses.error:
                 break
 

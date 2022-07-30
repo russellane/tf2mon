@@ -174,6 +174,7 @@ class Gameplay:
             else:
                 user.ndefenses += 1
                 level = "DEF"
+            user.dirty = True
             level += user.team.name
 
             logger.log(level, f"{user} {capture_pt!r}")
@@ -234,6 +235,8 @@ class Gameplay:
 
         killer.nkills += 1
         victim.ndeaths += 1
+        killer.dirty = True
+        victim.dirty = True
 
         _k = killer.nkills
         _d = killer.ndeaths
@@ -354,6 +357,7 @@ class Gameplay:
             logger.log("PERK-OFF", f"{user} {user.perk!r}")
 
         user.perk = perk
+        user.dirty = True
 
     def repl(self):
         """Read the console log file and play game."""

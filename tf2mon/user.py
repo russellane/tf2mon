@@ -54,6 +54,8 @@ class User:
     def __init__(self, monitor, username):
         """Create `User`."""
 
+        # pylint: disable=too-many-statements
+
         self.monitor = monitor
         self.username = username.replace(";", ".")
 
@@ -77,6 +79,8 @@ class User:
         self.elapsed: int = 0
         self.s_elapsed: str = ""
         self.ping = 0
+        self.last_scoreboard_line = True
+        self.dirty = True
 
         self.state = UserState.ACTIVE
         self.n_status_checks = 0
@@ -212,6 +216,7 @@ class User:
             logger.debug(f"{self} change from {self.team} to {team}")
 
         self.team = team
+        self.dirty = True
 
         # assign any unassigned opponents
 
@@ -232,6 +237,7 @@ class User:
             self.steamplayer.personaname = self.username
             self.vetted = True
             self.work_attr = None
+            self.dirty = True
             return
 
         logger.debug(f"{self} SteamPlayer={self.steamplayer}")
@@ -264,6 +270,7 @@ class User:
         # vet only once
         self.vetted = True
         self.work_attr = None
+        self.dirty = True
 
     def kick(self, attr=None):
         """Kick this user."""
