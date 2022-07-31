@@ -32,13 +32,8 @@ class Gameplay:
             # capture/defend
             Regex(
                 leader
-                + r"(?P<username>.*) (?P<action>(?:captured|defended)) (?P<capture_pt>.*) for team #(?P<teamno>\d)$",  # noqa
-                lambda m: self.capture(
-                    m.group("username"),
-                    m.group("action"),
-                    m.group("capture_pt"),
-                    int(m.group("teamno")),
-                ),
+                + r"(?P<username>.*) (?P<action>(?:captured|defended)) (?P<capture_pt>.*) for team #(?P<s_teamno>\d)$",  # noqa
+                lambda m: self.capture(*m.groups()),
             ),
             # must be before `chat`
             # account : not logged in  (No account specified)
@@ -71,22 +66,18 @@ class Gameplay:
             Regex(
                 leader
                 + r"(?:(?P<dead>\*DEAD\*)?(?P<teamflag>\(TEAM\))? )?(?P<username>.*) :  ?(?P<msg>.*)$",  # noqa
-                lambda m: self.playerchat(
-                    m.group("teamflag"), m.group("username"), m.group("msg")
-                ),
+                lambda m: self.playerchat(*m.groups()),
             ),
             # kill
             Regex(
                 leader
                 + r"(?P<killer>.*) killed (?P<victim>.*) with (?P<weapon>.*)\.(?P<crit> \(crit\))?$",  # noqa
-                lambda m: self.kill(
-                    m.group("killer"), m.group("victim"), m.group("weapon"), m.group("crit")
-                ),
+                lambda m: self.kill(*m.groups()),
             ),
             # connected
             Regex(
                 leader + "(?P<username>.*) connected$",
-                lambda m: self.connected(m.group("username")),
+                lambda m: self.connected(*m.groups()),
             ),
             # status
             # "# userid name                uniqueid            connected ping loss state"
@@ -94,34 +85,22 @@ class Gameplay:
             # "#    158 "Jones"             [U:1:9999999999]     2:21:27    78    0 active
             Regex(
                 leader
-                + r'#\s*(?P<userid>\d+) "(?P<username>.+)"\s+(?P<steamid>\S+)\s+(?P<elapsed>[\d:]+)\s+(?P<ping>\d+)',  # noqa
-                lambda m: self.status(
-                    int(m.group("userid")),
-                    m.group("username"),
-                    m.group("steamid"),
-                    m.group("elapsed"),
-                    m.group("ping"),
-                ),
+                + r'#\s*(?P<s_userid>\d+) "(?P<username>.+)"\s+(?P<steamid>\S+)\s+(?P<elapsed>[\d:]+)\s+(?P<ping>\d+)',  # noqa
+                lambda m: self.status(*m.groups()),
             ),
             # status
             # "# userid name                uniqueid            connected ping loss state"
             # "#      3 "Nobody"            BOT                                     active
             Regex(
                 leader + r'#\s*(?P<userid>\d+) "(?P<username>.+)"\s+(?P<steamid>BOT)\s+active',
-                lambda m: self.status(
-                    int(m.group("userid")),
-                    m.group("username"),
-                    m.group("steamid"),
-                    "",  # elapsed
-                    0,  # ping
-                ),
+                lambda m: self.status(*m.groups(), "", 0),
             ),
             # tf_lobby_debug
             # "Member[22] [U:1:99999999]  team = TF_GC_TEAM_INVADERS  type = MATCH_PLAYER"
             Regex(
                 leader
                 + r"\s*(Member|Pending)\[\d+\] (?P<steamid>\S+)\s+team = (?P<teamname>\w+)",
-                lambda m: self.lobby(m.group("steamid"), m.group("teamname")),
+                lambda m: self.lobby(*m.groups()),
             ),
             Regex(
                 leader + "Failed to find lobby shared object",
@@ -144,29 +123,29 @@ class Gameplay:
             # "FFD700[RTD] FF4040your mother rolled 32CD32PowerPlay."
             Regex(
                 r"[0-9A-F]{6}\[RTD\] [0-9A-F]{6}(?P<username>.*) rolled [0-9A-F]{6}(?P<perk>.*)",  # noqa
-                lambda m: self.perk(m.group("username"), m.group("perk")),
+                lambda m: self.perk(*m.groups()),
             ),
             Regex(
                 r"[0-9A-F]{6}\[RTD\] [0-9A-F]{6}(?P<username>.*)\'s perk has worn off.",
-                lambda m: self.perk(m.group("username"), None),
+                lambda m: self.perk(*m.groups(), None),
             ),
             Regex(
                 r"[0-9A-F]{6}\[RTD\] [0-9A-F]{6}(?P<username>.*) has changed class during their roll.",  # noqa
-                lambda m: self.perk(m.group("username"), None),
+                lambda m: self.perk(*m.groups(), None),
             ),
             Regex(
                 r"[0-9A-F]{6}\[RTD\] Your perk has worn off.", lambda m: self.perk(None, None)
             ),
         ]
 
-    def capture(self, username, action, capture_pt, teamno):
+    def capture(self, _leader, username, action, capture_pt, s_teamno):
         """Handle message."""
 
         for name in username.split(", "):  # fix: names containing commas
 
             user = self.monitor.users.find_username(name)
 
-            user.assign_teamno(teamno)
+            user.assign_teamno(int(s_teamno))
 
             if action == "captured":
                 user.ncaptures += 1
@@ -180,7 +159,7 @@ class Gameplay:
             logger.log(level, f"{user} {capture_pt!r}")
             user.actions.append(f"{level} {capture_pt!r}")
 
-    def playerchat(self, teamflag, username, msg):
+    def playerchat(self, _leader, _dead, teamflag, username, msg):
         """Handle message."""
 
         user = self.monitor.users.find_username(username)
@@ -210,7 +189,7 @@ class Gameplay:
         elif user.is_cheater_chat(chat):
             user.kick(HackerAttr.CHEATER)
 
-    def kill(self, s_killer: str, s_victim: str, weapon: str, s_crit: str) -> None:
+    def kill(self, _leader, s_killer: str, s_victim: str, weapon: str, s_crit: str) -> None:
         """Handle message."""
 
         # pylint: disable=too-many-branches
@@ -309,14 +288,14 @@ class Gameplay:
         elif not killer.team and victim.team:
             killer.assign_team(victim.opposing_team)
 
-    def connected(self, username):
+    def connected(self, _leader, username):
         """Handle message."""
 
         logger.log("CONNECT", self.monitor.users.find_username(username))
 
         self.monitor.ui.notify_operator = True
 
-    def status(self, userid, username, s_steamid, s_elapsed: str, ping):
+    def status(self, _leader, s_userid, username, s_steamid, s_elapsed: str, ping):
         """Handle message."""
 
         # pylint: disable=too-many-arguments
@@ -325,9 +304,9 @@ class Gameplay:
         if not (steamid := steamid_from_str(s_steamid)):
             return  # invalid
 
-        self.monitor.users.status(userid, username, steamid, s_elapsed, ping)
+        self.monitor.users.status(int(s_userid), username, steamid, s_elapsed, ping)
 
-    def lobby(self, s_steamid, teamname):
+    def lobby(self, _leader, s_steamid, teamname):
         """Handle message."""
 
         # this will not be called for games on local server with bots
