@@ -22,7 +22,6 @@ class TallLayout(BaseLayout):
     +-----------------------+------------------+
     """
 
-    # pylint: disable=too-few-public-methods
     # pylint: disable=too-many-instance-attributes
 
     def __post_init__(self, grid: libcurses.Grid, max_users: int):

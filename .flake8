@@ -3,6 +3,7 @@ max-line-length = 97
 ignore =
     E203 # black; whitespace before ':'
     W503 # black; line break before binary operator
+    PLR0903 # Too few public methods (1/2) (too-few-public-methods)
 
 # don't check docstrings in tests
 per-file-ignores = 

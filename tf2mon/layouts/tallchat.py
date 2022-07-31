@@ -22,8 +22,6 @@ class TallChatLayout(BaseLayout):
     +-----------------------+------------------+
     """
 
-    # pylint: disable=too-few-public-methods
-
     def __post_init__(self, grid: libcurses.Grid, max_users: int):
         """Build windows."""
 

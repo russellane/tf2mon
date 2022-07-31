@@ -6,8 +6,6 @@ from loguru import logger
 class Chat:
     """Player 'chat' messages."""
 
-    # pylint: disable=too-few-public-methods
-
     _seqno = 0
 
     def __init__(self, user, teamflag, msg):
