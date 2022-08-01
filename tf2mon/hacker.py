@@ -15,6 +15,8 @@ from tf2mon.steamplayer import SteamPlayer
 
 JsonType = dict[str, object]
 
+if __name__ == "__main__":
+    print(Player().asdict)
 
 class HackerAttr(Enum):
     """Valid Hacker Attributes."""
@@ -236,12 +238,6 @@ class HackerManager:
         logger.info(f"Writing `--hackers` database at `{self._path}`")
         self._path.write_text(str(self), encoding="utf-8")
 
-    def lookup_name(self, name) -> Hacker:
-        """Return `Hacker` for given name, else None if not found."""
-
-        logger.trace(f"name {name}")
-        return self._hackers_by_name.get(name)
-
     def lookup_steamid(self, steamid) -> Hacker:
         """Return `Hacker` for given steamid, else None if not found."""
 
@@ -251,22 +247,29 @@ class HackerManager:
     def add(self, steamid, attribute, name) -> Hacker:
         """Create new `Hacker`, add to database, and return it."""
 
+        player = Player()
+        player.steamid = steamid.id
+
+        if attribute == HackerAttr.CHEATER:
+            player.cheater = attribute.value
+        elif attribute == HackerAttr.SUSPECT:
+            player.suspect = attribute.value
+        elif attribute == HackerAttr.EXPLOITER:
+            player.exploiter = attribute.value
+        elif attribute == HackerAttr.RACIST:
+            player.racist = attribute.value
+        elif attribute == HackerAttr.MILENKO:
+            player.milenko = attribute.value
+
+        player.last_name = name
+
         now = int(time.time())
-        hacker = Hacker(
-            {
-                "attributes": [HackerAttr(attribute)],
-                "last_seen": {
-                    "player_name": name,
-                    "time": now,
-                    "time_string": time.strftime(FMT_TIME, time.localtime(now)),
-                },
-                "steamid": steamid,
-                "names": [name],
-            }
-        )
-        self._hackers_by_steamid[hacker.steamid] = hacker
-        self._hackers_by_name[name].append(hacker)
-        return hacker
+        player.last_time = now
+        player.s_last_time = time.strftime(FMT_TIME, time.localtime(now))
+
+        self._hackers_by_steamid[player.steamid] = player
+        self._hackers_by_name[name].append(player)
+        return player
 
     def load_gamebots(self, path) -> None:
         """Read and create `GAMEBOT`s from list of names read from `path`.
