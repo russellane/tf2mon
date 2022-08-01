@@ -99,7 +99,7 @@ class Gameplay:
             # "Member[22] [U:1:99999999]  team = TF_GC_TEAM_INVADERS  type = MATCH_PLAYER"
             Regex(
                 leader
-                + r"\s*(Member|Pending)\[\d+\] (?P<steamid>\S+)\s+team = (?P<teamname>\w+)",
+                + r"\s*(?:Member|Pending)\[\d+\] (?P<steamid>\S+)\s+team = (?P<teamname>\w+)",
                 lambda m: self.lobby(*m.groups()),
             ),
             Regex(
