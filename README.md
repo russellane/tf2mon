@@ -6,10 +6,11 @@
            [--list-con-logfile] [--trunc-con-logfile] [--clean-con-logfile]
            [--exclude-file FILE] [--single-step] [--break LINENO]
            [--search PATTERN] [--inject-cmd LINENO:CMD]
-           [--inject-file FILE] [--toggles] [--players FILE]
-           [--hackers FILE] [--print-steamids STEAMID [STEAMID ...]]
-           [--print-hackers] [-h] [-v] [-V] [--config FILE]
-           [--print-config] [--print-url] [--completion [SHELL]]
+           [--inject-file FILE] [--toggles] [--database FILE]
+           [--players FILE] [--hackers FILE]
+           [--print-steamids STEAMID [STEAMID ...]] [--print-hackers] [-h]
+           [-v] [-V] [--config FILE] [--print-config] [--print-url]
+           [--completion [SHELL]]
            [con_logfile]
     
 Team Fortress II (`TF2`) Console Monitor, `tf2mon`, is an interactive
@@ -67,6 +68,7 @@ By default, `tf2mon` starts reading `con_logfile` from its end
     --toggles           Allow toggles when `--rewind` (default: `False`).
 
 #### Database options
+    --database FILE     Main database (default: `~/.cache/tf2mon/tf2mon.db`).
     --players FILE      Cache `steam` user data (default:
                         `~/.cache/tf2mon/steamplayers.db`).
     --hackers FILE      Hackers database (default:

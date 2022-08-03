@@ -39,6 +39,7 @@ class CLI(BaseCLI):
         "con_logfile": Path("console.log"),
         #
         # databases.
+        "database": _cachedir / "tf2mon.db",
         "players": _cachedir / "steamplayers.db",
         "hackers": _cachedir / "hackers.json",
         "exclude-file": Path(__file__).parent / "data" / "exclude.txt",
@@ -226,6 +227,15 @@ class CLI(BaseCLI):
         self.add_default_to_help(arg)
 
         group = self.parser.add_argument_group("Database options")
+
+        arg = group.add_argument(
+            "--database",
+            metavar="FILE",
+            default=Path(self.config["database"]),
+            type=Path,
+            help="main database",
+        )
+        self.add_default_to_help(arg)
 
         arg = group.add_argument(
             "--players",

@@ -26,7 +26,25 @@ class HackerAttr(Enum):
     RACIST = "racist"
     # tf2mon's additional values
     MILENKO = "milenko"  # track milenko's bot-hunting bots
-    GAMEBOT = "bot"  # legitimate gamebot; eg `Numnutz`
+    GAMEBOT = "gamebot"  # legitimate gamebot; eg `Numnutz`
+    # defcon6
+    BOT = "bot"
+    FRIENDS = "friends"
+    TACOBOT = "tacobot"
+    PAZER = "pazer"
+
+
+DEFCON6 = [
+    HackerAttr.BOT,
+    HackerAttr.FRIENDS,
+    HackerAttr.TACOBOT,
+    HackerAttr.PAZER,
+]
+
+BANNED = [
+    HackerAttr.CHEATER,
+    HackerAttr.RACIST,
+] + DEFCON6
 
 
 FMT_TIME = "%FT%T"
@@ -110,12 +128,14 @@ class Hacker:
     @property
     def is_banned(self):
         """Return True if hacker is suspect or racist."""
-        return HackerAttr.CHEATER in self.attributes or HackerAttr.RACIST in self.attributes
 
-    def attributes_to_str(self):
-        """Return a displayable representation of the attributes."""
+        return any([x for x in self.attributes if x in BANNED])  # noqa
 
-        return ",".join([x.value for x in self.attributes])
+    @property
+    def is_defcon6(self):
+        """Return True if hacker has a defcon6 attribute."""
+
+        return any([x for x in self.attributes if x in DEFCON6])  # noqa
 
     def __repr__(self):
         return str(self.__dict__)
@@ -248,13 +268,13 @@ class HackerManager:
         logger.trace(f"steamid {steamid.id}")
         return self._hackers_by_steamid.get(steamid)
 
-    def add(self, steamid, attribute, name) -> Hacker:
+    def add(self, steamid, attributes, name) -> Hacker:
         """Create new `Hacker`, add to database, and return it."""
 
         now = int(time.time())
         hacker = Hacker(
             {
-                "attributes": [HackerAttr(attribute)],
+                "attributes": [HackerAttr(x) for x in attributes],
                 "last_seen": {
                     "player_name": name,
                     "time": now,

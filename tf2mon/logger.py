@@ -1,5 +1,7 @@
 """Logger config."""
 
+import contextlib
+import os
 import sys
 
 from loguru import logger
@@ -14,15 +16,31 @@ def configure_logger() -> None:
     logger.add(
         sys.stderr,
         level="TRACE",
-        format="|".join(
-            [
-                "{time:HH:mm:ss.SSS}",
-                "{thread.name}:{name}.{function}:{line}",
-                "{level}",
-                "{message}",
-            ]
-        ),
+        colorize=True,
+        # format="|".join(
+        #     [
+        #         "{time:HH:mm:ss.SSS}",
+        #         "{thread.name}:{name}.{function}:{line}",
+        #         "{level}",
+        #         "{message}",
+        #     ]
+        # ),
     )
+
+    with contextlib.suppress(OSError):
+        logger.add(
+            os.fdopen(3, mode="w"),
+            level="TRACE",
+            colorize=False,
+            # format="|".join(
+            #     [
+            #         "{time:HH:mm:ss.SSS}",
+            #         "{thread.name}:{name}.{function}:{line}",
+            #         "{level}",
+            #         "{message}",
+            #     ]
+            # ),
+        )
 
     add_logging_levels()
 
@@ -109,6 +127,10 @@ def add_logging_levels() -> None:
     logger.level("RED", no=_debug, color="<red>")
     logger.level("BLU", no=_debug, color="<cyan>")
 
+    logger.level("BOT", no=_always, color="<cyan><reverse>")
+    logger.level("FRIENDS", no=_always, color="<cyan><reverse>")
+    logger.level("TACOBOT", no=_always, color="<cyan><reverse>")
+    logger.level("PAZER", no=_always, color="<cyan><reverse>")
     logger.level("MILENKO", no=_always, color="<yellow><bold><italic><reverse>")
     logger.level("CHEATER", no=_always, color="<yellow><bold><italic>")
     logger.level("SUSPECT", no=_always, color="<magenta><bold><italic>")

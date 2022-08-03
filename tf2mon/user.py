@@ -7,7 +7,6 @@ from typing import NewType
 from fuzzywuzzy import fuzz
 from loguru import logger
 
-import tf2mon
 from tf2mon.hacker import HackerAttr
 
 UserKey = NewType("UserKey", str)
@@ -250,10 +249,25 @@ class User:
             logger.trace(f"{self} is not a known hacker")
 
         # should he be known?
-        if self.work_attr and not self.hacker:
-            # yes, work had been postponed until steamid now available
-            self.hacker = self.monitor.hackers.add(self.steamid, self.work_attr, self.username)
-            logger.log(self.work_attr.name, f"{self} created {self.hacker}")
+        if not self.hacker:
+
+            if self.work_attr:
+                # yes, work had been postponed until steamid now available
+                self.hacker = self.monitor.hackers.add(
+                    self.steamid,
+                    [self.work_attr],
+                    self.username,
+                )
+                logger.log(self.work_attr.name, f"{self} created {self.hacker}")
+
+            elif attrs := self.monitor.defcon6.get(self.steamid.id):
+                # yes, known to defcon6
+                self.hacker = self.monitor.hackers.add(
+                    self.steamid,
+                    attrs,
+                    self.username,
+                )
+                logger.log(attrs[0].upper(), f"{self} created {self.hacker}")
 
         if self.hacker:
             # he's known
@@ -290,13 +304,17 @@ class User:
 
         # work
 
-        msg = f"say {tf2mon.APPNAME} ALERT: "
+        # msg = f"say {tf2mon.APPNAME} ALERT: "
+        msg = "say ALERT: "
         if self.hacker.is_racist:
             msg += f"RACIST {self._clean_username!r}"
         elif self.clonee:
             msg += f"NAME-STEALER {self.username!r}"
         else:
             msg += f"CHEATER {self.username!r}"
+
+            if self.hacker.is_defcon6:
+                logger.warning(f"DEFCON6: {self.hacker}")
 
         msg += " is here"
         cmd = f"CALLVOTE KICK {self.userid}"
@@ -334,7 +352,7 @@ class User:
             else:
                 logger.debug(f"{self} hacker {self.hacker} already {self.work_attr}")
         else:
-            self.hacker = self.monitor.hackers.add(self.steamid, self.work_attr, self.username)
+            self.hacker = self.monitor.hackers.add(self.steamid, [self.work_attr], self.username)
             logger.log(self.display_level, f"{self} created hacker {self.hacker}")
             self.monitor.hackers.save_database()
 

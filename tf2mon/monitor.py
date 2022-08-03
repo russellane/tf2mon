@@ -13,6 +13,8 @@ from loguru import logger
 from tf2mon.admin import Admin
 from tf2mon.command import Command, CommandManager
 from tf2mon.conlog import Conlog
+from tf2mon.database import open_database_session
+from tf2mon.defcon6 import get_defcon6
 from tf2mon.gameplay import Gameplay
 from tf2mon.hacker import HackerAttr, HackerManager
 from tf2mon.msgqueue import MsgQueueManager
@@ -71,6 +73,8 @@ class Monitor:
 
         #
         self.hackers = HackerManager(self.options.hackers)
+        self.session = open_database_session(self.options.database)
+        self.defcon6 = get_defcon6(self.session)
 
         #
         self.roles = Role.get_roles_by_name()
