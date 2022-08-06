@@ -8,10 +8,9 @@ from enum import Enum
 from pathlib import Path
 
 from loguru import logger
-from steam.steamid import SteamID
 
-from tf2mon.column import Column, Table
-from tf2mon.steamplayer import SteamPlayer
+from tf2mon.steamid import BOT_STEAMID, SteamID
+from tf2mon.texttable import TextColumn, TextTable
 
 JsonType = dict[str, object]
 
@@ -294,7 +293,7 @@ class HackerManager:
         Used by qvalve; not used by tf2mon.
         """
 
-        steamid = SteamID(SteamPlayer.BOT_S_STEAMID)
+        steamid = BOT_STEAMID
 
         with open(path, encoding="utf-8") as file:
             for (name,) in csv.reader(file):
@@ -303,13 +302,13 @@ class HackerManager:
     def print_report(self) -> None:
         """Print database report."""
 
-        table = Table(
+        table = TextTable(
             [
-                Column(-10, "STEAMID"),
-                Column(10, "ATTRS"),
-                Column(25, "LASTTIME"),
-                Column(30, "LASTNAME"),
-                Column(0, "NAMES"),
+                TextColumn(-10, "STEAMID"),
+                TextColumn(10, "ATTRS"),
+                TextColumn(25, "LASTTIME"),
+                TextColumn(30, "LASTNAME"),
+                TextColumn(0, "NAMES"),
             ]
         )
 

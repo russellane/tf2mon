@@ -1,12 +1,10 @@
-"""Docstring."""
+"""Table of `Player`s."""
 
-from sqlalchemy import Column, Integer, String, inspect
-
-from tf2mon.database import Base
+from tf2mon.database import Base, Column, Integer, String
 
 
 class Player(Base):
-    """Docstring."""
+    """A `Player`."""
 
     __tablename__ = "players"
 
@@ -41,15 +39,3 @@ class Player(Base):
         """Docstring."""
         for attr in attrs:
             setattr(self, attr, attr)
-
-    @property
-    def asdict(self):
-        """Docstring."""
-        return {x.key: getattr(self, x.key) for x in inspect(self).mapper.column_attrs}
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}({self.asdict})"
-
-
-if __name__ == "__main__":
-    print(Player().asdict)

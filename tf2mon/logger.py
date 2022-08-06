@@ -16,7 +16,7 @@ def configure_logger() -> None:
     logger.add(
         sys.stderr,
         level="TRACE",
-        colorize=True,
+        colorize=False,
         # format="|".join(
         #     [
         #         "{time:HH:mm:ss.SSS}",
@@ -31,7 +31,7 @@ def configure_logger() -> None:
         logger.add(
             os.fdopen(3, mode="w"),
             level="TRACE",
-            colorize=False,
+            colorize=True,
             # format="|".join(
             #     [
             #         "{time:HH:mm:ss.SSS}",

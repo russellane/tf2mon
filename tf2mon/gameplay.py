@@ -3,10 +3,11 @@
 from loguru import logger
 
 from tf2mon.chat import Chat
+from tf2mon.database import open_database_session
 from tf2mon.hacker import HackerAttr
 from tf2mon.regex import Regex
-from tf2mon.steamplayer import steamid_from_str
-from tf2mon.user import Team, UserState
+from tf2mon.steamweb import SteamWebAPI
+from tf2mon.user import UserState
 
 
 class Gameplay:
@@ -86,21 +87,21 @@ class Gameplay:
             Regex(
                 leader
                 + r'#\s*(?P<s_userid>\d+) "(?P<username>.+)"\s+(?P<steamid>\S+)\s+(?P<elapsed>[\d:]+)\s+(?P<ping>\d+)',  # noqa
-                lambda m: self.status(*m.groups()),
+                lambda m: self.monitor.users.status(*m.groups()),
             ),
             # status
             # "# userid name                uniqueid            connected ping loss state"
             # "#      3 "Nobody"            BOT                                     active
             Regex(
                 leader + r'#\s*(?P<userid>\d+) "(?P<username>.+)"\s+(?P<steamid>BOT)\s+active',
-                lambda m: self.status(*m.groups(), "", 0),
+                lambda m: self.monitor.users.status(*m.groups(), "", 0),
             ),
             # tf_lobby_debug
             # "Member[22] [U:1:99999999]  team = TF_GC_TEAM_INVADERS  type = MATCH_PLAYER"
             Regex(
                 leader
                 + r"\s*(?:Member|Pending)\[\d+\] (?P<steamid>\S+)\s+team = (?P<teamname>\w+)",
-                lambda m: self.lobby(*m.groups()),
+                lambda m: self.monitor.users.lobby(*m.groups()),
             ),
             Regex(
                 leader + "Failed to find lobby shared object",
@@ -295,36 +296,6 @@ class Gameplay:
 
         self.monitor.ui.notify_operator = True
 
-    def status(self, _leader, s_userid, username, s_steamid, s_elapsed: str, ping):
-        """Handle message."""
-
-        # pylint: disable=too-many-arguments
-
-        self.monitor.ui.notify_operator = False
-        if not (steamid := steamid_from_str(s_steamid)):
-            return  # invalid
-
-        self.monitor.users.status(int(s_userid), username, steamid, s_elapsed, ping)
-
-    def lobby(self, _leader, s_steamid, teamname):
-        """Handle message."""
-
-        # this will not be called for games on local server with bots
-        # or community servers; only on valve matchmaking servers.
-
-        if not (steamid := steamid_from_str(s_steamid)):
-            return  # invalid
-
-        if teamname == "TF_GC_TEAM_INVADERS":
-            team = Team.BLU
-        elif teamname == "TF_GC_TEAM_DEFENDERS":
-            team = Team.RED
-        else:
-            logger.critical(f"bad teamname {teamname!r} steamid {steamid}")
-            return
-
-        self.monitor.users.lobby(steamid, team)
-
     def perk(self, username, perk):
         """Handle message."""
 
@@ -341,7 +312,11 @@ class Gameplay:
     def repl(self):
         """Read the console log file and play game."""
 
-        self.monitor.steam_web_api.connect()
+        steam_web_api = SteamWebAPI(
+            webapi_key=self.monitor.config.get("webapi_key"),
+            session=open_database_session(self.monitor.options.database),
+        )
+
         self.monitor.conlog.open()
 
         #
@@ -365,6 +340,7 @@ class Gameplay:
             for user in self.monitor.users.active_users():
 
                 if not user.vetted and user.steamid:
+                    user.steamplayer = steam_web_api.find_steamid(user.steamid)
                     user.vet_player()
 
                 if user.vetted and user.work_attr:

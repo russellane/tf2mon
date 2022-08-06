@@ -20,7 +20,6 @@ from tf2mon.hacker import HackerAttr, HackerManager
 from tf2mon.msgqueue import MsgQueueManager
 from tf2mon.role import Role
 from tf2mon.spammer import Spammer
-from tf2mon.steamweb import SteamWebAPI
 from tf2mon.ui import UI
 from tf2mon.user import Team
 from tf2mon.usermanager import UserManager
@@ -36,12 +35,6 @@ class Monitor:
 
         self.options = cli.options
         self.config = cli.config
-
-        #
-        self.steam_web_api = SteamWebAPI(
-            dbpath=self.options.players,
-            webapi_key=self.config.get("webapi_key"),
-        )
 
         # Location of TF2 `exec` scripts.
         self.tf2_scripts_dir = Path(self.options.tf2_install_dir, "cfg", "user")

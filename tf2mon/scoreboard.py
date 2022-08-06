@@ -4,8 +4,8 @@ import curses
 
 import libcurses
 
-from tf2mon.column import Column, Table
 from tf2mon.hacker import HackerAttr
+from tf2mon.texttable import TextColumn, TextTable
 
 
 class Scoreboard:
@@ -13,29 +13,29 @@ class Scoreboard:
 
     # pylint: disable=too-many-instance-attributes
 
-    _table_user = Table(
+    _table_user = TextTable(
         [
-            Column(-10, "STEAMID"),
-            Column(1, "C"),
-            Column(-3, "K"),
-            Column(-3, "D"),
-            Column(4.1, "KD"),
-            Column(-3, "SNI"),
-            Column(1, "S"),
-            Column(-4, "UID"),
-            Column(-8, "CONN"),
-            Column(25, "USERNAME"),
+            TextColumn(-10, "STEAMID"),
+            TextColumn(1, "C"),
+            TextColumn(-3, "K"),
+            TextColumn(-3, "D"),
+            TextColumn(4.1, "KD"),
+            TextColumn(-3, "SNI"),
+            TextColumn(1, "S"),
+            TextColumn(-4, "UID"),
+            TextColumn(-8, "CONN"),
+            TextColumn(25, "USERNAME"),
         ]
     )
 
-    _table_steamplayer = Table(
+    _table_steamplayer = TextTable(
         [
-            Column(-4, "AGE"),
-            Column(1, "P"),
-            Column(2, "CC"),
-            Column(2, "SC"),
-            # Column(4, "CI"),
-            Column(0, "REALNAME"),
+            TextColumn(-4, "AGE"),
+            TextColumn(1, "P"),
+            TextColumn(2, "CC"),
+            TextColumn(2, "SC"),
+            # TextColumn(4, "CI"),
+            TextColumn(0, "REALNAME"),
         ]
     )
 

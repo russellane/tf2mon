@@ -2,9 +2,9 @@
 
 from loguru import logger
 
-from tf2mon.steamplayer import SteamPlayer
+from tf2mon.steamid import BOT_STEAMID, parse_steamid
 from tf2mon.ui import SORT_ORDER
-from tf2mon.user import User, UserState
+from tf2mon.user import Team, User, UserState
 
 
 class UserManager:
@@ -89,17 +89,22 @@ class UserManager:
         user.n_status_checks = 0
         return user
 
-    def status(self, userid, username, steamid, s_elapsed: str, ping) -> None:
+    def status(self, _leader, s_userid, username, s_steamid, s_elapsed: str, ping) -> None:
         """Respond to `gameplay.status` event."""
 
         # pylint: disable=too-many-arguments
         # pylint: disable=too-many-branches
+        # pylint: disable=too-many-locals
 
+        self.monitor.ui.notify_operator = False
+
+        if not (steamid := parse_steamid(s_steamid)):
+            return  # invalid
+
+        userid = int(s_userid)
         user = None
 
-        if steamid.id != SteamPlayer.BOT_STEAMID and (
-            user := self._users_by_steamid.get(steamid)
-        ):
+        if steamid != BOT_STEAMID and (user := self._users_by_steamid.get(steamid)):
             if user.username and user.username != username:
                 logger.warning(f"{steamid.id} change username `{user.username}` to `{username}`")
                 user.username = username
@@ -160,8 +165,22 @@ class UserManager:
         if not user.team and (team := self._teams_by_steamid.get(steamid)):
             user.assign_team(team)
 
-    def lobby(self, steamid, team):
+    def lobby(self, _leader, s_steamid, teamname):
         """Respond to `gameplay.lobby` event."""
+
+        # this will not be called for games on local server with bots
+        # or community servers; only on valve matchmaking servers.
+
+        if not (steamid := parse_steamid(s_steamid)):
+            return  # invalid
+
+        if teamname == "TF_GC_TEAM_INVADERS":
+            team = Team.BLU
+        elif teamname == "TF_GC_TEAM_DEFENDERS":
+            team = Team.RED
+        else:
+            logger.critical(f"bad teamname {teamname!r} steamid {steamid}")
+            return
 
         if old_team := self._teams_by_steamid.get(steamid):
             # if we've seen this steamid before...

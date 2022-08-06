@@ -11,7 +11,7 @@ __pypackages__:
 
 .PHONY:		tags
 tags:
-		ctags -R $(SOURCES) __pypackages__ 
+		ctags -R --sort=no $(SOURCES) __pypackages__ 
 
 lint:		black isort flake8
 

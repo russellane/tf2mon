@@ -230,9 +230,9 @@ class User:
 
         assert not self.vetted
         assert self.steamid
+        assert self.steamplayer
 
-        self.steamplayer = self.monitor.steam_web_api.find_steamid(self.steamid)
-        if self.steamplayer.is_legitimate_game_bot:
+        if self.steamplayer.is_gamebot:
             self.steamplayer.personaname = self.username
             self.vetted = True
             self.work_attr = None

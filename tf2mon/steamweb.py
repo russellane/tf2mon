@@ -1,13 +1,15 @@
 """Interface to `ISteamUser.GetPlayerSummaries`."""
 
-import sqlite3
 import time
 
-import steam.steamid
 import steam.webapi
 from loguru import logger
 
+from tf2mon.database import NoResultFound, select
+from tf2mon.steamid import BOT_STEAMID
 from tf2mon.steamplayer import SteamPlayer
+
+MAX_AGE = 2 * 60 * 60
 
 
 class SteamWebAPI:
@@ -16,7 +18,7 @@ class SteamWebAPI:
     Results are cached to avoid banging the server.
     """
 
-    def __init__(self, webapi_key, dbpath, max_age=2 * 60 * 60):
+    def __init__(self, webapi_key, session):
         """Initialize interface."""
 
         if webapi_key:
@@ -25,129 +27,105 @@ class SteamWebAPI:
             self._webapi = None
             logger.warning("Running without `webapi_key`")
 
-        self._dbpath = dbpath
-        self._max_age = max_age
+        self.session = session
         self._nbots = 0
-        self._con = None
-        self._cur = None
 
-    def connect(self):
-        """Connect to cache."""
-
-        logger.debug(f"sqlite3.connect(`{self._dbpath}`)")
-        self._con = sqlite3.connect(self._dbpath)
-        self._con.row_factory = sqlite3.Row
-        self._cur = self._con.cursor()
-
-        self._cur.execute(
-            """create table if not exists steamplayers(
-                steamid integer primary key,
-                personaname text,
-                profileurl text,
-                personastate text,
-                realname text,
-                timecreated integer,
-                loccountrycode text,
-                locstatecode text,
-                loccityid text,
-                mtime integer)"""
-        )
-
-        self._con.commit()
-
-    def players(self) -> list[SteamPlayer]:
-        """Return list of `SteamPlayer`s in database."""
-
-        for row in self._cur.execute("select * from steamplayers"):
-            yield SteamPlayer({k: row[k] for k in row.keys()})
-
-    def find_steamid(self, steamid):
+    def find_steamid(self, steamid) -> object:
         """Lookup and return `SteamPlayer` with matching `steamid`.
+
+        Always returns a `SteamPlayer` object, even for invalid steamids.
 
         Use web service to get "Player Summary" of given `steamid`.
         Create dummy object for game bots.
-
-        Args:
-            steamid: `steam.steamid.SteamID` of user to find.
         """
 
-        if steamid.id == int(SteamPlayer.BOT_S_STEAMID):
-            # create a dummy steamid for this bot; (not a hacker, a real game bot)
-            self._nbots += 1
-            return SteamPlayer(
-                {
-                    "steamid": steamid.id,
-                    "personaname": None,
-                    "profileurl": "",
-                    "personastate": 0,
-                    "realname": "",
-                    "timecreated": int(time.time()) - (self._nbots * 86400),
-                    "loccountrycode": "US",
-                    "locstatecode": "IL",
-                    "loccityid": "CHGO",
-                }
-            )
+        now = int(time.time())
 
-        # it's not a game bot; look in database.
+        if steamid == BOT_STEAMID:
+            return self._create_gamebot(steamid, now)
+
+        if not steamid.is_valid():
+            return self._create_invalid(steamid, now)
+
+        # check cache.
+        stmt = select(SteamPlayer).where(SteamPlayer.steamid == steamid.id)
+        result = self.session.scalars(stmt)
         try:
-            self._cur.execute("select * from steamplayers where steamid=?", (steamid.id,))
-        except Exception as err:
-            logger.critical(err)
-            raise
-        #
-        if row := self._cur.fetchone():
-            # convert tuple-like sqlite3.Row to json document
-            steamplayer = SteamPlayer({k: row[k] for k in row.keys()})
-            if steamplayer.mtime > int(time.time()) - self._max_age:
-                # logger.debug('current')
-                return steamplayer
-            # logger.debug('expired')
-        # else:
-        #    logger.debug('notfound')
+            steamplayer = result.one()
+        except NoResultFound:
+            # logger.debug('notfound')
+            steamplayer = None
 
-        # not current or not in database; ping server.
+        if steamplayer and steamplayer.mtime > now - MAX_AGE:
+            # logger.debug('current')
+            return steamplayer
+        # if steamplayer:
+        #     logger.debug('expired')
+
+        # not current or not in cache; call web service.
         player_summaries = self._get_player_summaries([steamid])
+        if len(player_summaries) != 1:
+            return self._create_invalid(steamid, now)
+        jplayer = player_summaries[0]
 
-        if len(player_summaries) < 1:
-            # unexpected!
-            return SteamPlayer(
-                {
-                    "steamid": steamid.id,
-                    "personaname": "???",
-                    "profileurl": "",
-                    "personastate": "?",
-                    "realname": "",
-                    "timecreated": int(time.time()),
-                    "loccountrycode": "",
-                    "locstatecode": "",
-                    "loccityid": "",
-                }
-            )
+        # update cache.
+        if not steamplayer:
+            steamplayer = SteamPlayer()
+            steamplayer.steamid = steamid.id
+            new = True
+        else:
+            new = False
 
-        steamplayer = SteamPlayer(player_summaries[0])
+        # for key, value in jplayer.items():
+        #     setattr(steamplayer, key, value)
+        steamplayer.personaname = jplayer.get("personaname")
+        steamplayer.profileurl = jplayer.get("profileurl")
+        steamplayer.personastate = jplayer.get("personastate")
+        steamplayer.realname = jplayer.get("realname")
+        steamplayer.timecreated = jplayer.get("timecreated")
+        steamplayer.loccountrycode = jplayer.get("loccountrycode")
+        steamplayer.locstatecode = jplayer.get("locstatecode")
+        steamplayer.loccityid = jplayer.get("loccityid")
+        steamplayer.mtime = now
 
-        try:
-            self._cur.execute(
-                "replace into steamplayers values(?,?,?,?,?,?,?,?,?,?)",
-                (
-                    steamplayer.steamid.id,
-                    steamplayer.personaname,
-                    steamplayer.profileurl,
-                    steamplayer.personastate,
-                    steamplayer.realname,
-                    steamplayer.timecreated,
-                    steamplayer.loccountrycode,
-                    steamplayer.locstatecode,
-                    steamplayer.loccityid,
-                    int(time.time()),
-                ),
-            )
-        except Exception as err:
-            logger.critical(err)
-            raise
-        self._con.commit()
+        if new:
+            self.session.add(steamplayer)
+        self.session.commit()
 
         #
+        return steamplayer
+
+    def _create_gamebot(self, steamid, now) -> SteamPlayer:
+        """Create and return a gamebot."""
+
+        self._nbots += 1
+        steamplayer = SteamPlayer()
+        steamplayer.steamid = steamid.id
+        steamplayer.personaname = ""
+        steamplayer.profileurl = ""
+        steamplayer.personastate = 0
+        steamplayer.realname = ""
+        steamplayer.timecreated = now - (self._nbots * 86400)
+        steamplayer.loccountrycode = "US"
+        steamplayer.locstatecode = "IL"
+        steamplayer.loccityid = "CHGO"
+        steamplayer.mtime = now
+        return steamplayer
+
+    def _create_invalid(self, steamid, now) -> SteamPlayer:
+        """Create and return a dummy."""
+
+        steamplayer = SteamPlayer()
+        steamplayer.steamid = steamid.id
+        steamplayer.personaname = "?"
+        steamplayer.profileurl = "?"
+        steamplayer.personastate = 0
+        steamplayer.realname = "?"
+        steamplayer.timecreated = now
+        steamplayer.loccountrycode = "?"
+        steamplayer.locstatecode = "?"
+        steamplayer.loccityid = "?"
+        steamplayer.mtime = now
         return steamplayer
 
     def _get_player_summaries(self, steamids):

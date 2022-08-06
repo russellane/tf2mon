@@ -5,16 +5,17 @@ import threading
 from pathlib import Path
 from typing import Optional
 
-import steam.steamid
 import xdg
 from libcli import BaseCLI
 from loguru import logger
 
 import tf2mon.layouts
 from tf2mon.conlog import Conlog
+from tf2mon.database import open_database_session
 from tf2mon.hacker import HackerManager
 from tf2mon.logger import configure_logger
 from tf2mon.monitor import Monitor
+from tf2mon.steamid import SteamID
 from tf2mon.steamweb import SteamWebAPI
 
 
@@ -40,7 +41,6 @@ class CLI(BaseCLI):
         #
         # databases.
         "database": _cachedir / "tf2mon.db",
-        "players": _cachedir / "steamplayers.db",
         "hackers": _cachedir / "hackers.json",
         "exclude-file": Path(__file__).parent / "data" / "exclude.txt",
         "webapi_key": "",
@@ -234,15 +234,6 @@ class CLI(BaseCLI):
             default=Path(self.config["database"]),
             type=Path,
             help="main database",
-        )
-        self.add_default_to_help(arg)
-
-        arg = group.add_argument(
-            "--players",
-            metavar="FILE",
-            default=Path(self.config["players"]),
-            type=Path,
-            help="cache `steam` user data",
         )
         self.add_default_to_help(arg)
 
@@ -482,17 +473,11 @@ class CLI(BaseCLI):
 
         if self.options.print_steamids:
             api = SteamWebAPI(
-                dbpath=self.options.players,
                 webapi_key=self.config.get("webapi_key"),
+                session=open_database_session(self.options.database),
             )
-            api.connect()
-            for rawid in self.options.print_steamids:
-                steamid = steam.steamid.SteamID(rawid)
-                if not steamid.is_valid():
-                    logger.error(f"invalid steamid `{self.options.print_steamid}`")
-                else:
-                    steam_player = api.find_steamid(steamid)
-                    print(steam_player)
+            for steamid in self.options.print_steamids:
+                print(api.find_steamid(SteamID(steamid)))
             self.parser.exit()
 
         if self.options.print_hackers:
