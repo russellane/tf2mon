@@ -42,32 +42,6 @@ class UserManager:
 
         self._sort_key = self._sort_keys.get(sort_order)
 
-    def delete(self, user):
-        """Remove `user` from pool."""
-
-        try:
-            if user.last_killer and user.last_killer.last_victim == user:
-                user.last_killer.last_victim = None
-
-            if user.last_victim and user.last_victim.last_killer == user:
-                user.last_victim.last_killer = None
-
-            if user.cloner:
-                user.cloner.clonee = None
-
-            if user.clonee:
-                user.clonee.cloner = None
-
-            del self._users_by_username[user.username]
-            del self._users_by_userid[user.userid]
-
-            if user.steamid:
-                del self._users_by_steamid[user.steamid]
-                del self._teams_by_steamid[user.steamid]
-
-        except KeyError:
-            pass
-
     def find_username(self, username):
         """Return `User` with the matching `username` from pool.
 
@@ -118,13 +92,6 @@ class UserManager:
 
         if not user:
             user = self.find_username(username)
-            # if user.userid and user.userid != userid:
-            #     logger.warning(f"{username} change userid `{user.userid}` to `{userid}`")
-            #     user.userid = userid
-            # if user.steamid and user.steamid != steamid:
-            #     logger.error(f"{username} change steamid ....\
-            #           `{user.steamid.id}` to `{steamid.id}`")
-            #     user.steamid = steamid
 
         if not user.userid:
             user.userid = userid
@@ -164,6 +131,10 @@ class UserManager:
         #
         if not user.team and (team := self._teams_by_steamid.get(steamid)):
             user.assign_team(team)
+
+        #
+        if not user.steamplayer:
+            user.vet_player()
 
     def lobby(self, s_steamid, teamname):
         """Respond to `gameplay.lobby` event."""
@@ -238,7 +209,6 @@ class UserManager:
             if user.n_status_checks == self._max_status_checks:
                 logger.log("INACTIVE", user)
                 user.state = UserState.INACTIVE
-                # self.delete(user)
 
     def switch_teams(self):
         """Switch teams."""

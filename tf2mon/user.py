@@ -25,7 +25,6 @@ class UserState(Enum):
 
     ACTIVE = "A"
     INACTIVE = "I"
-    DELETE = "D"
 
 
 class User:
@@ -114,9 +113,8 @@ class User:
         self.actions = []
 
         #
-        self.hacker = None  # don't use unless vetted
-        self.steamplayer = None  # don't use unless vetted
-        self.vetted = False
+        self.hacker = None
+        self.steamplayer = None
 
         # When attempting to kick/track before hacker is available, this
         # indicates: a) the work (kick/track) has been postponed, and b)
@@ -226,15 +224,11 @@ class User:
                 self.assign_team(opponent.opposing_team)
 
     def vet_player(self):
-        """Examine user."""
+        """Vet this player, whose `steamid` has just been obtained."""
 
-        assert not self.vetted
-        assert self.steamid
-        assert self.steamplayer
-
+        self.steamplayer = self.monitor.steam_web_api.find_steamid(self.steamid)
         if self.steamplayer.is_gamebot:
             self.steamplayer.personaname = self.username
-            self.vetted = True
             self.work_attr = None
             self.dirty = True
             return
@@ -280,8 +274,6 @@ class User:
             if self.hacker.is_banned:
                 self.kick(self.hacker.attributes[0])
 
-        # vet only once
-        self.vetted = True
         self.work_attr = None
         self.dirty = True
 
@@ -376,7 +368,9 @@ class User:
         if self._re_cheater_names.search(name):
             return True
 
-        for user in [x for x in self.monitor.users.active_users() if x.vetted and not x.hacker]:
+        for user in [
+            x for x in self.monitor.users.active_users() if x.steamplayer and not x.hacker
+        ]:
             ratio = fuzz.ratio(name, user.username)
             if ratio > 80:
                 logger.log("FUZZ", f"ratio {ratio} {name!r} vs {user.username!r}")

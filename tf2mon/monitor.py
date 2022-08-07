@@ -18,8 +18,10 @@ from tf2mon.defcon6 import get_defcon6
 from tf2mon.gameplay import Gameplay
 from tf2mon.hacker import HackerAttr, HackerManager
 from tf2mon.msgqueue import MsgQueueManager
+from tf2mon.regex import Regex
 from tf2mon.role import Role
 from tf2mon.spammer import Spammer
+from tf2mon.steamweb import SteamWebAPI
 from tf2mon.ui import UI
 from tf2mon.user import Team
 from tf2mon.usermanager import UserManager
@@ -68,6 +70,7 @@ class Monitor:
         self.hackers = HackerManager(self.options.hackers)
         self.session = open_database_session(self.options.database)
         self.defcon6 = get_defcon6(self.session)
+        self.steam_web_api = None
 
         #
         self.roles = Role.get_roles_by_name()
@@ -131,11 +134,11 @@ class Monitor:
 
         # no need for threads if exiting at end of conlog
         if not self.options.follow:
-            self.gameplay.repl()
+            self.repl()
             return
 
         # Read from conlog, write to display.
-        thread = threading.Thread(name="GAME", target=self.gameplay.repl, daemon=True)
+        thread = threading.Thread(name="GAME", target=self.repl, daemon=True)
         thread.start()
 
         # main thread reads from keyboard/mouse, and writes to display
@@ -153,6 +156,29 @@ class Monitor:
         self.my.display_level = "user"
         self.chats = []
         self.msgqueues.clear()
+
+    def repl(self):
+        """Read the console log file and play game."""
+
+        self.conlog.open()
+        self.steam_web_api = SteamWebAPI(
+            webapi_key=self.config.get("webapi_key"),
+            session=open_database_session(self.options.database),
+        )
+
+        while (line := self.conlog.readline()) is not None:
+            if not line:
+                continue
+
+            regex = Regex.search_list(line, self.regex_list)
+            if not regex:
+                logger.log("ignore", self.conlog.last_line)
+                continue
+
+            self.admin.step(line)
+            regex.handler(regex.re_match_obj)
+            self.msgqueues.send()
+            self.ui.update_display()
 
     def breakpoint(self):
         """Drop into python debugger."""

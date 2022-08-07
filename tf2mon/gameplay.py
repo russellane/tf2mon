@@ -3,11 +3,8 @@
 from loguru import logger
 
 from tf2mon.chat import Chat
-from tf2mon.database import open_database_session
 from tf2mon.hacker import HackerAttr
 from tf2mon.regex import Regex
-from tf2mon.steamweb import SteamWebAPI
-from tf2mon.user import UserState
 
 
 class Gameplay:
@@ -253,7 +250,7 @@ class Gameplay:
         else:
             role = killer.role
             if weapon not in ("player", "world"):
-                logger.error(f"cannot map {weapon} for {killer}")
+                logger.error(f"cannot map {weapon} for {killer} {role}")
 
         crit = bool(s_crit)
         weapon_state = role.get_weapon_state(weapon, crit, killer.perk)
@@ -320,46 +317,3 @@ class Gameplay:
 
         user.perk = perk
         user.dirty = True
-
-    def repl(self):
-        """Read the console log file and play game."""
-
-        steam_web_api = SteamWebAPI(
-            webapi_key=self.monitor.config.get("webapi_key"),
-            session=open_database_session(self.monitor.options.database),
-        )
-
-        self.monitor.conlog.open()
-
-        #
-        while (line := self.monitor.conlog.readline()) is not None:
-
-            if not line:  # blank line
-                continue
-
-            regex = Regex.search_list(line, self.monitor.regex_list)
-            if not regex:
-                logger.log("ignore", self.monitor.conlog.last_line)
-                continue
-
-            self.monitor.admin.step(line)
-
-            regex.handler(regex.re_match_obj)
-
-            # Vet all unvetted users that can be vetted, and perform all
-            # postponed work that can be performed.
-
-            for user in self.monitor.users.active_users():
-                # if not user.steamplayer and user.steamid:
-                if not user.vetted and user.steamid:
-                    user.steamplayer = steam_web_api.find_steamid(user.steamid)
-                    user.vet_player()
-
-                if user.state == UserState.DELETE:
-                    self.monitor.users.delete(user)
-
-            # push work to the game
-            self.monitor.msgqueues.send()
-
-            #
-            self.monitor.ui.update_display()
