@@ -87,21 +87,21 @@ class Gameplay:
             Regex(
                 leader
                 + r'#\s*(?P<s_userid>\d+) "(?P<username>.+)"\s+(?P<steamid>\S+)\s+(?P<elapsed>[\d:]+)\s+(?P<ping>\d+)',  # noqa
-                lambda m: self.monitor.users.status(*m.groups()),
+                lambda m: self.status(*m.groups()),
             ),
             # status
             # "# userid name                uniqueid            connected ping loss state"
             # "#      3 "Nobody"            BOT                                     active
             Regex(
                 leader + r'#\s*(?P<userid>\d+) "(?P<username>.+)"\s+(?P<steamid>BOT)\s+active',
-                lambda m: self.monitor.users.status(*m.groups(), "", 0),
+                lambda m: self.status(*m.groups(), "", 0),
             ),
             # tf_lobby_debug
             # "Member[22] [U:1:99999999]  team = TF_GC_TEAM_INVADERS  type = MATCH_PLAYER"
             Regex(
                 leader
                 + r"\s*(?:Member|Pending)\[\d+\] (?P<steamid>\S+)\s+team = (?P<teamname>\w+)",
-                lambda m: self.monitor.users.lobby(*m.groups()),
+                lambda m: self.lobby(*m.groups()),
             ),
             Regex(
                 leader + "Failed to find lobby shared object",
@@ -296,6 +296,18 @@ class Gameplay:
 
         self.monitor.ui.notify_operator = True
 
+    def status(self, _leader, userid, username, steamid, elapsed, ping):
+        """Handle message."""
+
+        # pylint: disable=too-many-arguments
+
+        self.monitor.users.status(userid, username, steamid, elapsed, ping)
+
+    def lobby(self, _leader, steamid, teamname):
+        """Handle message."""
+
+        self.monitor.users.lobby(steamid, teamname)
+
     def perk(self, username, perk):
         """Handle message."""
 
@@ -338,13 +350,10 @@ class Gameplay:
             # postponed work that can be performed.
 
             for user in self.monitor.users.active_users():
-
+                # if not user.steamplayer and user.steamid:
                 if not user.vetted and user.steamid:
                     user.steamplayer = steam_web_api.find_steamid(user.steamid)
                     user.vet_player()
-
-                if user.vetted and user.work_attr:
-                    user.kick()
 
                 if user.state == UserState.DELETE:
                     self.monitor.users.delete(user)

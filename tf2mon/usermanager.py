@@ -89,7 +89,7 @@ class UserManager:
         user.n_status_checks = 0
         return user
 
-    def status(self, _leader, s_userid, username, s_steamid, s_elapsed: str, ping) -> None:
+    def status(self, s_userid, username, s_steamid, s_elapsed: str, ping) -> None:
         """Respond to `gameplay.status` event."""
 
         # pylint: disable=too-many-arguments
@@ -165,7 +165,7 @@ class UserManager:
         if not user.team and (team := self._teams_by_steamid.get(steamid)):
             user.assign_team(team)
 
-    def lobby(self, _leader, s_steamid, teamname):
+    def lobby(self, s_steamid, teamname):
         """Respond to `gameplay.lobby` event."""
 
         # this will not be called for games on local server with bots
@@ -220,7 +220,7 @@ class UserManager:
         else:
             logger.error(f"bad userid {userid!r}")
 
-    _max_status_checks = 4
+    _max_status_checks = 2
 
     def check_status(self):
         """Delete users that appear to have left the game.

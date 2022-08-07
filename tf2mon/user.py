@@ -276,10 +276,9 @@ class User:
 
             self.display_level = self.hacker.attributes[0].name
 
+            logger.log(self.display_level, f"{self._clean_username!r} is here")
             if self.hacker.is_banned:
-                self.kick()
-            else:  # elif self.hacker.is_suspect:
-                logger.log(self.display_level, f"{self._clean_username!r} is here")
+                self.kick(self.hacker.attributes[0])
 
         # vet only once
         self.vetted = True
@@ -350,7 +349,7 @@ class User:
                 logger.log(self.display_level, f"{self} added {self.work_attr} to {self.hacker}")
                 self.monitor.hackers.save_database()
             else:
-                logger.debug(f"{self} hacker {self.hacker} already {self.work_attr}")
+                logger.info(f"{self} hacker {self.hacker} already {self.work_attr}")
         else:
             self.hacker = self.monitor.hackers.add(self.steamid, [self.work_attr], self.username)
             logger.log(self.display_level, f"{self} created hacker {self.hacker}")
