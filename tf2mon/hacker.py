@@ -3,7 +3,6 @@
 import csv
 import json
 import time
-from collections import defaultdict
 from enum import Enum
 from pathlib import Path
 
@@ -176,7 +175,6 @@ class HackerManager:
 
         self._path = path
         self._hackers_by_steamid: dict[SteamID, Hacker] = {}
-        self._hackers_by_name = defaultdict(list)
         self.load(self._path)
 
     def __call__(self) -> dict[SteamID, Hacker]:
@@ -231,8 +229,6 @@ class HackerManager:
                     hacker.s_last_time = cached.s_last_time
 
             self._hackers_by_steamid[hacker.steamid] = hacker
-            for name in hacker.names:
-                self._hackers_by_name[name].append(hacker)
 
     def __str__(self):
         """Return database as `json` document."""
@@ -254,12 +250,6 @@ class HackerManager:
 
         logger.info(f"Writing `--hackers` database at `{self._path}`")
         self._path.write_text(str(self), encoding="utf-8")
-
-    def lookup_name(self, name) -> Hacker:
-        """Return `Hacker` for given name, else None if not found."""
-
-        logger.trace(f"name {name}")
-        return self._hackers_by_name.get(name)
 
     def lookup_steamid(self, steamid) -> Hacker:
         """Return `Hacker` for given steamid, else None if not found."""
@@ -284,7 +274,6 @@ class HackerManager:
             }
         )
         self._hackers_by_steamid[hacker.steamid] = hacker
-        self._hackers_by_name[name].append(hacker)
         return hacker
 
     def load_gamebots(self, path) -> None:
