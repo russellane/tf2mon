@@ -1,6 +1,8 @@
 """A user of the game."""
 
+import json
 import re
+import time
 from enum import Enum
 from typing import NewType
 
@@ -8,6 +10,7 @@ from fuzzywuzzy import fuzz
 from loguru import logger
 
 from tf2mon.hacker import HackerAttr
+from tf2mon.player import Player
 
 UserKey = NewType("UserKey", str)
 WeaponState = NewType("WeaponState", str)
@@ -115,6 +118,7 @@ class User:
         #
         self.hacker = None
         self.steamplayer = None
+        self.player = None
 
         # When attempting to kick/track before hacker is available, this
         # indicates: a) the work (kick/track) has been postponed, and b)
@@ -236,32 +240,32 @@ class User:
         logger.debug(f"{self} SteamPlayer={self.steamplayer}")
 
         # known hacker?
-        self.hacker = self.monitor.hackers.lookup_steamid(self.steamid)
-        if self.hacker:
-            logger.log("hacker", self.hacker)
+        self.player = Player.lookup_steamid(self.steamid)
+        if self.player:
+            logger.log("hacker", self.player)
         else:
             logger.trace(f"{self} is not a known hacker")
 
         # should he be known?
-        if not self.hacker:
+        if not self.player and self.work_attr:
+            # yes, work had been postponed until steamid now available
+            self.player = Player()
+            self.player.steamid = self.steamid.id
+            self.player.setattrs([self.work_attr])
+            self.player.last_name = self.username
+            self.player.names = json.dumps({"json": [self.username]})
+            self.player.s_last_time = time.strftime(
+                "%FT%T", time.localtime(self.player.last_time)
+            )
+            self.monitor.session.add(self.player)
+            self.monitor.session.commit()
 
-            if self.work_attr:
-                # yes, work had been postponed until steamid now available
-                self.hacker = self.monitor.hackers.add(
-                    self.steamid,
-                    [self.work_attr],
-                    self.username,
-                )
-                logger.log(self.work_attr.name, f"{self} created {self.hacker}")
-
-            elif attrs := self.monitor.defcon6.get(self.steamid.id):
-                # yes, known to defcon6
-                self.hacker = self.monitor.hackers.add(
-                    self.steamid,
-                    attrs,
-                    self.username,
-                )
-                logger.log(attrs[0].upper(), f"{self} created {self.hacker}")
+            self.hacker = self.monitor.hackers.add(
+                self.steamid,
+                [self.work_attr],
+                self.username,
+            )
+            logger.log(self.work_attr.name, f"{self} created {self.hacker}")
 
         if self.hacker:
             # he's known

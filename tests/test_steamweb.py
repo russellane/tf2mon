@@ -20,16 +20,16 @@ def api_(session):
 def test_find_steamid_1(api):
     steamplayer = api.find_steamid(SteamID(42708103))
     assert steamplayer.steamid == 42708103
-    print(steamplayer)
+    # print(steamplayer)
 
 
 def test_find_steamid_2(api):
     steamplayer = api.find_steamid(SteamID(123))
     assert steamplayer.steamid == 123
-    print(steamplayer)
+    # print(steamplayer)
 
 
 def test_no_find_steamid_1(api):
     steamplayer = api.find_steamid(SteamID(-99))
     assert steamplayer.steamid == 0
-    print(steamplayer)
+    # print(steamplayer)

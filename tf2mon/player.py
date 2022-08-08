@@ -1,6 +1,16 @@
 """Table of `Player`s."""
 
-from tf2mon.database import Base, Column, Integer, String
+import contextlib
+
+from tf2mon.database import (
+    Base,
+    Column,
+    Integer,
+    NoResultFound,
+    String,
+    open_database_session,
+    select,
+)
 
 
 class Player(Base):
@@ -39,3 +49,15 @@ class Player(Base):
         """Docstring."""
         for attr in attrs:
             setattr(self, attr, attr)
+
+    @staticmethod
+    def lookup_steamid(steamid) -> "Player":
+        """Return `Player` for given steamid, else None if not found."""
+
+        session = open_database_session()
+        stmt = select(Player).where(Player.steamid == steamid.id)
+        result = session.scalars(stmt)
+        player = None
+        with contextlib.suppress(NoResultFound):
+            player = result.one()
+        return player
