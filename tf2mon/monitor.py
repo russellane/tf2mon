@@ -13,10 +13,10 @@ from loguru import logger
 from tf2mon.admin import Admin
 from tf2mon.command import Command, CommandManager
 from tf2mon.conlog import Conlog
-from tf2mon.database import open_database_session
+from tf2mon.database import Session
 from tf2mon.gameplay import Gameplay
-from tf2mon.hacker import HackerAttr, HackerManager
 from tf2mon.msgqueue import MsgQueueManager
+from tf2mon.player import Player
 from tf2mon.regex import Regex
 from tf2mon.role import Role
 from tf2mon.spammer import Spammer
@@ -66,9 +66,8 @@ class Monitor:
             self.admin.set_single_step_lineno(self.options.breakpoint)
 
         #
-        self.hackers = HackerManager(self.options.hackers)
-        self.session = open_database_session(self.options.database)
-        self.steam_web_api = None
+        Session(self.options.database)
+        self.steam_web_api = SteamWebAPI(webapi_key=self.config.get("webapi_key"))
 
         #
         self.roles = Role.get_roles_by_name()
@@ -159,11 +158,6 @@ class Monitor:
         """Read the console log file and play game."""
 
         self.conlog.open()
-        self.session = open_database_session(self.options.database)
-        self.steam_web_api = SteamWebAPI(
-            webapi_key=self.config.get("webapi_key"),
-            session=self.session,
-        )
 
         while (line := self.conlog.readline()) is not None:
             if not line:
@@ -413,24 +407,24 @@ class Monitor:
 
         return Command(
             name="KICK-LAST-CHEATER",
-            status=lambda: HackerAttr.CHEATER.name,
-            handler=lambda m: self.kick_my_last_killer(HackerAttr.CHEATER),
+            status=lambda: Player.CHEATER,
+            handler=lambda m: self.kick_my_last_killer(Player.CHEATER),
         )
 
     def _cmd_kick_last_racist(self) -> Command:
 
         return Command(
             name="KICK-LAST-RACIST",
-            status=lambda: HackerAttr.RACIST.name,
-            handler=lambda m: self.kick_my_last_killer(HackerAttr.RACIST),
+            status=lambda: Player.RACIST,
+            handler=lambda m: self.kick_my_last_killer(Player.RACIST),
         )
 
     def _cmd_kick_last_suspect(self) -> Command:
 
         return Command(
             name="KICK-LAST-SUSPECT",
-            status=lambda: HackerAttr.SUSPECT.name,
-            handler=lambda m: self.kick_my_last_killer(HackerAttr.SUSPECT),
+            status=lambda: Player.SUSPECT,
+            handler=lambda m: self.kick_my_last_killer(Player.SUSPECT),
         )
 
     # --------------------------------------------------------------------------

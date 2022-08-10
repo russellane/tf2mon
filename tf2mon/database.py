@@ -48,7 +48,7 @@ class InterceptHandler(logging.Handler):
 logging.basicConfig(handlers=[InterceptHandler()], level=0)
 
 
-def open_database_session(path=None) -> object:
+def Session(path=None) -> object:  # noqa invalid-name
     """Open and return new session with database."""
 
     global SESSION  # pylint: disable=global-statement

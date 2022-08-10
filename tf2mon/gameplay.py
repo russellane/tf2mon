@@ -3,7 +3,7 @@
 from loguru import logger
 
 from tf2mon.chat import Chat
-from tf2mon.hacker import HackerAttr
+from tf2mon.player import Player
 from tf2mon.regex import Regex
 
 
@@ -182,10 +182,10 @@ class Gameplay:
 
         # inspect msg
         if self.monitor.is_racist_text(chat.msg):
-            user.kick(HackerAttr.RACIST)
+            user.kick(Player.RACIST)
 
         elif user.is_cheater_chat(chat):
-            user.kick(HackerAttr.CHEATER)
+            user.kick(Player.CHEATER)
 
     def kill(self, _leader, s_killer: str, s_victim: str, weapon: str, s_crit: str) -> None:
         """Handle message."""
@@ -273,6 +273,14 @@ class Gameplay:
             killer.moniker,
             victim.moniker,
             weapon_state,
+        )
+
+        self.monitor.ui.show_chat(
+            Chat(
+                killer,
+                False,
+                f"----- killed {victim.moniker!r:25} {weapon_state!r}",
+            ),
         )
 
         if killer == self.monitor.me:

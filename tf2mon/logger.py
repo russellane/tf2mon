@@ -2,6 +2,7 @@
 
 import contextlib
 import os
+import stat
 import sys
 
 from loguru import logger
@@ -10,37 +11,12 @@ from loguru import logger
 def configure_logger() -> None:
     """Logger config."""
 
-    # Configure `stderr` logger; not reconfigurable.
-
     logger.remove()
-    logger.add(
-        sys.stderr,
-        level="TRACE",
-        colorize=False,
-        # format="|".join(
-        #     [
-        #         "{time:HH:mm:ss.SSS}",
-        #         "{thread.name}:{name}.{function}:{line}",
-        #         "{level}",
-        #         "{message}",
-        #     ]
-        # ),
-    )
+    logger.add(sys.stderr, level="TRACE", colorize=False)
 
     with contextlib.suppress(OSError):
-        logger.add(
-            os.fdopen(3, mode="w"),
-            level="TRACE",
-            colorize=True,
-            # format="|".join(
-            #     [
-            #         "{time:HH:mm:ss.SSS}",
-            #         "{thread.name}:{name}.{function}:{line}",
-            #         "{level}",
-            #         "{message}",
-            #     ]
-            # ),
-        )
+        if stat.S_ISREG(os.stat(3).st_mode):
+            logger.add(os.fdopen(3, mode="w"), level="TRACE", colorize=True)
 
     add_logging_levels()
 
@@ -117,7 +93,8 @@ def add_logging_levels() -> None:
     logger.level("logline", no=_debug, color="<yellow>")
     logger.level("nextline", no=_warn, color="<yellow>")
     logger.level("console", no=_always, color="<green><bold>")
-    logger.level("hacker", no=_always, color="<yellow><reverse>")
+    logger.level("Player", no=_always, color="<yellow><reverse>")
+    logger.level("SteamPlayer", no=_debug, color="<green>")
     logger.level("regex", no=_trace, color="<magenta>")
     logger.level("report", no=_always, color="<cyan>")
     logger.level("server", no=_trace, color="<cyan>")

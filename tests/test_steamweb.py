@@ -8,13 +8,13 @@ from tf2mon.steamweb import SteamWebAPI
 
 
 @pytest.fixture(name="api", scope="session")
-def api_(session):
+def api_(session):  # noqa unused
     path = Path("~/.tf2mon.toml").expanduser()
     config = tomli.loads(path.read_text(encoding="utf-8"))
     webapi_key = None
     if tf2mon := config.get("tf2mon"):
         webapi_key = tf2mon.get("webapi_key")
-    return SteamWebAPI(webapi_key, session)
+    return SteamWebAPI(webapi_key)
 
 
 def test_find_steamid_1(api):

@@ -1,15 +1,12 @@
 """A user of the game."""
 
-import json
 import re
-import time
 from enum import Enum
 from typing import NewType
 
 from fuzzywuzzy import fuzz
 from loguru import logger
 
-from tf2mon.hacker import HackerAttr
 from tf2mon.player import Player
 
 UserKey = NewType("UserKey", str)
@@ -116,15 +113,13 @@ class User:
         self.actions = []
 
         #
-        self.hacker = None
         self.steamplayer = None
-        self.player = None
+        self.player: Player = None
 
-        # When attempting to kick/track before hacker is available, this
-        # indicates: a) the work (kick/track) has been postponed, and b)
-        # the `HackerAttr.HackerAttr` to use when able to perform the work.
+        # Database `Player`s are keyed by `steamid`. If `self.kick(attr)`
+        # is called before steamid is available, spool the work until it is.
 
-        self.work_attr = None
+        self.pending_attrs: list[str] = []
 
         # If this looks like a cheater we're tracking by name, mark him to
         # be kicked when his steamid becomes available. Doing this now to
@@ -135,10 +130,10 @@ class User:
         self.clonee = None  # when this user is the name-stealing clone
 
         if self._is_cheater_name(self.username):
-            self.kick(HackerAttr.CHEATER)
+            self.kick(Player.CHEATER)
 
         if self.monitor.is_racist_text(self.username):
-            self.kick(HackerAttr.RACIST)
+            self.kick(Player.RACIST)
 
         self.cheater_chat_seen = False
 
@@ -230,86 +225,90 @@ class User:
     def vet_player(self):
         """Vet this player, whose `steamid` has just been obtained."""
 
+        assert self.steamid
+        self.dirty = True
+
         self.steamplayer = self.monitor.steam_web_api.find_steamid(self.steamid)
         if self.steamplayer.is_gamebot:
             self.steamplayer.personaname = self.username
-            self.work_attr = None
-            self.dirty = True
+            self.pending_attrs = []
             return
 
-        logger.debug(f"{self} SteamPlayer={self.steamplayer}")
+        logger.log("SteamPlayer", f"{self} SteamPlayer={self.steamplayer}")
 
         # known hacker?
-        self.player = Player.lookup_steamid(self.steamid)
+        self.player = Player.lookup_steamid(self.steamid.id)
         if self.player:
-            logger.log("hacker", self.player)
-        else:
-            logger.trace(f"{self} is not a known hacker")
-
-        # should he be known?
-        if not self.player and self.work_attr:
-            # yes, work had been postponed until steamid now available
-            self.player = Player()
-            self.player.steamid = self.steamid.id
-            self.player.setattrs([self.work_attr])
-            self.player.last_name = self.username
-            self.player.names = json.dumps({"json": [self.username]})
-            self.player.s_last_time = time.strftime(
-                "%FT%T", time.localtime(self.player.last_time)
-            )
-            self.monitor.session.add(self.player)
-            self.monitor.session.commit()
-
-            self.hacker = self.monitor.hackers.add(
-                self.steamid,
-                [self.work_attr],
-                self.username,
-            )
-            logger.log(self.work_attr.name, f"{self} created {self.hacker}")
-
-        if self.hacker:
-            # he's known
-            self.hacker.track_appearance(self.username)
-            self.monitor.hackers.save_database()
-
-            self.display_level = self.hacker.attributes[0].name
-
+            logger.log("Player", self.player)
+            self.player.setattrs(self.pending_attrs)
+            self.player.track_appearance(self.username)
+            self.display_level = self.player.display_level
             logger.log(self.display_level, f"{self._clean_username!r} is here")
-            if self.hacker.is_banned:
-                self.kick(self.hacker.attributes[0])
+            self.pending_attrs = None
+            if self.player.is_banned:
+                self.do_kick()
+            return
+        logger.trace(f"{self} is not a known hacker")
 
-        self.work_attr = None
-        self.dirty = True
+        # Have we tried to kick them, but had to spool the work because
+        # `steamid` wasn't available yet?
+        if self.pending_attrs:
+            self.player = Player.add(self.steamid.id, self.pending_attrs, self.username)
+            self.display_level = self.player.display_level
+            logger.log(self.display_level, f"{self} created {self.player}")
+            self.pending_attrs = None
+            if self.player.is_banned:
+                self.do_kick()
 
-    def kick(self, attr=None):
+    def kick(self, attr):
         """Kick this user."""
 
-        if self.userid in self.monitor.users.kicked_userids:
-            logger.debug(f"already kicked userid {self.userid}")
+        # kick, called from:
+        #   gameplay.playerchat
+        #   monitor.kick_my_last_killer
+        #   scoreboard._onmouse
+        #   user.__init__
+        #   tf2mon.usermanager.kick_userid
+
+        # if self.userid in self.monitor.users.kicked_userids:
+        #     logger.debug(f"already kicked userid {self.userid}")
+        #     return
+
+        if not self.steamid:
+            # postpone work until steamid available
+            self.pending_attrs.append(attr)
+            self.display_level = attr.upper()
+            logger.log(self.display_level, f"{self} needs steamid, Press KP_DOWNARROW to PUSH")
+            self.monitor.ui.notify_operator = True
+            self.monitor.ui.sound_alarm = True
             return
 
-        if self._track(attr or HackerAttr.CHEATER):
-            # work postponed until steamid becomes available
-            return
+        if self.player:
+            if not getattr(self.player, attr):
+                self.player.setattrs([attr])
+                logger.log(self.display_level, f"{self} added {attr} to {self.player}")
+            else:
+                logger.info(f"{self} player {self.player} already {attr}")
+        else:
+            self.player = Player.add(self.steamid.id, [attr] + self.pending_attrs, self.username)
+            self.display_level = self.player.display_level
+            logger.log(self.display_level, f"{self} created {self.player}")
+            self.pending_attrs = None
 
-        if self.hacker.is_suspect:
-            # don't kick suspects
-            logger.debug(f"not kicking suspect {self.username!r} steamid {self.steamid!r}")
-            return
+        if self.player.is_banned():
+            self.do_kick()
 
-        # work
+    def do_kick(self) -> None:
+        """Work."""
 
         # msg = f"say {tf2mon.APPNAME} ALERT: "
         msg = "say ALERT: "
-        if self.hacker.is_racist:
+        if self.player.racist or self.player._racist:  # noqa
             msg += f"RACIST {self._clean_username!r}"
         elif self.clonee:
             msg += f"NAME-STEALER {self.username!r}"
         else:
             msg += f"CHEATER {self.username!r}"
-
-            if self.hacker.is_defcon6:
-                logger.warning(f"DEFCON6: {self.hacker}")
 
         msg += " is here"
         cmd = f"CALLVOTE KICK {self.userid}"
@@ -318,42 +317,6 @@ class User:
         self.monitor.kicks.push(msg)
         self.monitor.kicks.push(cmd)
         self.monitor.users.kicked_userids[self.userid] = True
-
-    def _track(self, attr):
-
-        self.display_level = attr.name
-
-        if not self.steamid:
-            if not self.work_attr:
-                self.work_attr = attr
-                logger.log(
-                    self.display_level, f"{self} needs steamid, Press KP_DOWNARROW to PUSH"
-                )
-                self.monitor.ui.notify_operator = True
-                self.monitor.ui.sound_alarm = True
-            return True  # postpone work
-
-        if not self.work_attr:
-            # not postponed
-            self.work_attr = attr
-        # else un-postponed
-
-        # work
-        if self.hacker:
-            if self.work_attr not in self.hacker.attributes:
-                self.hacker.attributes.append(self.work_attr)
-                logger.log(self.display_level, f"{self} added {self.work_attr} to {self.hacker}")
-                self.monitor.hackers.save_database()
-            else:
-                logger.info(f"{self} hacker {self.hacker} already {self.work_attr}")
-        else:
-            self.hacker = self.monitor.hackers.add(self.steamid, [self.work_attr], self.username)
-            logger.log(self.display_level, f"{self} created hacker {self.hacker}")
-            self.monitor.hackers.save_database()
-
-        # work performed
-        self.work_attr = None
-        return False
 
     _re_cheater_names = re.compile(
         "|".join(
@@ -373,7 +336,7 @@ class User:
             return True
 
         for user in [
-            x for x in self.monitor.users.active_users() if x.steamplayer and not x.hacker
+            x for x in self.monitor.users.active_users() if x.steamplayer and not x.player
         ]:
             ratio = fuzz.ratio(name, user.username)
             if ratio > 80:

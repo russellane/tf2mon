@@ -4,7 +4,7 @@ import curses
 
 import libcurses
 
-from tf2mon.hacker import HackerAttr
+from tf2mon.player import Player
 from tf2mon.texttable import TextColumn, TextTable
 
 
@@ -181,8 +181,8 @@ class Scoreboard:
         self.monitor.ui.update_display()
 
         if mouse.nclicks == 2:
-            user.kick(HackerAttr.CHEATER)
+            user.kick(Player.CHEATER)
         elif mouse.nclicks == 3:
-            user.kick(HackerAttr.RACIST)
+            user.kick(Player.RACIST)
 
         return True  # handled

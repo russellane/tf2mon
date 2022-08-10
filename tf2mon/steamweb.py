@@ -5,7 +5,7 @@ import time
 import steam.webapi
 from loguru import logger
 
-from tf2mon.database import NoResultFound, select
+from tf2mon.database import NoResultFound, Session, select
 from tf2mon.steamid import BOT_STEAMID
 from tf2mon.steamplayer import SteamPlayer
 
@@ -18,7 +18,7 @@ class SteamWebAPI:
     Results are cached to avoid banging the server.
     """
 
-    def __init__(self, webapi_key, session):
+    def __init__(self, webapi_key):
         """Initialize interface."""
 
         if webapi_key:
@@ -27,7 +27,6 @@ class SteamWebAPI:
             self._webapi = None
             logger.warning("Running without `webapi_key`")
 
-        self.session = session
         self._nbots = 0
 
     def find_steamid(self, steamid) -> object:
@@ -48,8 +47,9 @@ class SteamWebAPI:
             return self._create_invalid(steamid, now)
 
         # check cache.
+        session = Session()
         stmt = select(SteamPlayer).where(SteamPlayer.steamid == steamid.id)
-        result = self.session.scalars(stmt)
+        result = session.scalars(stmt)
         try:
             steamplayer = result.one()
         except NoResultFound:
@@ -89,8 +89,8 @@ class SteamWebAPI:
         steamplayer.mtime = now
 
         if new:
-            self.session.add(steamplayer)
-        self.session.commit()
+            session.add(steamplayer)
+        session.commit()
 
         #
         return steamplayer

@@ -6,7 +6,7 @@ import threading
 from loguru import logger
 
 import tf2mon
-from tf2mon.hacker import HackerAttr
+from tf2mon.player import Player
 from tf2mon.regex import Regex
 
 
@@ -60,23 +60,17 @@ class Admin:
             # kick cheater
             Regex(
                 R"^kick[= ](?P<userid>\d+)$",
-                lambda m: self.monitor.users.kick_userid(
-                    int(m.group("userid")), HackerAttr.CHEATER
-                ),
+                lambda m: self.monitor.users.kick_userid(int(m.group("userid")), Player.CHEATER),
             ),
             # kick racist
             Regex(
                 R"^kkk[= ](?P<userid>\d+)$",
-                lambda m: self.monitor.users.kick_userid(
-                    int(m.group("userid")), HackerAttr.RACIST
-                ),
+                lambda m: self.monitor.users.kick_userid(int(m.group("userid")), Player.RACIST),
             ),
             # mark suspect
             Regex(
                 R"^suspect[= ](?P<userid>\d+)$",
-                lambda m: self.monitor.users.kick_userid(
-                    int(m.group("userid")), HackerAttr.SUSPECT
-                ),
+                lambda m: self.monitor.users.kick_userid(int(m.group("userid")), Player.SUSPECT),
             ),
             # drop to python debugger
             Regex("^PDB$", lambda m: self.monitor.breakpoint()),

@@ -29,9 +29,9 @@ def get_defcon6(session) -> dict[int, list[str]]:
 if __name__ == "__main__":
     from pprint import pprint
 
-    from tf2mon.database import open_database_session  # noqa
+    from tf2mon.database import Session  # noqa
 
-    _session = open_database_session(".cache/tf2mon.db")
+    _session = Session(".cache/tf2mon.db")
     _attrs = get_defcon6(_session)
     _session.close()
     pprint(_attrs)
