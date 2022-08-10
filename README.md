@@ -3,7 +3,8 @@
 #### Usage
     tf2mon [--rewind | --no-rewind] [--follow | --no-follow]
            [--tf2-install-dir DIR] [--layout {DFLT,FULL,TALL,MRGD,WIDE}]
-           [--sort-order {STEAMID,K,KD,CONN,USERNAME}] [--list-con-logfile]
+           [--sort-order {STEAMID,K,KD,CONN,USERNAME}]
+           [--log-location {MOD,NAM,THM,THN,FILE,NUL}] [--list-con-logfile]
            [--trunc-con-logfile] [--clean-con-logfile]
            [--exclude-file FILE] [--single-step] [--break LINENO]
            [--search PATTERN] [--inject-cmd LINENO:CMD]
@@ -49,6 +50,8 @@ By default, `tf2mon` starts reading `con_logfile` from its end
                         Choose display layout (default: `DFLT`).
     --sort-order {STEAMID,K,KD,CONN,USERNAME}
                         Choose sort order (default: `KD`).
+    --log-location {MOD,NAM,THM,THN,FILE,NUL}
+                        Choose sort order (default: `NUL`).
     --list-con-logfile  Show path to logfile and exit.
     --trunc-con-logfile
                         Truncate logfile and exit.

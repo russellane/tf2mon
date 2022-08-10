@@ -28,9 +28,6 @@ USER_PANEL.__doc__ = "Contents of user panel."
 LOG_LEVEL = Enum("_lvl_enum", "INFO DEBUG TRACE")
 LOG_LEVEL.__doc__ = "Logging level."
 
-LOG_LOCATION = Enum("_loc_enum", "MOD NAM THM THN FILE NUL")
-LOG_LOCATION.__doc__ = "Format of logger location field."
-
 
 class UI:
     """User Interface."""
@@ -43,16 +40,6 @@ class UI:
         LOG_LEVEL.TRACE: "TRACE",  # "-vv"
     }
     log_level = Toggle("_lvl_cycle", LOG_LEVEL)
-
-    _log_locations = {
-        LOG_LOCATION.MOD: "{module}.{function}:{line}",
-        LOG_LOCATION.NAM: "{name}.{function}:{line}",
-        LOG_LOCATION.THM: "{thread.name}:{module}.{function}:{line}",
-        LOG_LOCATION.THN: "{thread.name}:{name}.{function}:{line}",
-        LOG_LOCATION.FILE: "{file}:{function}:{line}",
-        LOG_LOCATION.NUL: None,
-    }
-    log_location = Toggle("_loc_cycle", LOG_LOCATION)
 
     def __init__(self, monitor, win: curses.window):
         """Initialize User Interface."""
@@ -111,8 +98,6 @@ class UI:
         self.logsink.set_verbose(self.monitor.options.verbose)
         self.log_level.start(LOG_LEVEL.__dict__[self.logsink.level])
         #
-        self.log_location.start(LOG_LOCATION.MOD)
-        self.logsink.set_location(self._log_locations[self.log_location.value])
 
         self.colormap = libcurses.get_colormap()
         #
@@ -123,6 +108,7 @@ class UI:
             self.scorewin_red,
             self.colormap[Team.RED.name],
         )
+        self.set_sort_order = self._scoreboard.set_sort_order  # delegate
 
     def cycle_grid_layout(self):
         """Use next grid layout."""
@@ -204,16 +190,6 @@ class UI:
         """Cycle logging level in logger window."""
 
         self.logsink.set_level(self._log_levels[self.log_level.cycle])
-
-    def cycle_log_location(self) -> None:
-        """Cycle format of location in messages displayed in logger window."""
-
-        self.logsink.set_location(self._log_locations[self.log_location.cycle])
-
-    def set_sort_order(self, sort_order):
-        """Set scoreboard sort column."""
-
-        self._scoreboard.set_sort_order(sort_order)
 
     def getline(self, prompt=None):
         """Read and return next line from keyboard."""

@@ -149,6 +149,7 @@ class CLI(BaseCLI):
         self.add_default_to_help(arg)
 
         tf2mon.controls.SortOrderControl.add_arguments_to(self.parser)
+        tf2mon.controls.LogLocationControl.add_arguments_to(self.parser)
 
         arg = self.parser.add_argument(
             "con_logfile",

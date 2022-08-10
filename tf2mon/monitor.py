@@ -231,9 +231,13 @@ class Monitor:
         commands.bind(self._cmd_show_kd, "F4")
         commands.bind(self._cmd_user_panel, "F5")
         commands.bind(self._cmd_join_other_team, "F6")
+
         commands.bind(tf2mon.controls.SortOrderControl.command, "F7")
         tf2mon.controls.SortOrderControl.start(self.options.sort_order)
-        commands.bind(self._cmd_log_location, "F8")
+
+        commands.bind(tf2mon.controls.LogLocationControl.command, "F8")
+        tf2mon.controls.LogLocationControl.start(self.options.log_location)
+
         commands.bind(self._cmd_log_level, "Shift+F8")
         commands.bind(self._cmd_reset_padding, "Ctrl+F8")
         commands.bind(self._cmd_grid_layout, "F9")
@@ -351,17 +355,6 @@ class Monitor:
             status=lambda: self.ui.log_level.value.name,
             handler=lambda m: (
                 self.ui.cycle_log_level(),
-                self.ui.show_status(),
-            ),
-        )
-
-    def _cmd_log_location(self) -> Command:
-
-        return Command(
-            name="TOGGLE-LOG-LOCATION",
-            status=lambda: self.ui.log_location.value.name,
-            handler=lambda m: (
-                self.ui.cycle_log_location(),
                 self.ui.show_status(),
             ),
         )

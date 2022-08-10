@@ -30,19 +30,18 @@ class SortOrderControl(Control):
             default="KD",
             help="choose sort order",
         )
-        cli = parser.get_default("cli")
-        cli.add_default_to_help(arg)
+        parser.get_default("cli").add_default_to_help(arg)
 
     @classmethod
     def start(cls, value: str) -> None:
-        """Docstring."""
+        """Set to `value`."""
 
         cls.TOGGLE.start(cls.ENUM.__dict__[value])
         cls.UI.set_sort_order(cls.TOGGLE.value)
 
     @classmethod
     def command(cls) -> Command:
-        """Return `Command` object for this control."""
+        """Create and return `Command` object for this control."""
 
         return Command(
             name="TOGGLE-SORT",
