@@ -10,6 +10,7 @@ from enum import Enum
 import libcurses
 from loguru import logger
 
+import tf2mon.control
 import tf2mon.layouts
 from tf2mon.scoreboard import Scoreboard
 from tf2mon.toggle import Toggle
@@ -29,9 +30,6 @@ LOG_LEVEL.__doc__ = "Logging level."
 
 LOG_LOCATION = Enum("_loc_enum", "MOD NAM THM THN FILE NUL")
 LOG_LOCATION.__doc__ = "Format of logger location field."
-
-SORT_ORDER = Enum("_sort_order_enum", "STEAMID K KD CONN USERNAME")
-SORT_ORDER.__doc__ = "Scoreboard sort column."
 
 
 class UI:
@@ -81,10 +79,6 @@ class UI:
         # if self.show_actions.value:
         #     lines.extend(user.actions)
 
-        # Scoreboard sort column.
-        self.sort_order = Toggle("_so", SORT_ORDER)
-        self.sort_order.start(SORT_ORDER.KD)
-
         # create empty grid
         self.grid = libcurses.Grid(win)
 
@@ -129,8 +123,6 @@ class UI:
             self.scorewin_red,
             self.colormap[Team.RED.name],
         )
-
-        self.set_sort_order(self.sort_order.value)
 
     def cycle_grid_layout(self):
         """Use next grid layout."""
@@ -221,7 +213,6 @@ class UI:
     def set_sort_order(self, sort_order):
         """Set scoreboard sort column."""
 
-        self.monitor.users.set_sort_order(sort_order)
         self._scoreboard.set_sort_order(sort_order)
 
     def getline(self, prompt=None):

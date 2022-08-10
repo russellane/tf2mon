@@ -1,12 +1,12 @@
 """Player 'chat' messages."""
 
+import time
+
 from loguru import logger
 
 
 class Chat:
     """Player 'chat' messages."""
-
-    _seqno = 0
 
     def __init__(self, user, teamflag, msg):
         """Create `Chat` object.
@@ -17,8 +17,7 @@ class Chat:
             msg:        The msg chatted by the user.
         """
 
-        self.__class__._seqno += 1
-        self.seqno = self.__class__._seqno
+        self.seqno = time.strftime("%T", time.localtime(int(time.time())))
         self.user = user
         self.teamflag = teamflag
         self.msg = msg

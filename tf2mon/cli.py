@@ -9,6 +9,7 @@ import xdg
 from libcli import BaseCLI
 from loguru import logger
 
+import tf2mon.control
 import tf2mon.layouts
 from tf2mon.conlog import Conlog
 from tf2mon.database import Session
@@ -146,6 +147,8 @@ class CLI(BaseCLI):
             help="choose display layout",
         )
         self.add_default_to_help(arg)
+
+        tf2mon.control.SortOrderControl.add_arguments_to(self.parser)
 
         arg = self.parser.add_argument(
             "con_logfile",

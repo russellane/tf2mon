@@ -2,45 +2,23 @@
 
 from loguru import logger
 
+import tf2mon.control
 from tf2mon.steamid import BOT_STEAMID, parse_steamid
-from tf2mon.ui import SORT_ORDER
 from tf2mon.user import Team, User, UserState
 
 
 class UserManager:
     """Collection of `User` objects."""
 
-    # pylint: disable=too-many-instance-attributes
-
     def __init__(self, monitor):
         """Initialize `User` manager."""
 
         self.monitor = monitor
-
-        # The pool.
-
         self._users_by_username = {}
         self._users_by_userid = {}
         self._users_by_steamid = {}
         self._teams_by_steamid = {}
         self.kicked_userids = {}
-
-        # Some methods return a sorted list of users.
-        # Names must match scoreboard column headings.
-
-        self._sort_keys = {
-            SORT_ORDER.K: lambda x: (-x.nkills, x.username_upper),
-            SORT_ORDER.KD: lambda x: (-x.kdratio, -x.nkills, x.username_upper),
-            SORT_ORDER.STEAMID: lambda x: (x.steamid.id if x.steamid else 0, x.username_upper),
-            SORT_ORDER.CONN: lambda x: x.elapsed,
-            SORT_ORDER.USERNAME: lambda x: x.username_upper,
-        }
-        self._sort_key = self._sort_keys[SORT_ORDER.KD]
-
-    def set_sort_order(self, sort_order):
-        """Set sort-key used by `active_team_users`."""
-
-        self._sort_key = self._sort_keys.get(sort_order)
 
     def find_username(self, username):
         """Return `User` with the matching `username` from pool.
@@ -172,15 +150,13 @@ class UserManager:
     def active_team_users(self, team):
         """Return list of active users on `team`."""
 
-        assert self._sort_key
-
         yield from sorted(
             [
                 x
                 for x in self._users_by_username.values()
                 if x.state == UserState.ACTIVE and x.team == team
             ],
-            key=self._sort_key,
+            key=tf2mon.control.SortOrderControl.key,
         )
 
     def kick_userid(self, userid, attr):

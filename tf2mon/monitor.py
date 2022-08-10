@@ -10,6 +10,7 @@ from pprint import pformat
 import libcurses
 from loguru import logger
 
+import tf2mon.control
 from tf2mon.admin import Admin
 from tf2mon.command import Command, CommandManager
 from tf2mon.conlog import Conlog
@@ -102,7 +103,7 @@ class Monitor:
         self.spammer = Spammer(self)
 
         #
-        self.commands: CommandManager = self._commands()
+        self.commands: CommandManager = None
 
         # admin command handlers
         self.regex_list = self.admin.regex_list
@@ -110,9 +111,6 @@ class Monitor:
         # gameplay handlers
         self.gameplay = Gameplay(self)
         self.regex_list += self.gameplay.regex_list
-
-        # function key handlers
-        self.regex_list += self.commands.get_regex_list()
 
         #
         self.me = self.my = None
@@ -124,9 +122,13 @@ class Monitor:
         libcurses.wrapper(self._run)
 
     def _run(self, win):
-        self.commands.register_curses_handlers()
         # Build user-interface
         self.ui = UI(self, win)
+        self.commands = self._commands()
+        self.commands.register_curses_handlers()
+        # function key handlers
+        self.regex_list += self.commands.get_regex_list()
+
         self.reset_game()
 
         # no need for threads if exiting at end of conlog
@@ -218,6 +220,8 @@ class Monitor:
     def _commands(self) -> CommandManager:
         """Init and return `CommandManager`."""
 
+        tf2mon.control.Control.UI = self.ui
+
         commands = CommandManager()
         commands.bind(self._cmd_help, "F1")
         commands.bind(self._cmd_motd, "Ctrl+F1")
@@ -226,7 +230,8 @@ class Monitor:
         commands.bind(self._cmd_show_kd, "F4")
         commands.bind(self._cmd_user_panel, "F5")
         commands.bind(self._cmd_join_other_team, "F6")
-        commands.bind(self._cmd_sort_order, "F7")
+        commands.bind(tf2mon.control.SortOrderControl.command, "F7")
+        tf2mon.control.SortOrderControl.start(self.options.sort_order)
         commands.bind(self._cmd_log_location, "F8")
         commands.bind(self._cmd_log_level, "Shift+F8")
         commands.bind(self._cmd_reset_padding, "Ctrl+F8")
@@ -336,17 +341,6 @@ class Monitor:
             name="SWITCH-MY-TEAM",
             status=lambda: self.my.team.name if self.my.team else "blu",
             handler=lambda m: _action(),
-        )
-
-    def _cmd_sort_order(self) -> Command:
-
-        return Command(
-            name="TOGGLE-SORT",
-            status=lambda: self.ui.sort_order.value.name,
-            handler=lambda m: (
-                self.ui.set_sort_order(self.ui.sort_order.toggle),
-                self.ui.update_display(),
-            ),
         )
 
     def _cmd_log_level(self) -> Command:
