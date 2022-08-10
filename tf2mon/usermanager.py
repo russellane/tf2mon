@@ -2,7 +2,7 @@
 
 from loguru import logger
 
-import tf2mon.control
+import tf2mon.controls
 from tf2mon.steamid import BOT_STEAMID, parse_steamid
 from tf2mon.user import Team, User, UserState
 
@@ -156,7 +156,7 @@ class UserManager:
                 for x in self._users_by_username.values()
                 if x.state == UserState.ACTIVE and x.team == team
             ],
-            key=tf2mon.control.SortOrderControl.key,
+            key=tf2mon.controls.SortOrderControl.key,
         )
 
     def kick_userid(self, userid, attr):

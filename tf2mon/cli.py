@@ -9,7 +9,7 @@ import xdg
 from libcli import BaseCLI
 from loguru import logger
 
-import tf2mon.control
+import tf2mon.controls
 import tf2mon.layouts
 from tf2mon.conlog import Conlog
 from tf2mon.database import Session
@@ -148,7 +148,7 @@ class CLI(BaseCLI):
         )
         self.add_default_to_help(arg)
 
-        tf2mon.control.SortOrderControl.add_arguments_to(self.parser)
+        tf2mon.controls.SortOrderControl.add_arguments_to(self.parser)
 
         arg = self.parser.add_argument(
             "con_logfile",

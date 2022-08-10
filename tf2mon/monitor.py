@@ -11,6 +11,7 @@ import libcurses
 from loguru import logger
 
 import tf2mon.control
+import tf2mon.controls
 from tf2mon.admin import Admin
 from tf2mon.command import Command, CommandManager
 from tf2mon.conlog import Conlog
@@ -230,8 +231,8 @@ class Monitor:
         commands.bind(self._cmd_show_kd, "F4")
         commands.bind(self._cmd_user_panel, "F5")
         commands.bind(self._cmd_join_other_team, "F6")
-        commands.bind(tf2mon.control.SortOrderControl.command, "F7")
-        tf2mon.control.SortOrderControl.start(self.options.sort_order)
+        commands.bind(tf2mon.controls.SortOrderControl.command, "F7")
+        tf2mon.controls.SortOrderControl.start(self.options.sort_order)
         commands.bind(self._cmd_log_location, "F8")
         commands.bind(self._cmd_log_level, "Shift+F8")
         commands.bind(self._cmd_reset_padding, "Ctrl+F8")
