@@ -238,7 +238,9 @@ class Monitor:
         commands.bind(tf2mon.controls.LogLocationControl.command, "F8")
         tf2mon.controls.LogLocationControl.start(self.options.log_location)
 
-        commands.bind(self._cmd_log_level, "Shift+F8")
+        commands.bind(tf2mon.controls.LogLevelControl.command, "Shift+F8")
+        tf2mon.controls.LogLevelControl.start(self.options.verbose)
+
         commands.bind(self._cmd_reset_padding, "Ctrl+F8")
         commands.bind(self._cmd_grid_layout, "F9")
         commands.bind(self._cmd_show_debug, "KP_INS")
@@ -346,17 +348,6 @@ class Monitor:
             name="SWITCH-MY-TEAM",
             status=lambda: self.my.team.name if self.my.team else "blu",
             handler=lambda m: _action(),
-        )
-
-    def _cmd_log_level(self) -> Command:
-
-        return Command(
-            name="TOGGLE-LOG-LEVEL",
-            status=lambda: self.ui.log_level.value.name,
-            handler=lambda m: (
-                self.ui.cycle_log_level(),
-                self.ui.show_status(),
-            ),
         )
 
     def _cmd_reset_padding(self) -> Command:

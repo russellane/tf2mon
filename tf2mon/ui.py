@@ -25,21 +25,11 @@ from tf2mon.user import Team, UserState
 USER_PANEL = Enum("_user_panel_enum", "AUTO DUELS KICKS SPAMS")
 USER_PANEL.__doc__ = "Contents of user panel."
 
-LOG_LEVEL = Enum("_lvl_enum", "INFO DEBUG TRACE")
-LOG_LEVEL.__doc__ = "Logging level."
-
 
 class UI:
     """User Interface."""
 
     # pylint: disable=too-many-instance-attributes
-
-    _log_levels = {
-        LOG_LEVEL.INFO: "INFO",  # ""
-        LOG_LEVEL.DEBUG: "DEBUG",  # "-v"
-        LOG_LEVEL.TRACE: "TRACE",  # "-vv"
-    }
-    log_level = Toggle("_lvl_cycle", LOG_LEVEL)
 
     def __init__(self, monitor, win: curses.window):
         """Initialize User Interface."""
@@ -94,9 +84,6 @@ class UI:
 
         #
         self.logsink = libcurses.Sink(self.logger_win)
-        #
-        self.logsink.set_verbose(self.monitor.options.verbose)
-        self.log_level.start(LOG_LEVEL.__dict__[self.logsink.level])
         #
 
         self.colormap = libcurses.get_colormap()
@@ -185,11 +172,6 @@ class UI:
 
         self.refresh_chats()
         self.grid.redraw()
-
-    def cycle_log_level(self) -> None:
-        """Cycle logging level in logger window."""
-
-        self.logsink.set_level(self._log_levels[self.log_level.cycle])
 
     def getline(self, prompt=None):
         """Read and return next line from keyboard."""
