@@ -104,7 +104,7 @@ class Monitor:
         self.spammer = Spammer(self)
 
         #
-        self.commands: CommandManager = None
+        self.commands: CommandManager = self.get_commands()
 
         # admin command handlers
         self.regex_list = self.admin.regex_list
@@ -112,6 +112,9 @@ class Monitor:
         # gameplay handlers
         self.gameplay = Gameplay(self)
         self.regex_list += self.gameplay.regex_list
+
+        # function key handlers
+        self.regex_list += self.commands.get_regex_list()
 
         #
         self.me = self.my = None
@@ -125,10 +128,11 @@ class Monitor:
     def _run(self, win):
         # Build user-interface
         self.ui = UI(self, win)
-        self.commands = self._commands()
         self.commands.register_curses_handlers()
-        # function key handlers
-        self.regex_list += self.commands.get_regex_list()
+        tf2mon.control.Control.UI = self.ui
+        tf2mon.controls.SortOrderControl.start(self.options.sort_order)
+        tf2mon.controls.LogLocationControl.start(self.options.log_location)
+        tf2mon.controls.LogLevelControl.start(self.options.verbose)
 
         self.reset_game()
 
@@ -218,10 +222,8 @@ class Monitor:
 
         return self.conlog.is_eof or self.options.toggles or self.admin.is_single_stepping
 
-    def _commands(self) -> CommandManager:
+    def get_commands(self) -> CommandManager:
         """Init and return `CommandManager`."""
-
-        tf2mon.control.Control.UI = self.ui
 
         commands = CommandManager()
         commands.bind(self._cmd_help, "F1")
@@ -231,17 +233,10 @@ class Monitor:
         commands.bind(self._cmd_show_kd, "F4")
         commands.bind(self._cmd_user_panel, "F5")
         commands.bind(self._cmd_join_other_team, "F6")
-
         commands.bind(tf2mon.controls.SortOrderControl.command, "F7")
-        tf2mon.controls.SortOrderControl.start(self.options.sort_order)
-
         commands.bind(tf2mon.controls.LogLocationControl.command, "F8")
-        tf2mon.controls.LogLocationControl.start(self.options.log_location)
-
         commands.bind(tf2mon.controls.LogLevelControl.command, "Shift+F8")
-        tf2mon.controls.LogLevelControl.start(self.options.verbose)
-
-        commands.bind(self._cmd_reset_padding, "Ctrl+F8")
+        commands.bind(tf2mon.controls.ResetPaddingControl.command, "Ctrl+F8")
         commands.bind(self._cmd_grid_layout, "F9")
         commands.bind(self._cmd_show_debug, "KP_INS")
         commands.bind(self._cmd_single_step, "KP_DEL")
@@ -348,16 +343,6 @@ class Monitor:
             name="SWITCH-MY-TEAM",
             status=lambda: self.my.team.name if self.my.team else "blu",
             handler=lambda m: _action(),
-        )
-
-    def _cmd_reset_padding(self) -> Command:
-
-        return Command(
-            name="RESET-PADDING",
-            handler=lambda m: (
-                self.ui.logsink.reset_padding(),
-                logger.info("padding reset"),
-            ),
         )
 
     def _cmd_grid_layout(self) -> Command:

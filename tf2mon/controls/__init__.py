@@ -2,4 +2,5 @@
 
 from tf2mon.controls.loglevel import LogLevelControl  # noqa
 from tf2mon.controls.loglocation import LogLocationControl  # noqa
+from tf2mon.controls.resetpadding import ResetPaddingControl  # noqa
 from tf2mon.controls.sortorder import SortOrderControl  # noqa
