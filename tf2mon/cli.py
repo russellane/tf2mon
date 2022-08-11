@@ -11,6 +11,7 @@ from loguru import logger
 
 import tf2mon.controls
 import tf2mon.layouts
+from tf2mon.command import CommandManager
 from tf2mon.conlog import Conlog
 from tf2mon.database import Session
 from tf2mon.hacker import HackerManager
@@ -48,6 +49,15 @@ class CLI(BaseCLI):
         # this player.
         "player_name": "Bad Dad",
     }
+
+    # All controls.
+    controls = {
+        "sort_order": tf2mon.controls.SortOrderControl(),
+    }
+
+    # Bind keyboard/mouse events to some controls.
+    commands = CommandManager()
+    commands.bind(controls["sort_order"].command, "F7")
 
     # def debug(self, text: str) -> None:
     #     """Override to silence."""
@@ -148,7 +158,9 @@ class CLI(BaseCLI):
         )
         self.add_default_to_help(arg)
 
-        tf2mon.controls.SortOrderControl.add_arguments_to(self.parser)
+        for control in self.controls.values():
+            control.add_arguments_to(self.parser)
+
         tf2mon.controls.LogLocationControl.add_arguments_to(self.parser)
 
         arg = self.parser.add_argument(

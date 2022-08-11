@@ -38,6 +38,8 @@ class Monitor:
 
         self.options = cli.options
         self.config = cli.config
+        self.commands = cli.commands
+        self.controls = cli.controls
 
         # Location of TF2 `exec` scripts.
         self.tf2_scripts_dir = Path(self.options.tf2_install_dir, "cfg", "user")
@@ -103,9 +105,6 @@ class Monitor:
         #
         self.spammer = Spammer(self)
 
-        #
-        self.commands: CommandManager = self.get_commands()
-
         # admin command handlers
         self.regex_list = self.admin.regex_list
 
@@ -130,7 +129,7 @@ class Monitor:
         self.ui = UI(self, win)
         self.commands.register_curses_handlers()
         tf2mon.control.Control.UI = self.ui
-        tf2mon.controls.SortOrderControl.start(self.options.sort_order)
+        self.controls["sort_order"].start(self.options.sort_order)
         tf2mon.controls.LogLocationControl.start(self.options.log_location)
         tf2mon.controls.LogLevelControl.start(self.options.verbose)
 
@@ -233,7 +232,6 @@ class Monitor:
         commands.bind(self._cmd_show_kd, "F4")
         commands.bind(self._cmd_user_panel, "F5")
         commands.bind(self._cmd_join_other_team, "F6")
-        commands.bind(tf2mon.controls.SortOrderControl.command, "F7")
         commands.bind(tf2mon.controls.LogLocationControl.command, "F8")
         commands.bind(tf2mon.controls.LogLevelControl.command, "Shift+F8")
         commands.bind(tf2mon.controls.ResetPaddingControl.command, "Ctrl+F8")

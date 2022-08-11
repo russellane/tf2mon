@@ -156,7 +156,7 @@ class UserManager:
                 for x in self._users_by_username.values()
                 if x.state == UserState.ACTIVE and x.team == team
             ],
-            key=tf2mon.controls.SortOrderControl.key,
+            key=self.monitor.controls["sort_order"].key,
         )
 
     def kick_userid(self, userid, attr):

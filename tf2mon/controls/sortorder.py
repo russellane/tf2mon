@@ -20,41 +20,37 @@ class SortOrderControl(Control):
         ENUM.USERNAME: lambda user: user.username_upper,
     }
 
-    @classmethod
-    def add_arguments_to(cls, parser) -> None:
+    def add_arguments_to(self, parser) -> None:
         """Add arguments for this control to `parser`."""
 
         arg = parser.add_argument(
             "--sort-order",
-            choices=[x.name for x in list(cls.ENUM)],
+            choices=[x.name for x in list(self.ENUM)],
             default="KD",
             help="choose sort order",
         )
         parser.get_default("cli").add_default_to_help(arg)
 
-    @classmethod
-    def start(cls, value: str) -> None:
+    def start(self, value: str) -> None:
         """Set to `value`."""
 
-        cls.TOGGLE.start(cls.ENUM.__dict__[value])
-        cls.UI.set_sort_order(cls.TOGGLE.value)
+        self.TOGGLE.start(self.ENUM.__dict__[value])
+        self.UI.set_sort_order(self.TOGGLE.value)
 
-    @classmethod
-    def command(cls) -> Command:
+    def command(self) -> Command:
         """Create and return `Command` object for this control."""
 
         return Command(
             name="TOGGLE-SORT",
-            status=lambda: cls.TOGGLE.value.name,
+            status=lambda: self.TOGGLE.value.name,
             handler=lambda m: (
-                cls.UI.set_sort_order(cls.TOGGLE.toggle),
-                cls.UI.update_display(),
+                self.UI.set_sort_order(self.TOGGLE.toggle),
+                self.UI.update_display(),
             ),
         )
 
-    @classmethod
     @property
-    def key(cls) -> callable:
+    def key(self) -> callable:
         """Docstring."""
 
-        return cls.SORT_KEYS[cls.TOGGLE.value]
+        return self.SORT_KEYS[self.TOGGLE.value]
