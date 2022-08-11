@@ -11,7 +11,6 @@ import libcurses
 from loguru import logger
 
 import tf2mon.control
-import tf2mon.controls
 from tf2mon.admin import Admin
 from tf2mon.command import Command, CommandManager
 from tf2mon.conlog import Conlog
@@ -130,8 +129,8 @@ class Monitor:
         self.commands.register_curses_handlers()
         tf2mon.control.Control.UI = self.ui
         self.controls["sort_order"].start(self.options.sort_order)
-        tf2mon.controls.LogLocationControl.start(self.options.log_location)
-        tf2mon.controls.LogLevelControl.start(self.options.verbose)
+        self.controls["log_location"].start(self.options.log_location)
+        self.controls["log_level"].start(self.options.verbose)
 
         self.reset_game()
 
@@ -232,9 +231,6 @@ class Monitor:
         commands.bind(self._cmd_show_kd, "F4")
         commands.bind(self._cmd_user_panel, "F5")
         commands.bind(self._cmd_join_other_team, "F6")
-        commands.bind(tf2mon.controls.LogLocationControl.command, "F8")
-        commands.bind(tf2mon.controls.LogLevelControl.command, "Shift+F8")
-        commands.bind(tf2mon.controls.ResetPaddingControl.command, "Ctrl+F8")
         commands.bind(self._cmd_grid_layout, "F9")
         commands.bind(self._cmd_show_debug, "KP_INS")
         commands.bind(self._cmd_single_step, "KP_DEL")

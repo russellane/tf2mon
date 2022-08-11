@@ -53,11 +53,17 @@ class CLI(BaseCLI):
     # All controls.
     controls = {
         "sort_order": tf2mon.controls.SortOrderControl(),
+        "log_location": tf2mon.controls.LogLocationControl(),
+        "log_level": tf2mon.controls.LogLevelControl(),
+        "reset_padding": tf2mon.controls.ResetPaddingControl(),
     }
 
     # Bind keyboard/mouse events to some controls.
     commands = CommandManager()
     commands.bind(controls["sort_order"].command, "F7")
+    commands.bind(controls["log_location"].command, "F8")
+    commands.bind(controls["log_level"].command, "Shift+F8")
+    commands.bind(controls["reset_padding"].command, "Ctrl+F8")
 
     # def debug(self, text: str) -> None:
     #     """Override to silence."""
@@ -160,8 +166,6 @@ class CLI(BaseCLI):
 
         for control in self.controls.values():
             control.add_arguments_to(self.parser)
-
-        tf2mon.controls.LogLocationControl.add_arguments_to(self.parser)
 
         arg = self.parser.add_argument(
             "con_logfile",

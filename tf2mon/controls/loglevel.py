@@ -10,6 +10,8 @@ from tf2mon.toggle import Toggle
 class LogLevelControl(Control):
     """Logging level."""
 
+    name = "TOGGLE-LOG-LEVEL"
+
     ENUM = Enum("_lvl_enum", "INFO DEBUG TRACE")
     TOGGLE = Toggle("_lvl_toggle", ENUM)
     ITEMS = {
@@ -18,22 +20,32 @@ class LogLevelControl(Control):
         ENUM.TRACE: "TRACE",  # "-vv"
     }
 
-    @classmethod
-    def start(cls, verbose: int) -> None:
+    #
+    def start(self, verbose: int) -> None:
         """Set logging level based on `--verbose`."""
 
-        cls.UI.logsink.set_verbose(verbose)
-        cls.TOGGLE.start(cls.ENUM.__dict__[cls.UI.logsink.level])
+        self.UI.logsink.set_verbose(verbose)
+        self.TOGGLE.start(self.ENUM.__dict__[self.UI.logsink.level])
 
-    @classmethod
-    def command(cls) -> Command:
+    def handler(self, _match) -> None:
+        """Handle event."""
+
+        self.UI.logsink.set_level(self.ITEMS[self.TOGGLE.cycle])
+        self.UI.show_status()
+
+    def status(self) -> str:
+        """Return value formatted for display."""
+
+        return self.TOGGLE.value.name
+
+    def add_arguments_to(self, parser) -> None:
+        """Not required; keeping vim -d happy."""
+
+    def command(self) -> Command:
         """Create and return `Command` object for this control."""
 
         return Command(
-            name="TOGGLE-LOG-LEVEL",
-            status=lambda: cls.TOGGLE.value.name,
-            handler=lambda m: (
-                cls.UI.logsink.set_level(cls.ITEMS[cls.TOGGLE.cycle]),
-                cls.UI.show_status(),
-            ),
+            name=self.name,
+            status=self.status,
+            handler=self.handler,
         )

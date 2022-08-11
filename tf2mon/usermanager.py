@@ -2,7 +2,6 @@
 
 from loguru import logger
 
-import tf2mon.controls
 from tf2mon.steamid import BOT_STEAMID, parse_steamid
 from tf2mon.user import Team, User, UserState
 
