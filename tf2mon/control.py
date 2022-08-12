@@ -15,6 +15,26 @@ class Control:
 
         return key.upper() if value else key
 
+class BoolControl(Control):
+    """Bool control."""
+
+    def handler(self, _match) -> None:
+        """Handle event."""
+
+        if self.monitor.toggling_enabled:
+            _ = self.toggle.toggle
+            self.monitor.ui.show_status()
+
+    def status(self) -> str:
+        """Return value formatted for display."""
+
+        return self.status_on_off(self.toggle.name, self.toggle.value)
+
+    @property
+    def value(self) -> bool:
+        """Return value."""
+
+        return self.toggle.value
 
 class ControlManager:
     """Collection of `Control`s."""
