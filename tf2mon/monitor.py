@@ -129,10 +129,10 @@ class Monitor:
         self.ui = UI(self, win)
         tf2mon.control.Control.monitor = self
         self.commands.register_curses_handlers()
-        self.controls["SortOrder"].start(self.options.sort_order)
-        self.controls["LogLocation"].start(self.options.log_location)
-        self.controls["LogLevel"].start(self.options.verbose)
-        self.controls["GridLayout"].start(self.options.layout)
+        self.controls["SortOrderControl"].start(self.options.sort_order)
+        self.controls["LogLocationControl"].start(self.options.log_location)
+        self.controls["LogLevelControl"].start(self.options.verbose)
+        self.controls["GridLayoutControl"].start(self.options.layout)
 
         self.reset_game()
 

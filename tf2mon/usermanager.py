@@ -154,7 +154,7 @@ class UserManager:
                 for x in self._users_by_username.values()
                 if x.state == UserState.ACTIVE and x.team == team
             ],
-            key=self.monitor.controls["SortOrder"].value,
+            key=self.monitor.controls["SortOrderControl"].value,
         )
 
     def kick_userid(self, userid, attr):

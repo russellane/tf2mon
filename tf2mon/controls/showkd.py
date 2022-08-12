@@ -1,6 +1,5 @@
 """Include kd-ratio in messages (`User.moniker`)."""
 
-from tf2mon.command import Command
 from tf2mon.control import Control
 from tf2mon.toggle import Toggle
 
@@ -29,12 +28,3 @@ class ShowKDControl(Control):
         """Return value."""
 
         return self.TOGGLE.value
-
-    def command(self) -> Command:
-        """Create and return `Command` object for this control."""
-
-        return Command(
-            name=self.name,
-            status=self.status,
-            handler=self.handler,
-        )

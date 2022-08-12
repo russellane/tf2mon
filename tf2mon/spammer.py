@@ -81,13 +81,13 @@ class Spammer:
     def taunt(self, victim, weapon, crit):
         """Make noise when operator kills opponent."""
 
-        if self.monitor.controls["TauntFlag"].value:
+        if self.monitor.controls["TauntFlagControl"].value:
             self._push_spam(self._crit_taunts if crit else self._no_crit_taunts, victim, weapon)
 
     def throe(self, killer, weapon, crit):
         """Make noise when opponent kills operator."""
 
-        if self.monitor.controls["ThroeFlag"].value:
+        if self.monitor.controls["ThroeFlagControl"].value:
             spam = self._crit_throes if crit else self._no_crit_throes
             suffix = (" +" + killer.perk) if killer.perk else ""
             self._push_spam(spam, killer, weapon, suffix)

@@ -1,6 +1,5 @@
 """Join other team control."""
 
-from tf2mon.command import Command
 from tf2mon.control import Control
 
 
@@ -19,13 +18,4 @@ class JoinOtherTeamControl(Control):
     def status(self) -> str:
         """Return value formatted for display."""
 
-        return self.monitor.my.team.name if self.monitor.my.team else "blu"
-
-    def command(self) -> Command:
-        """Create and return `Command` object for this control."""
-
-        return Command(
-            name=self.name,
-            status=self.status,
-            handler=self.handler,
-        )
+        return self.monitor.my.team.name  # if self.monitor.my.team else "blu"

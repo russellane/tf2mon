@@ -67,7 +67,7 @@ class UI:
         Called at init, on KEY_RESIZE events, and when layout changes.
         """
 
-        klass = self.monitor.controls["GridLayout"].value
+        klass = self.monitor.controls["GridLayoutControl"].value
         try:
             layout = klass(self.grid)
         except AssertionError:
@@ -205,7 +205,7 @@ class UI:
     def refresh_user(self, user):
         """Refresh user panel."""
 
-        ctrl = self.monitor.controls["UserPanel"]
+        ctrl = self.monitor.controls["UserPanelControl"]
 
         if self.user_win:
             if ctrl.TOGGLE.value == ctrl.ENUM.KICKS or (

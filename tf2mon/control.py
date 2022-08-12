@@ -1,7 +1,5 @@
 """Application control."""
 
-from loguru import logger
-
 from tf2mon.command import CommandManager
 
 
@@ -35,11 +33,9 @@ class ControlManager:
         return self.items[name]
 
     def add(self, control: Control) -> None:
-        """Add `control` to collection."""
+        """Add `control`, known as its class name, to collection."""
 
-        name = control.__class__.__name__.replace("Control", "")
-        logger.debug(f"Adding name={name!r} control={control!r}")
-        self.items[name] = control
+        self.items[control.__class__.__name__] = control
 
     def bind(self, name: str, keyspec: str = None, game_only: bool = False) -> None:
         """Bind the control known as `name` to `keyspec`."""
