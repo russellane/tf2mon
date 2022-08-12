@@ -14,7 +14,7 @@ class SortOrderControl(Control):
 
     ENUM = Enum("_so_enum", "STEAMID K KD CONN USERNAME")
     TOGGLE = Toggle("_so_toggle", ENUM)
-    SORT_KEYS = {
+    ITEMS = {
         ENUM.STEAMID: lambda user: (user.steamid.id if user.steamid else 0, user.username_upper),
         ENUM.K: lambda user: (-user.nkills, user.username_upper),
         ENUM.KD: lambda user: (-user.kdratio, -user.nkills, user.username_upper),
@@ -27,18 +27,26 @@ class SortOrderControl(Control):
         """Set to `value`."""
 
         self.TOGGLE.start(self.ENUM.__dict__[value])
-        self.UI.set_sort_order(self.TOGGLE.value)
+        self.monitor.ui.scoreboard.set_sort_order(self.TOGGLE.value.name)
+        assert self.TOGGLE.value.name == value
 
     def handler(self, _match) -> None:
         """Handle event."""
 
-        self.UI.set_sort_order(self.TOGGLE.toggle)
-        self.UI.update_display()
+        _ = self.TOGGLE.toggle
+        self.monitor.ui.scoreboard.set_sort_order(self.TOGGLE.value.name)
+        self.monitor.ui.update_display()
 
     def status(self) -> str:
         """Return value formatted for display."""
 
         return self.TOGGLE.value.name
+
+    @property
+    def value(self) -> callable:
+        """Return value."""
+
+        return self.ITEMS[self.TOGGLE.value]
 
     def add_arguments_to(self, parser) -> None:
         """Add arguments for this control to `parser`."""
@@ -59,9 +67,3 @@ class SortOrderControl(Control):
             status=self.status,
             handler=self.handler,
         )
-
-    @property
-    def key(self) -> callable:
-        """Docstring."""
-
-        return self.SORT_KEYS[self.TOGGLE.value]

@@ -18,7 +18,7 @@ class ResetPaddingControl(Control):
     def handler(self, _match) -> None:
         """Handle event."""
 
-        self.UI.logsink.reset_padding()
+        self.monitor.ui.logsink.reset_padding()
         logger.info("padding reset")
 
     def status(self) -> str:

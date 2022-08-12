@@ -59,9 +59,8 @@ class UserManager:
             if user.username and user.username != username:
                 logger.warning(f"{steamid.id} change username `{user.username}` to `{username}`")
                 user.username = username
-                if user.hacker:
-                    user.hacker.track_appearance(username)
-                    self.monitor.hackers.save_database()
+                if user.player:
+                    user.player.track_appearance(username)
 
             if user.userid and user.userid != userid:
                 logger.warning(f"{steamid.id} change userid `{user.userid}` to `{userid}`")
@@ -155,7 +154,7 @@ class UserManager:
                 for x in self._users_by_username.values()
                 if x.state == UserState.ACTIVE and x.team == team
             ],
-            key=self.monitor.controls["sort_order"].key,
+            key=self.monitor.controls["SortOrder"].value,
         )
 
     def kick_userid(self, userid, attr):

@@ -24,14 +24,14 @@ class LogLevelControl(Control):
     def start(self, verbose: int) -> None:
         """Set logging level based on `--verbose`."""
 
-        self.UI.logsink.set_verbose(verbose)
-        self.TOGGLE.start(self.ENUM.__dict__[self.UI.logsink.level])
+        self.monitor.ui.logsink.set_verbose(verbose)
+        self.TOGGLE.start(self.ENUM.__dict__[self.monitor.ui.logsink.level])
 
     def handler(self, _match) -> None:
         """Handle event."""
 
-        self.UI.logsink.set_level(self.ITEMS[self.TOGGLE.cycle])
-        self.UI.show_status()
+        self.monitor.ui.logsink.set_level(self.ITEMS[self.TOGGLE.cycle])
+        self.monitor.ui.show_status()
 
     def status(self) -> str:
         """Return value formatted for display."""

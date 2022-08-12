@@ -82,7 +82,7 @@ class MsgQueue:
             last_ack = f" ; echo {tf2mon.APPTAG}{self.name.upper()}-POP"
             first_ack = last_ack + "LEFT"
         else:
-            _echo = "say" if self.monitor.ui.debug_flag.value else "echo"
+            _echo = "say" if self.monitor.controls["DebugFlag"].value else "echo"
             last = first = f"{_echo} the {self.name} queue is empty."
             last_ack = first_ack = ""
 

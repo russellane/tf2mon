@@ -11,8 +11,8 @@ from loguru import logger
 
 import tf2mon.controls
 import tf2mon.layouts
-from tf2mon.command import CommandManager
 from tf2mon.conlog import Conlog
+from tf2mon.control import ControlManager
 from tf2mon.database import Session
 from tf2mon.hacker import HackerManager
 from tf2mon.logger import configure_logger
@@ -50,20 +50,27 @@ class CLI(BaseCLI):
         "player_name": "Bad Dad",
     }
 
-    # All controls.
-    controls = {
-        "sort_order": tf2mon.controls.SortOrderControl(),
-        "log_location": tf2mon.controls.LogLocationControl(),
-        "log_level": tf2mon.controls.LogLevelControl(),
-        "reset_padding": tf2mon.controls.ResetPaddingControl(),
-    }
+    # Create all controls.
+    controls = ControlManager()
+    for _ in tf2mon.controls.CLASS_LIST:
+        controls.add(_())
 
-    # Bind keyboard/mouse events to some controls.
-    commands = CommandManager()
-    commands.bind(controls["sort_order"].command, "F7")
-    commands.bind(controls["log_location"].command, "F8")
-    commands.bind(controls["log_level"].command, "Shift+F8")
-    commands.bind(controls["reset_padding"].command, "Ctrl+F8")
+    # Bind some controls.
+    controls.bind("Help", "F1")
+    controls.bind("Motd", "Ctrl+F1")
+    controls.bind("DebugFlag", "F2")
+    controls.bind("TauntFlag", "F3")
+    controls.bind("ThroeFlag", "Shift+F3")
+    controls.bind("ShowKD", "F4")
+    controls.bind("UserPanel", "F5")
+    controls.bind("JoinOtherTeam", "F6")
+    controls.bind("SortOrder", "F7")
+    controls.bind("LogLocation", "F8")
+    controls.bind("LogLevel", "Shift+F8")
+    controls.bind("ResetPadding", "Ctrl+F8")
+    controls.bind("GridLayout", "F9")
+    controls.bind("ShowDebug", "KP_INS")
+    controls.bind("SingleStep", "KP_DEL")
 
     # def debug(self, text: str) -> None:
     #     """Override to silence."""
@@ -156,16 +163,7 @@ class CLI(BaseCLI):
         )
         self.add_default_to_help(arg)
 
-        arg = self.parser.add_argument(
-            "--layout",
-            choices=[x.name for x in list(tf2mon.layouts.LAYOUT_ENUM)],
-            default=list(tf2mon.layouts.LAYOUT_ENUM)[0].name,
-            help="choose display layout",
-        )
-        self.add_default_to_help(arg)
-
-        for control in self.controls.values():
-            control.add_arguments_to(self.parser)
+        self.controls.add_arguments_to(self.parser)
 
         arg = self.parser.add_argument(
             "con_logfile",

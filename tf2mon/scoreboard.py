@@ -83,7 +83,7 @@ class Scoreboard:
     def set_sort_order(self, sort_order):
         """Set sort order."""
 
-        self._sort_col_x, self._sort_col_width = self._col_x_width_by_heading[sort_order.name]
+        self._sort_col_x, self._sort_col_width = self._col_x_width_by_heading[sort_order]
 
     def show_scores(self, team1, team2):
         """Display the scoreboards."""

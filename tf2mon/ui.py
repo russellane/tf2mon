@@ -5,25 +5,14 @@ import curses
 import os
 import sys
 import textwrap
-from enum import Enum
 
 import libcurses
 from loguru import logger
 
-import tf2mon.control
-import tf2mon.layouts
 from tf2mon.scoreboard import Scoreboard
-from tf2mon.toggle import Toggle
 from tf2mon.user import Team, UserState
 
 # from playsound import playsound
-
-
-# These would have been defined within class UI (because they're only used internally)
-# but `pydoc` doesn't display their values when defined there; it does when defined here.
-
-USER_PANEL = Enum("_user_panel_enum", "AUTO DUELS KICKS SPAMS")
-USER_PANEL.__doc__ = "Contents of user panel."
 
 
 class UI:
@@ -37,24 +26,6 @@ class UI:
         self.monitor = monitor
         self.notify_operator = False
         self.sound_alarm = False
-
-        # F2 Toggle Debug (control `say` vs `echo`).
-        self.debug_flag = Toggle("_df", [False, True])
-
-        # F3 Enable/disable Taunts and Throes.
-        self.taunt_flag = Toggle("_tf", [False, True])
-        self.throe_flag = Toggle("_gf", [True, False])
-
-        # F4 Include kd-ratio in messages (`User.moniker`)
-        self.show_kd = Toggle("_kd", [False, True])
-
-        # F5 Control User-panel display: Kicks, Spams, Duels and Auto.
-        self.user_panel = Toggle("_up", USER_PANEL)
-
-        # options when displaying USER_PANEL.USER
-        # self.show_actions = Toggle("_sa", [True, False])
-        # if self.show_actions.value:
-        #     lines.extend(user.actions)
 
         # create empty grid
         self.grid = libcurses.Grid(win)
@@ -72,12 +43,6 @@ class UI:
         self.status_win: curses.window = None
         self.cmdline_win: curses.window = None
 
-        # the windows may be placed in different arrangements.
-        self.grid_layout = Toggle("_grid_layout", tf2mon.layouts.LAYOUT_ENUM)
-        # enum from name
-        layout = tf2mon.layouts.LAYOUT_ENUM.__dict__[self.monitor.options.layout]
-        self.grid_layout.start(layout)
-
         # `register_builder` 1) calls `build_grid` and 2) configures
         # `KEY_RESIZE` to call it again each time that event occurs.
         self.grid.register_builder(self.build_grid)
@@ -88,23 +53,13 @@ class UI:
 
         self.colormap = libcurses.get_colormap()
         #
-        self._scoreboard = Scoreboard(
+        self.scoreboard = Scoreboard(
             self.monitor,
             self.scorewin_blu,
             self.colormap[Team.BLU.name],
             self.scorewin_red,
             self.colormap[Team.RED.name],
         )
-        self.set_sort_order = self._scoreboard.set_sort_order  # delegate
-
-    def cycle_grid_layout(self):
-        """Use next grid layout."""
-
-        _ = self.grid_layout.cycle
-
-        # self.grid.boxes = self.grid.boxes[:1]
-        self.grid.handle_term_resized_event()
-        self.show_status()
 
     def build_grid(self):
         """Add boxes to grid.
@@ -112,7 +67,7 @@ class UI:
         Called at init, on KEY_RESIZE events, and when layout changes.
         """
 
-        klass = tf2mon.layouts.LAYOUT_CLASSES[self.grid_layout.value]
+        klass = self.monitor.controls["GridLayout"].value
         try:
             layout = klass(self.grid)
         except AssertionError:
@@ -198,7 +153,7 @@ class UI:
         self.refresh_duels(self.monitor.me)
         self.refresh_user(self.monitor.me)
         # chatwin_blu and chatwin_red are rendered from gameplay/_playerchat
-        self._scoreboard.show_scores(
+        self.scoreboard.show_scores(
             team1=list(self.monitor.users.active_team_users(Team.BLU)),
             team2=list(self.monitor.users.active_team_users(Team.RED)),
         )
@@ -250,9 +205,11 @@ class UI:
     def refresh_user(self, user):
         """Refresh user panel."""
 
+        ctrl = self.monitor.controls["UserPanel"]
+
         if self.user_win:
-            if self.user_panel.value == USER_PANEL.KICKS or (
-                self.user_panel.value == USER_PANEL.AUTO and self.monitor.kicks.msgs
+            if ctrl.TOGGLE.value == ctrl.ENUM.KICKS or (
+                ctrl.TOGGLE.value == ctrl.ENUM.AUTO and self.monitor.kicks.msgs
             ):
                 self._show_lines(
                     "KICKS",
@@ -262,8 +219,8 @@ class UI:
                     self.user_win,
                 )
             #
-            elif self.user_panel.value == USER_PANEL.SPAMS or (
-                self.user_panel.value == USER_PANEL.AUTO and self.monitor.spams.msgs
+            elif ctrl.TOGGLE.value == ctrl.ENUM.SPAMS or (
+                ctrl.TOGGLE.value == ctrl.ENUM.AUTO and self.monitor.spams.msgs
             ):
                 self._show_lines(
                     "SPAMS",

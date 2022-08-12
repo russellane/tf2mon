@@ -12,7 +12,7 @@ from loguru import logger
 
 import tf2mon.control
 from tf2mon.admin import Admin
-from tf2mon.command import Command, CommandManager
+from tf2mon.command import Command
 from tf2mon.conlog import Conlog
 from tf2mon.database import Session
 from tf2mon.gameplay import Gameplay
@@ -37,8 +37,8 @@ class Monitor:
 
         self.options = cli.options
         self.config = cli.config
-        self.commands = cli.commands
         self.controls = cli.controls
+        self.commands = self.controls.commands
 
         # Location of TF2 `exec` scripts.
         self.tf2_scripts_dir = Path(self.options.tf2_install_dir, "cfg", "user")
@@ -112,7 +112,8 @@ class Monitor:
         self.regex_list += self.gameplay.regex_list
 
         # function key handlers
-        self.regex_list += self.commands.get_regex_list()
+        # self.add_commands()
+        # self.regex_list += self.commands.get_regex_list()
 
         #
         self.me = self.my = None
@@ -126,11 +127,12 @@ class Monitor:
     def _run(self, win):
         # Build user-interface
         self.ui = UI(self, win)
+        tf2mon.control.Control.monitor = self
         self.commands.register_curses_handlers()
-        tf2mon.control.Control.UI = self.ui
-        self.controls["sort_order"].start(self.options.sort_order)
-        self.controls["log_location"].start(self.options.log_location)
-        self.controls["log_level"].start(self.options.verbose)
+        self.controls["SortOrder"].start(self.options.sort_order)
+        self.controls["LogLocation"].start(self.options.log_location)
+        self.controls["LogLevel"].start(self.options.verbose)
+        self.controls["GridLayout"].start(self.options.layout)
 
         self.reset_game()
 
@@ -220,146 +222,33 @@ class Monitor:
 
         return self.conlog.is_eof or self.options.toggles or self.admin.is_single_stepping
 
-    def get_commands(self) -> CommandManager:
+    def add_commands(self):
         """Init and return `CommandManager`."""
 
-        commands = CommandManager()
-        commands.bind(self._cmd_help, "F1")
-        commands.bind(self._cmd_motd, "Ctrl+F1")
-        commands.bind(self._cmd_debug_flag, "F2")
-        commands.bind(self._cmd_taunt_flag, "F3")
-        commands.bind(self._cmd_show_kd, "F4")
-        commands.bind(self._cmd_user_panel, "F5")
-        commands.bind(self._cmd_join_other_team, "F6")
-        commands.bind(self._cmd_grid_layout, "F9")
-        commands.bind(self._cmd_show_debug, "KP_INS")
-        commands.bind(self._cmd_single_step, "KP_DEL")
-        commands.bind(self._cmd_kick_last_cheater, "[", game_only=True)
-        commands.bind(self._cmd_kick_last_racist, "]", game_only=True)
-        commands.bind(self._cmd_kick_last_suspect, "\\", game_only=True)
+        self.commands.bind(self._cmd_kick_last_cheater(), "[", game_only=True)
+        self.commands.bind(self._cmd_kick_last_racist(), "]", game_only=True)
+        self.commands.bind(self._cmd_kick_last_suspect(), "\\", game_only=True)
 
         # numpad
-        commands.bind(self._cmd_kicks_pop, "KP_HOME")
-        commands.bind(self._cmd_kicks_clear, "KP_LEFTARROW")
-        commands.bind(self._cmd_kicks_popleft, "KP_END")
-        commands.bind(self._cmd_pull, "KP_UPARROW")
-        commands.bind(self._cmd_clear_queues, "KP_5")
-        commands.bind(self._cmd_push, "KP_DOWNARROW")
-        commands.bind(self._cmd_spams_pop, "KP_PGUP")
-        commands.bind(self._cmd_spams_clear, "KP_RIGHTARROW")
-        commands.bind(self._cmd_spams_popleft, "KP_PGDN")
+        self.commands.bind(self._cmd_kicks_pop(), "KP_HOME")
+        self.commands.bind(self._cmd_kicks_clear(), "KP_LEFTARROW")
+        self.commands.bind(self._cmd_kicks_popleft(), "KP_END")
+        self.commands.bind(self._cmd_pull(), "KP_UPARROW")
+        self.commands.bind(self._cmd_clear_queues(), "KP_5")
+        self.commands.bind(self._cmd_push(), "KP_DOWNARROW")
+        self.commands.bind(self._cmd_spams_pop(), "KP_PGUP")
+        self.commands.bind(self._cmd_spams_clear(), "KP_RIGHTARROW")
+        self.commands.bind(self._cmd_spams_popleft(), "KP_PGDN")
 
         if self.tf2_scripts_dir.is_dir():
             logger.info(f"Writing `{self.path_static_script}`")
-            script = commands.as_tf2_exec_script(
+            script = self.commands.as_tf2_exec_script(
                 str(self.path_static_script.relative_to(self.tf2_scripts_dir.parent)),
                 str(self.path_dynamic_script.relative_to(self.tf2_scripts_dir.parent)),
             )
             self.path_static_script.write_text(script, encoding="utf-8")
         else:
             logger.warning(f"Not writing `{self.path_static_script}`")
-
-        return commands
-
-    @staticmethod
-    def _on_off(key, value):
-        return key.upper() if value else key
-
-    def _cmd_help(self) -> Command:
-
-        return Command(
-            name="HELP",
-            status=lambda: "HELP",
-            handler=lambda m: self.ui.show_help(),
-        )
-
-    def _cmd_motd(self) -> Command:
-
-        return Command(
-            name="MOTD",
-            handler=lambda m: self.ui.show_motd(),
-        )
-
-    def _cmd_debug_flag(self) -> Command:
-        def _action() -> None:
-            if self.toggling_enabled:
-                _ = self.ui.debug_flag.toggle
-                self.ui.show_status()
-
-        return Command(
-            name="TOGGLE-DEBUG",
-            status=lambda: self._on_off("debug", self.ui.debug_flag.value),
-            handler=lambda m: _action(),
-        )
-
-    def _cmd_taunt_flag(self) -> Command:
-        def _action() -> None:
-            if self.toggling_enabled:
-                _ = self.ui.taunt_flag.toggle
-                self.ui.show_status()
-
-        return Command(
-            name="TOGGLE-TAUNT",
-            status=lambda: self._on_off("taunt", self.ui.taunt_flag.value),
-            handler=lambda m: _action(),
-        )
-
-    def _cmd_show_kd(self) -> Command:
-        def _action() -> None:
-            if self.toggling_enabled:
-                _ = self.ui.show_kd.toggle
-                self.ui.show_status()
-
-        return Command(
-            name="TOGGLE-KD",
-            status=lambda: self._on_off("kd", self.ui.show_kd.value),
-            handler=lambda m: _action(),
-        )
-
-    def _cmd_user_panel(self) -> Command:
-        def _action() -> None:
-            _ = self.ui.user_panel.toggle
-            self.ui.update_display()
-
-        return Command(
-            name="TOGGLE-USER-PANEL",
-            status=lambda: self.ui.user_panel.value.name,
-            handler=lambda m: _action(),
-        )
-
-    def _cmd_join_other_team(self) -> Command:
-        def _action() -> None:
-            if self.toggling_enabled:
-                self.me.assign_team(self.my.opposing_team)
-                self.ui.update_display()
-
-        return Command(
-            name="SWITCH-MY-TEAM",
-            status=lambda: self.my.team.name if self.my.team else "blu",
-            handler=lambda m: _action(),
-        )
-
-    def _cmd_grid_layout(self) -> Command:
-
-        return Command(
-            name="TOGGLE-LAYOUT",
-            status=lambda: self.ui.grid_layout.value.name,
-            handler=lambda m: self.ui.cycle_grid_layout(),
-        )
-
-    def _cmd_single_step(self) -> Command:
-
-        return Command(
-            name="SINGLE-STEP",
-            handler=lambda m: self.admin.start_single_stepping(),
-        )
-
-    def _cmd_show_debug(self) -> Command:
-
-        return Command(
-            name="SHOW-DEBUG",
-            handler=lambda m: self.ui.show_debug(),
-        )
 
     def _cmd_kick_last_cheater(self) -> Command:
 

@@ -159,7 +159,7 @@ class User:
     def moniker(self):
         """Return name, optionally including his kill/death ratio."""
 
-        if not self.monitor.ui.show_kd.value:
+        if not self.monitor.controls["ShowKD"].value:
             return self._clean_username
 
         # pylint: disable=consider-using-f-string

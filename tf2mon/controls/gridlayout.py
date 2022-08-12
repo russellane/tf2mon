@@ -1,26 +1,27 @@
-"""Format of logger location field."""
+"""Grid layout control."""
 
 from enum import Enum
 
+import tf2mon.layouts
+from tf2mon.baselayout import BaseLayout
 from tf2mon.command import Command
 from tf2mon.control import Control
 from tf2mon.toggle import Toggle
 
 
-class LogLocationControl(Control):
-    """Format of logger location field."""
+class GridLayoutControl(Control):
+    """Grid layout control."""
 
-    name = "TOGGLE-LOG-LOCATION"
+    name = "TOGGLE-LAYOUT"
 
-    ENUM = Enum("_loc_enum", "MOD NAM THM THN FILE NUL")
-    TOGGLE = Toggle("_loc_toggle", ENUM)
+    ENUM = Enum("_layout_enum", "DFLT FULL TALL MRGD WIDE")
+    TOGGLE = Toggle("_layout_toggle", ENUM)
     ITEMS = {
-        ENUM.MOD: "{module}.{function}:{line}",
-        ENUM.NAM: "{name}.{function}:{line}",
-        ENUM.THM: "{thread.name}:{module}.{function}:{line}",
-        ENUM.THN: "{thread.name}:{name}.{function}:{line}",
-        ENUM.FILE: "{file}:{function}:{line}",
-        ENUM.NUL: None,
+        ENUM.DFLT: tf2mon.layouts.default.DefaultLayout,
+        ENUM.FULL: tf2mon.layouts.full.FullLayout,
+        ENUM.TALL: tf2mon.layouts.tall.TallLayout,
+        ENUM.MRGD: tf2mon.layouts.tallchat.TallChatLayout,
+        ENUM.WIDE: tf2mon.layouts.wide.WideLayout,
     }
 
     #
@@ -28,12 +29,13 @@ class LogLocationControl(Control):
         """Set to `value`."""
 
         self.TOGGLE.start(self.ENUM.__dict__[value])
-        self.monitor.ui.logsink.set_location(self.ITEMS[self.TOGGLE.value])
+        self.monitor.ui.grid.handle_term_resized_event()
 
     def handler(self, _match) -> None:
         """Handle event."""
 
-        self.monitor.ui.logsink.set_location(self.ITEMS[self.TOGGLE.cycle])
+        _ = self.TOGGLE.toggle
+        self.monitor.ui.grid.handle_term_resized_event()
         self.monitor.ui.show_status()
 
     def status(self) -> str:
@@ -41,14 +43,20 @@ class LogLocationControl(Control):
 
         return self.TOGGLE.value.name
 
+    @property
+    def value(self) -> type[BaseLayout]:
+        """Return value."""
+
+        return self.ITEMS[self.TOGGLE.value]
+
     def add_arguments_to(self, parser) -> None:
         """Add arguments for this control to `parser`."""
 
         arg = parser.add_argument(
-            "--log-location",
+            "--layout",
             choices=[x.name for x in list(self.ENUM)],
-            default="NUL",
-            help="choose format of logger location field",
+            default="MRGD",
+            help="choose display layout",
         )
         parser.get_default("cli").add_default_to_help(arg)
 
