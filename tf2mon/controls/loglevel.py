@@ -11,12 +11,12 @@ class LogLevelControl(Control):
 
     name = "TOGGLE-LOG-LEVEL"
 
-    ENUM = Enum("_lvl_enum", "INFO DEBUG TRACE")
-    TOGGLE = Toggle("_lvl_toggle", ENUM)
+    enum = Enum("_lvl_enum", "INFO DEBUG TRACE")
+    toggle = Toggle("_lvl_toggle", enum)
     ITEMS = {
-        ENUM.INFO: "INFO",  # ""
-        ENUM.DEBUG: "DEBUG",  # "-v"
-        ENUM.TRACE: "TRACE",  # "-vv"
+        enum.INFO: "INFO",  # ""
+        enum.DEBUG: "DEBUG",  # "-v"
+        enum.TRACE: "TRACE",  # "-vv"
     }
 
     #
@@ -24,15 +24,15 @@ class LogLevelControl(Control):
         """Set logging level based on `--verbose`."""
 
         self.monitor.ui.logsink.set_verbose(verbose)
-        self.TOGGLE.start(self.ENUM.__dict__[self.monitor.ui.logsink.level])
+        self.toggle.start(self.enum.__dict__[self.monitor.ui.logsink.level])
 
     def handler(self, _match) -> None:
         """Handle event."""
 
-        self.monitor.ui.logsink.set_level(self.ITEMS[self.TOGGLE.cycle])
+        self.monitor.ui.logsink.set_level(self.ITEMS[self.toggle.cycle])
         self.monitor.ui.show_status()
 
     def status(self) -> str:
         """Return value formatted for display."""
 
-        return self.TOGGLE.value.name
+        return self.toggle.value.name

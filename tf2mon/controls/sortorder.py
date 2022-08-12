@@ -11,48 +11,48 @@ class SortOrderControl(Control):
 
     name = "TOGGLE-SORT"
 
-    ENUM = Enum("_so_enum", "STEAMID K KD CONN USERNAME")
-    TOGGLE = Toggle("_so_toggle", ENUM)
+    enum = Enum("_so_enum", "STEAMID K KD CONN USERNAME")
+    toggle = Toggle("_so_toggle", enum)
     ITEMS = {
-        ENUM.STEAMID: lambda user: (user.steamid.id if user.steamid else 0, user.username_upper),
-        ENUM.K: lambda user: (-user.nkills, user.username_upper),
-        ENUM.KD: lambda user: (-user.kdratio, -user.nkills, user.username_upper),
-        ENUM.CONN: lambda user: (user.elapsed, user.username_upper),
-        ENUM.USERNAME: lambda user: user.username_upper,
+        enum.STEAMID: lambda user: (user.steamid.id if user.steamid else 0, user.username_upper),
+        enum.K: lambda user: (-user.nkills, user.username_upper),
+        enum.KD: lambda user: (-user.kdratio, -user.nkills, user.username_upper),
+        enum.CONN: lambda user: (user.elapsed, user.username_upper),
+        enum.USERNAME: lambda user: user.username_upper,
     }
 
     #
     def start(self, value: str) -> None:
         """Set to `value`."""
 
-        self.TOGGLE.start(self.ENUM.__dict__[value])
-        self.monitor.ui.scoreboard.set_sort_order(self.TOGGLE.value.name)
-        assert self.TOGGLE.value.name == value
+        self.toggle.start(self.enum.__dict__[value])
+        self.monitor.ui.scoreboard.set_sort_order(self.toggle.value.name)
+        assert self.toggle.value.name == value
 
     def handler(self, _match) -> None:
         """Handle event."""
 
-        _ = self.TOGGLE.toggle
-        self.monitor.ui.scoreboard.set_sort_order(self.TOGGLE.value.name)
+        _ = self.toggle.toggle
+        self.monitor.ui.scoreboard.set_sort_order(self.toggle.value.name)
         self.monitor.ui.update_display()
 
     def status(self) -> str:
         """Return value formatted for display."""
 
-        return self.TOGGLE.value.name
+        return self.toggle.value.name
 
     @property
     def value(self) -> callable:
         """Return value."""
 
-        return self.ITEMS[self.TOGGLE.value]
+        return self.ITEMS[self.toggle.value]
 
     def add_arguments_to(self, parser) -> None:
         """Add arguments for this control to `parser`."""
 
         arg = parser.add_argument(
             "--sort-order",
-            choices=[x.name for x in list(self.ENUM)],
+            choices=[x.name for x in list(self.enum)],
             default="KD",
             help="choose sort order",
         )

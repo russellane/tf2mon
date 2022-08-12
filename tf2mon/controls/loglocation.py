@@ -11,41 +11,41 @@ class LogLocationControl(Control):
 
     name = "TOGGLE-LOG-LOCATION"
 
-    ENUM = Enum("_loc_enum", "MOD NAM THM THN FILE NUL")
-    TOGGLE = Toggle("_loc_toggle", ENUM)
+    enum = Enum("_loc_enum", "MOD NAM THM THN FILE NUL")
+    toggle = Toggle("_loc_toggle", enum)
     ITEMS = {
-        ENUM.MOD: "{module}.{function}:{line}",
-        ENUM.NAM: "{name}.{function}:{line}",
-        ENUM.THM: "{thread.name}:{module}.{function}:{line}",
-        ENUM.THN: "{thread.name}:{name}.{function}:{line}",
-        ENUM.FILE: "{file}:{function}:{line}",
-        ENUM.NUL: None,
+        enum.MOD: "{module}.{function}:{line}",
+        enum.NAM: "{name}.{function}:{line}",
+        enum.THM: "{thread.name}:{module}.{function}:{line}",
+        enum.THN: "{thread.name}:{name}.{function}:{line}",
+        enum.FILE: "{file}:{function}:{line}",
+        enum.NUL: None,
     }
 
     #
     def start(self, value: str) -> None:
         """Set to `value`."""
 
-        self.TOGGLE.start(self.ENUM.__dict__[value])
-        self.monitor.ui.logsink.set_location(self.ITEMS[self.TOGGLE.value])
+        self.toggle.start(self.enum.__dict__[value])
+        self.monitor.ui.logsink.set_location(self.ITEMS[self.toggle.value])
 
     def handler(self, _match) -> None:
         """Handle event."""
 
-        self.monitor.ui.logsink.set_location(self.ITEMS[self.TOGGLE.cycle])
+        self.monitor.ui.logsink.set_location(self.ITEMS[self.toggle.cycle])
         self.monitor.ui.show_status()
 
     def status(self) -> str:
         """Return value formatted for display."""
 
-        return self.TOGGLE.value.name
+        return self.toggle.value.name
 
     def add_arguments_to(self, parser) -> None:
         """Add arguments for this control to `parser`."""
 
         arg = parser.add_argument(
             "--log-location",
-            choices=[x.name for x in list(self.ENUM)],
+            choices=[x.name for x in list(self.enum)],
             default="NUL",
             help="choose format of logger location field",
         )

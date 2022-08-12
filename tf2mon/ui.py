@@ -208,8 +208,8 @@ class UI:
         ctrl = self.monitor.controls["UserPanelControl"]
 
         if self.user_win:
-            if ctrl.TOGGLE.value == ctrl.ENUM.KICKS or (
-                ctrl.TOGGLE.value == ctrl.ENUM.AUTO and self.monitor.kicks.msgs
+            if ctrl.value == ctrl.enum.KICKS or (
+                ctrl.value == ctrl.enum.AUTO and self.monitor.kicks.msgs
             ):
                 self._show_lines(
                     "KICKS",
@@ -219,8 +219,8 @@ class UI:
                     self.user_win,
                 )
             #
-            elif ctrl.TOGGLE.value == ctrl.ENUM.SPAMS or (
-                ctrl.TOGGLE.value == ctrl.ENUM.AUTO and self.monitor.spams.msgs
+            elif ctrl.value == ctrl.enum.SPAMS or (
+                ctrl.value == ctrl.enum.AUTO and self.monitor.spams.msgs
             ):
                 self._show_lines(
                     "SPAMS",
