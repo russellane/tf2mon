@@ -10,8 +10,8 @@ class UserPanelControl(Control):
     """User panel contents control."""
 
     name = "TOGGLE-USER-PANEL"
-    enum = Enum("_user_panel_enum", "AUTO DUELS KICKS SPAMS")
-    toggle = Toggle("_user_panel_toggle", enum)
+    enum = Enum(f"_e_{name}", "AUTO DUELS KICKS SPAMS")
+    toggle = Toggle(f"_t_{name}", enum)
 
     def handler(self, _match) -> None:
         """Handle event."""

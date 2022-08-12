@@ -2,18 +2,17 @@
 
 from enum import Enum
 
-from tf2mon.control import Control
+from tf2mon.control import CycleControl
 from tf2mon.toggle import Toggle
 
 
-class LogLocationControl(Control):
+class LogLocationControl(CycleControl):
     """Format of logger location field."""
 
     name = "TOGGLE-LOG-LOCATION"
-
-    enum = Enum("_loc_enum", "MOD NAM THM THN FILE NUL")
-    toggle = Toggle("_loc_toggle", enum)
-    ITEMS = {
+    enum = Enum(f"_e_{name}", "MOD NAM THM THN FILE NUL")
+    toggle = Toggle(f"_t_{name}", enum)
+    items = {
         enum.MOD: "{module}.{function}:{line}",
         enum.NAM: "{name}.{function}:{line}",
         enum.THM: "{thread.name}:{module}.{function}:{line}",
@@ -27,12 +26,12 @@ class LogLocationControl(Control):
         """Set to `value`."""
 
         self.toggle.start(self.enum.__dict__[value])
-        self.monitor.ui.logsink.set_location(self.ITEMS[self.toggle.value])
+        self.monitor.ui.logsink.set_location(self.items[self.toggle.value])
 
     def handler(self, _match) -> None:
         """Handle event."""
 
-        self.monitor.ui.logsink.set_location(self.ITEMS[self.toggle.cycle])
+        self.monitor.ui.logsink.set_location(self.items[self.toggle.cycle])
         self.monitor.ui.show_status()
 
     def status(self) -> str:

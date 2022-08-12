@@ -2,18 +2,17 @@
 
 from enum import Enum
 
-from tf2mon.control import Control
+from tf2mon.control import CycleControl
 from tf2mon.toggle import Toggle
 
 
-class LogLevelControl(Control):
+class LogLevelControl(CycleControl):
     """Logging level."""
 
     name = "TOGGLE-LOG-LEVEL"
-
-    enum = Enum("_lvl_enum", "INFO DEBUG TRACE")
-    toggle = Toggle("_lvl_toggle", enum)
-    ITEMS = {
+    enum = Enum(f"_e_{name}", "INFO DEBUG TRACE")
+    toggle = Toggle(f"_t_{name}", enum)
+    items = {
         enum.INFO: "INFO",  # ""
         enum.DEBUG: "DEBUG",  # "-v"
         enum.TRACE: "TRACE",  # "-vv"
@@ -29,10 +28,5 @@ class LogLevelControl(Control):
     def handler(self, _match) -> None:
         """Handle event."""
 
-        self.monitor.ui.logsink.set_level(self.ITEMS[self.toggle.cycle])
+        self.monitor.ui.logsink.set_level(self.items[self.toggle.cycle])
         self.monitor.ui.show_status()
-
-    def status(self) -> str:
-        """Return value formatted for display."""
-
-        return self.toggle.value.name

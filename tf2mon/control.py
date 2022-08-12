@@ -34,6 +34,24 @@ class BoolControl(Control):
         return self.toggle.value
 
 
+class CycleControl(Control):
+    """Cycle control."""
+
+    toggle = None
+    items = {}
+
+    def status(self) -> str:
+        """Return value formatted for display."""
+
+        return self.toggle.value.name
+
+    @property
+    def value(self) -> callable:
+        """Return value."""
+
+        return self.items[self.toggle.value]
+
+
 class ControlManager:
     """Collection of `Control`s."""
 
