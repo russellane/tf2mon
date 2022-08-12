@@ -9,14 +9,11 @@ class Control:
     # Controls are created before the monitor and its ui.
     monitor = None
 
-    @staticmethod
-    def status_on_off(key, value):
-        """Docstring."""
-
-        return key.upper() if value else key
 
 class BoolControl(Control):
     """Bool control."""
+
+    toggle = None
 
     def handler(self, _match) -> None:
         """Handle event."""
@@ -28,13 +25,14 @@ class BoolControl(Control):
     def status(self) -> str:
         """Return value formatted for display."""
 
-        return self.status_on_off(self.toggle.name, self.toggle.value)
+        return self.toggle.name.upper() if self.toggle.value else self.toggle.name
 
     @property
     def value(self) -> bool:
         """Return value."""
 
         return self.toggle.value
+
 
 class ControlManager:
     """Collection of `Control`s."""
