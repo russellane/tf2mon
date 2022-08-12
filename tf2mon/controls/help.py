@@ -1,10 +1,10 @@
-"""Debug flag (control `say` vs `echo`)."""
+"""Display Help."""
 
 from tf2mon.control import Control
 
 
 class HelpControl(Control):
-    """Debug flag (control `say` vs `echo`)."""
+    """Display Help."""
 
     name = "HELP"
 

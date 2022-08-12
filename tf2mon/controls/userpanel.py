@@ -1,4 +1,4 @@
-"""User panel contents control."""
+"""Cycle contents of User Panel."""
 
 from enum import Enum
 
@@ -7,7 +7,7 @@ from tf2mon.toggle import Toggle
 
 
 class UserPanelControl(Control):
-    """User panel contents control."""
+    """Cycle contents of User Panel."""
 
     name = "TOGGLE-USER-PANEL"
     enum = Enum(f"_e_{name}", "AUTO DUELS KICKS SPAMS")

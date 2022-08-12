@@ -1,10 +1,10 @@
-"""Show debug control."""
+"""Show debugging."""
 
 from tf2mon.control import Control
 
 
 class ShowDebugControl(Control):
-    """Show debug control."""
+    """Show debugging."""
 
     name = "SHOW-DEBUG"
 
