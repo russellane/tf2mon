@@ -85,6 +85,7 @@ class Player(Base):
         player.setattrs(attrs)
         player.track_appearance(name)
         Session().add(player)
+        return player
 
     def track_appearance(self, name):
         """Record user appearing as given name."""

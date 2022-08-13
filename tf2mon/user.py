@@ -295,7 +295,7 @@ class User:
             logger.log(self.display_level, f"{self} created {self.player}")
             self.pending_attrs = None
 
-        if self.player.is_banned():
+        if self.player.is_banned:
             self.do_kick()
 
     def do_kick(self) -> None:
