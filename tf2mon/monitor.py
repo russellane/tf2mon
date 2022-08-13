@@ -12,7 +12,6 @@ from loguru import logger
 
 import tf2mon.control
 from tf2mon.admin import Admin
-from tf2mon.command import Command
 from tf2mon.conlog import Conlog
 from tf2mon.database import Session
 from tf2mon.gameplay import Gameplay
@@ -224,11 +223,6 @@ class Monitor:
     def add_commands(self):
         """Init and return `CommandManager`."""
 
-        # numpad
-        self.commands.bind(self._cmd_pull(), "KP_UPARROW")
-        self.commands.bind(self._cmd_clear_queues(), "KP_5")
-        self.commands.bind(self._cmd_push(), "KP_DOWNARROW")
-
         if self.tf2_scripts_dir.is_dir():
             logger.info(f"Writing `{self.path_static_script}`")
             script = self.commands.as_tf2_exec_script(
@@ -257,32 +251,3 @@ class Monitor:
     #        oldest --> | popleft |  push   | popleft |
     #                   |         |         |         |
     #                   +-----------------------------+
-
-    def _cmd_pull(self) -> Command:
-
-        return Command(
-            name="PULL",
-            # handler=lambda m: logger.trace('pull'),
-            action="tf2mon_pull",
-        )
-
-    def _cmd_clear_queues(self) -> Command:
-
-        return Command(
-            name="CLEAR-QUEUES",
-            handler=lambda m: (
-                self.kicks.clear(),
-                self.ui.refresh_kicks(),
-                self.spams.clear(),
-                self.ui.refresh_spams(),
-            ),
-            action="tf2mon_clear_queues",
-        )
-
-    def _cmd_push(self) -> Command:
-
-        return Command(
-            name="PUSH",
-            # handler=lambda m: logger.trace('push'),
-            action="tf2mon_push",
-        )

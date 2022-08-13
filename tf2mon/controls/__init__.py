@@ -1,5 +1,6 @@
 """Application controls."""
 
+from tf2mon.controls.admin import ClearQueuesControl, PullControl, PushControl
 from tf2mon.controls.debugflag import DebugFlagControl
 from tf2mon.controls.gridlayout import GridLayoutControl
 from tf2mon.controls.help import HelpControl
@@ -49,4 +50,7 @@ CLASS_LIST = [
     SpamsPopControl,
     SpamsClearControl,
     SpamsPopleftControl,
+    ClearQueuesControl,
+    PullControl,
+    PushControl,
 ]
