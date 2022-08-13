@@ -4,6 +4,11 @@ from tf2mon.controls.debugflag import DebugFlagControl
 from tf2mon.controls.gridlayout import GridLayoutControl
 from tf2mon.controls.help import HelpControl
 from tf2mon.controls.joinotherteam import JoinOtherTeamControl
+from tf2mon.controls.kicklast import (
+    KickLastCheaterControl,
+    KickLastRacistControl,
+    KickLastSuspectControl,
+)
 from tf2mon.controls.loglevel import LogLevelControl
 from tf2mon.controls.loglocation import LogLocationControl
 from tf2mon.controls.motd import MotdControl
@@ -33,4 +38,7 @@ CLASS_LIST = [
     GridLayoutControl,
     ShowDebugControl,
     SingleStepControl,
+    KickLastCheaterControl,
+    KickLastRacistControl,
+    KickLastSuspectControl,
 ]

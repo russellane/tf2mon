@@ -20,6 +20,9 @@ class Control:
     #
     cli: BaseCLI = None
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.__dict__})"
+
     def add_fkey_to_help(self, arg: argparse.Action) -> None:
         """Add 'FKey.label` to help text for `arg`."""
 

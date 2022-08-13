@@ -17,7 +17,6 @@ from tf2mon.conlog import Conlog
 from tf2mon.database import Session
 from tf2mon.gameplay import Gameplay
 from tf2mon.msgqueue import MsgQueueManager
-from tf2mon.player import Player
 from tf2mon.regex import Regex
 from tf2mon.role import Role
 from tf2mon.spammer import Spammer
@@ -225,10 +224,6 @@ class Monitor:
     def add_commands(self):
         """Init and return `CommandManager`."""
 
-        self.commands.bind(self._cmd_kick_last_cheater(), "[", game_only=True)
-        self.commands.bind(self._cmd_kick_last_racist(), "]", game_only=True)
-        self.commands.bind(self._cmd_kick_last_suspect(), "\\", game_only=True)
-
         # numpad
         self.commands.bind(self._cmd_kicks_pop(), "KP_HOME")
         self.commands.bind(self._cmd_kicks_clear(), "KP_LEFTARROW")
@@ -249,30 +244,6 @@ class Monitor:
             self.path_static_script.write_text(script, encoding="utf-8")
         else:
             logger.warning(f"Not writing `{self.path_static_script}`")
-
-    def _cmd_kick_last_cheater(self) -> Command:
-
-        return Command(
-            name="KICK-LAST-CHEATER",
-            status=lambda: Player.CHEATER,
-            handler=lambda m: self.kick_my_last_killer(Player.CHEATER),
-        )
-
-    def _cmd_kick_last_racist(self) -> Command:
-
-        return Command(
-            name="KICK-LAST-RACIST",
-            status=lambda: Player.RACIST,
-            handler=lambda m: self.kick_my_last_killer(Player.RACIST),
-        )
-
-    def _cmd_kick_last_suspect(self) -> Command:
-
-        return Command(
-            name="KICK-LAST-SUSPECT",
-            status=lambda: Player.SUSPECT,
-            handler=lambda m: self.kick_my_last_killer(Player.SUSPECT),
-        )
 
     # --------------------------------------------------------------------------
     # Numpad

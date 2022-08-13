@@ -71,6 +71,9 @@ class CLI(BaseCLI):
     controls.bind("GridLayoutControl", "F9")
     controls.bind("ShowDebugControl", "KP_INS")
     controls.bind("SingleStepControl", "KP_DEL")
+    controls.bind("KickLastCheaterControl", "[", game_only=True)
+    controls.bind("KickLastRacistControl", "]", game_only=True)
+    controls.bind("KickLastSuspectControl", "\\", game_only=True)
 
     # def debug(self, text: str) -> None:
     #     """Override to silence."""

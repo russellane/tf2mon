@@ -1,0 +1,42 @@
+"""Kick last killer."""
+
+from tf2mon.control import Control
+from tf2mon.player import Player
+
+
+class KickLastControl(Control):
+    """Kick last killer."""
+
+    name = "KICK-LAST-CHEATER"
+    attr = None
+
+    def handler(self, _match) -> None:
+        """Handle event."""
+
+        self.monitor.kick_my_last_killer(self.attr)
+
+    def status(self) -> str:
+        """Return value formatted for display."""
+
+        return self.attr
+
+
+class KickLastCheaterControl(KickLastControl):
+    """Kick last killer as a cheater."""
+
+    name = "KICK-LAST-CHEATER"
+    attr = Player.CHEATER
+
+
+class KickLastRacistControl(KickLastControl):
+    """Kick last killer as a cheater."""
+
+    name = "KICK-LAST-RACIST"
+    attr = Player.RACIST
+
+
+class KickLastSuspectControl(KickLastControl):
+    """Kick last killer as a cheater."""
+
+    name = "KICK-LAST-SUSPECT"
+    attr = Player.SUSPECT
