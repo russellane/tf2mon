@@ -77,6 +77,9 @@ class CLI(BaseCLI):
     controls.bind("KicksPopControl", "KP_HOME")
     controls.bind("KicksClearControl", "KP_LEFTARROW")
     controls.bind("KicksPopleftControl", "KP_END")
+    controls.bind("SpamsPopControl", "KP_PGUP")
+    controls.bind("SpamsClearControl", "KP_RIGHTARROW")
+    controls.bind("SpamsPopleftControl", "KP_PGDN")
 
     # def debug(self, text: str) -> None:
     #     """Override to silence."""

@@ -228,9 +228,6 @@ class Monitor:
         self.commands.bind(self._cmd_pull(), "KP_UPARROW")
         self.commands.bind(self._cmd_clear_queues(), "KP_5")
         self.commands.bind(self._cmd_push(), "KP_DOWNARROW")
-        self.commands.bind(self._cmd_spams_pop(), "KP_PGUP")
-        self.commands.bind(self._cmd_spams_clear(), "KP_RIGHTARROW")
-        self.commands.bind(self._cmd_spams_popleft(), "KP_PGDN")
 
         if self.tf2_scripts_dir.is_dir():
             logger.info(f"Writing `{self.path_static_script}`")
@@ -288,37 +285,4 @@ class Monitor:
             name="PUSH",
             # handler=lambda m: logger.trace('push'),
             action="tf2mon_push",
-        )
-
-    def _cmd_spams_pop(self) -> Command:
-
-        return Command(
-            name="SPAMS-POP",
-            handler=lambda m: (
-                self.spams.pop(),
-                self.ui.refresh_spams(),
-            ),
-            action="tf2mon_spams_pop",
-        )
-
-    def _cmd_spams_clear(self) -> Command:
-
-        return Command(
-            name="SPAMS-CLEAR",
-            handler=lambda m: (
-                self.spams.clear(),
-                self.ui.refresh_spams(),
-            ),
-            action="tf2mon_spams_clear",
-        )
-
-    def _cmd_spams_popleft(self) -> Command:
-
-        return Command(
-            name="SPAMS-POPLEFT",
-            handler=lambda m: (
-                self.spams.popleft(),
-                self.ui.refresh_spams(),
-            ),
-            action="tf2mon_spams_popleft",
         )

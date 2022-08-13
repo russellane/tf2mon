@@ -3,19 +3,8 @@
 from tf2mon.control import Control
 
 
-class KicksControl(Control):
-    """Kicks queue control."""
-
-    name = None
-    attr = None
-
-    def handler(self, _match) -> None:
-        """Handle event."""
-
-        self.monitor.kick_my_last_killer(self.attr)
-
-class KicksPopControl(KicksControl):
-    """Consume last/latest kicks queue message."""
+class KicksPopControl(Control):
+    """Pop last/latest kicks queue message."""
 
     name = "KICKS-POP"
     action = "tf2mon_kicks_pop"
@@ -27,8 +16,8 @@ class KicksPopControl(KicksControl):
         self.monitor.ui.refresh_kicks()
 
 
-class KicksClearControl(KicksControl):
-    """Consume last/latest kicks queue message."""
+class KicksClearControl(Control):
+    """Clear kicks queue."""
 
     name = "KICKS-CLEAR"
     action = "tf2mon_kicks_clear"
@@ -40,8 +29,8 @@ class KicksClearControl(KicksControl):
         self.monitor.ui.refresh_kicks()
 
 
-class KicksPopleftControl(KicksControl):
-    """Consume last/latest kicks queue message."""
+class KicksPopleftControl(Control):
+    """Pop first/oldest kicks queue message."""
 
     name = "KICKS-POPLEFT"
     action = "tf2mon_kicks_popleft"

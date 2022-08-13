@@ -18,6 +18,7 @@ from tf2mon.controls.showdebug import ShowDebugControl
 from tf2mon.controls.showkd import ShowKDControl
 from tf2mon.controls.singlestep import SingleStepControl
 from tf2mon.controls.sortorder import SortOrderControl
+from tf2mon.controls.spams import SpamsClearControl, SpamsPopControl, SpamsPopleftControl
 from tf2mon.controls.tauntflag import TauntFlagControl
 from tf2mon.controls.throeflag import ThroeFlagControl
 from tf2mon.controls.userpanel import UserPanelControl
@@ -45,4 +46,7 @@ CLASS_LIST = [
     KicksPopControl,
     KicksClearControl,
     KicksPopleftControl,
+    SpamsPopControl,
+    SpamsClearControl,
+    SpamsPopleftControl,
 ]
