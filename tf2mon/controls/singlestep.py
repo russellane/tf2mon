@@ -11,7 +11,5 @@ class SingleStepControl(Control):
     name = "SINGLE-STEP"
 
     def handler(self, _match) -> None:
-        """Handle event."""
-
         self.monitor.admin.start_single_stepping()
         logger.info("single-step")

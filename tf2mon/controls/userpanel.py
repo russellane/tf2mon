@@ -14,19 +14,13 @@ class UserPanelControl(Control):
     toggle = Toggle(f"_t_{name}", enum)
 
     def handler(self, _match) -> None:
-        """Handle event."""
-
         if self.monitor.toggling_enabled:
             _ = self.toggle.toggle
             self.monitor.ui.update_display()
 
     def status(self) -> str:
-        """Return value formatted for display."""
-
         return self.toggle.value.name
 
     @property
     def value(self) -> bool:
-        """Return value."""
-
         return self.toggle.value

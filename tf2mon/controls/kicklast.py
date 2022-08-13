@@ -11,13 +11,9 @@ class KickLastControl(Control):
     attr = None
 
     def handler(self, _match) -> None:
-        """Handle event."""
-
         self.monitor.kick_my_last_killer(self.attr)
 
     def status(self) -> str:
-        """Return value formatted for display."""
-
         return self.attr
 
 

@@ -22,22 +22,16 @@ class SortOrderControl(CycleControl):
 
     #
     def start(self, value: str) -> None:
-        """Set to `value`."""
-
         self.toggle.start(self.enum.__dict__[value])
         self.monitor.ui.scoreboard.set_sort_order(self.toggle.value.name)
         assert self.toggle.value.name == value
 
     def handler(self, _match) -> None:
-        """Handle event."""
-
         _ = self.toggle.toggle
         self.monitor.ui.scoreboard.set_sort_order(self.toggle.value.name)
         self.monitor.ui.update_display()
 
     def add_arguments_to(self, parser) -> None:
-        """Add arguments for this control to `parser`."""
-
         arg = parser.add_argument(
             "--sort-order",
             choices=[x.name for x in list(self.enum)],

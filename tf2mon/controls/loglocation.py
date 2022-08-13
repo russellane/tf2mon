@@ -23,25 +23,17 @@ class LogLocationControl(CycleControl):
 
     #
     def start(self, value: str) -> None:
-        """Set to `value`."""
-
         self.toggle.start(self.enum.__dict__[value])
         self.monitor.ui.logsink.set_location(self.items[self.toggle.value])
 
     def handler(self, _match) -> None:
-        """Handle event."""
-
         self.monitor.ui.logsink.set_location(self.items[self.toggle.cycle])
         self.monitor.ui.show_status()
 
     def status(self) -> str:
-        """Return value formatted for display."""
-
         return self.toggle.value.name
 
     def add_arguments_to(self, parser) -> None:
-        """Add arguments for this control to `parser`."""
-
         arg = parser.add_argument(
             "--log-location",
             choices=[x.name for x in list(self.enum)],

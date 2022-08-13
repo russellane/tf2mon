@@ -10,8 +10,6 @@ class KicksPopControl(Control):
     action = "tf2mon_kicks_pop"
 
     def handler(self, _match) -> None:
-        """Handle event."""
-
         self.monitor.kicks.pop()
         self.monitor.ui.refresh_kicks()
 
@@ -23,8 +21,6 @@ class KicksClearControl(Control):
     action = "tf2mon_kicks_clear"
 
     def handler(self, _match) -> None:
-        """Handle event."""
-
         self.monitor.kicks.clear()
         self.monitor.ui.refresh_kicks()
 
@@ -36,7 +32,5 @@ class KicksPopleftControl(Control):
     action = "tf2mon_kicks_popleft"
 
     def handler(self, _match) -> None:
-        """Handle event."""
-
         self.monitor.kicks.popleft()
         self.monitor.ui.refresh_kicks()

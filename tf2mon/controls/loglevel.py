@@ -26,7 +26,5 @@ class LogLevelControl(CycleControl):
         self.toggle.start(self.enum.__dict__[self.monitor.ui.logsink.level])
 
     def handler(self, _match) -> None:
-        """Handle event."""
-
         self.monitor.ui.logsink.set_level(self.items[self.toggle.cycle])
         self.monitor.ui.show_status()

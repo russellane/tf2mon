@@ -155,19 +155,32 @@ By default, `tf2mon` starts reading `con_logfile` from its end
 #### Function Keys
   These function keys are available in-game and in the monitor:
   
-      F1 Display help.
-      F2 Toggle Debug (control `say` vs `echo`).
-      F3 Enable/disable Taunts and Throes.
-      F4 Include kd-ratio in messages.
-      F5 Control User-panel display: Kicks, Spams, Duels and Auto.
-      F6 Join other team.
-      F7 Change scoreboard sort column.
-      F8 Change logger location format.
-      F9 Change grid layout.
-      [  Kick last killer as cheater.
-      ]  Kick last killer as racist.
-      \  Mark last killer as suspect.
-      KP_DEL Begin single-stepping.
+                 F1 Display Help.
+            CTRL+F1 Display Message of the Day.
+                 F2 Enable/disable debug (use `ECHO` or `SAY`).
+                 F3 Enable/disable `Taunt` messages.
+           SHIFT+F3 Enable/disable `Throe` messages.
+                 F4 Include `Kill/Death ratio` in `User.moniker`.
+                 F5 Cycle contents of User Panel.
+                 F6 Join Other Team.
+                 F7 Cycle scoreboard Sort column.
+                 F8 Cycle logger `location` format.
+           SHIFT+F8 Cycle logger `level`.
+            CTRL+F8 Reset logger `padding`.
+                 F9 Cycle grid layout.
+             KP_INS Show debugging.
+             KP_DEL Enable/disable `Single-Step`.
+                  [ Kick last killer as `cheater`.
+                  ] Kick last killer as `racist`.
+                  \ Mark last killer as `suspect`.
+            KP_HOME Pop last/latest kicks queue message.
+       KP_LEFTARROW Clear kicks queue.
+             KP_END Pop first/oldest kicks queue message.
+            KP_PGUP Pop last/latest spams queue message.
+      KP_RIGHTARROW Clear spams queue.
+            KP_PGDN Pop first/oldest spams queue message.
+               KP_5 Clear kicks and spams queues.
+       KP_DOWNARROW Push `steamids` from game to monitor.
 
 #### Where to Operate
   `tf2mon` works by reading the `con_logfile` to which `TF2` logs

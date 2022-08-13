@@ -10,8 +10,6 @@ class SpamsPopControl(Control):
     action = "tf2mon_spams_pop"
 
     def handler(self, _match) -> None:
-        """Handle event."""
-
         self.monitor.spams.pop()
         self.monitor.ui.refresh_spams()
 
@@ -23,8 +21,6 @@ class SpamsClearControl(Control):
     action = "tf2mon_spams_clear"
 
     def handler(self, _match) -> None:
-        """Handle event."""
-
         self.monitor.spams.clear()
         self.monitor.ui.refresh_spams()
 
@@ -36,7 +32,5 @@ class SpamsPopleftControl(Control):
     action = "tf2mon_spams_popleft"
 
     def handler(self, _match) -> None:
-        """Handle event."""
-
         self.monitor.spams.popleft()
         self.monitor.ui.refresh_spams()

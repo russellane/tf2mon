@@ -27,21 +27,15 @@ class GridLayoutControl(CycleControl):
 
     #
     def start(self, value: str) -> None:
-        """Set to `value`."""
-
         self.toggle.start(self.enum.__dict__[value])
         self.monitor.ui.grid.handle_term_resized_event()
 
     def handler(self, _match) -> None:
-        """Handle event."""
-
         _ = self.toggle.toggle
         self.monitor.ui.grid.handle_term_resized_event()
         self.monitor.ui.show_status()
 
     def add_arguments_to(self, parser) -> None:
-        """Add arguments for this control to `parser`."""
-
         arg = parser.add_argument(
             "--layout",
             choices=[x.name for x in list(self.enum)],

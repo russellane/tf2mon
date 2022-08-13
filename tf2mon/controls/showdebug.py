@@ -9,6 +9,4 @@ class ShowDebugControl(Control):
     name = "SHOW-DEBUG"
 
     def handler(self, _match) -> None:
-        """Handle event."""
-
         self.monitor.ui.show_debug()
