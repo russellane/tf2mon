@@ -36,7 +36,6 @@ class Monitor:
         self.options = cli.options
         self.config = cli.config
         self.controls = cli.controls
-        self.commands = self.controls.commands
 
         # Location of TF2 `exec` scripts.
         self.tf2_scripts_dir = Path(self.options.tf2_install_dir, "cfg", "user")
@@ -110,8 +109,8 @@ class Monitor:
         self.regex_list += self.gameplay.regex_list
 
         # function key handlers
-        # self.add_commands()
-        # self.regex_list += self.commands.get_regex_list()
+        self.write_tf2_exec_script()
+        self.regex_list += self.controls.get_regex_list()
 
         #
         self.me = self.my = None
@@ -123,10 +122,10 @@ class Monitor:
         libcurses.wrapper(self._run)
 
     def _run(self, win):
-        # Build user-interface
+
         self.ui = UI(self, win)
         tf2mon.control.Control.monitor = self
-        self.commands.register_curses_handlers()
+        self.controls.register_curses_handlers()
         self.controls["SortOrderControl"].start(self.options.sort_order)
         self.controls["LogLocationControl"].start(self.options.log_location)
         self.controls["LogLevelControl"].start(self.options.verbose)
@@ -220,12 +219,12 @@ class Monitor:
 
         return self.conlog.is_eof or self.options.toggles or self.admin.is_single_stepping
 
-    def add_commands(self):
-        """Init and return `CommandManager`."""
+    def write_tf2_exec_script(self):
+        """Write tf2 exec script."""
 
         if self.tf2_scripts_dir.is_dir():
             logger.info(f"Writing `{self.path_static_script}`")
-            script = self.commands.as_tf2_exec_script(
+            script = self.controls.commands.as_tf2_exec_script(
                 str(self.path_static_script.relative_to(self.tf2_scripts_dir.parent)),
                 str(self.path_dynamic_script.relative_to(self.tf2_scripts_dir.parent)),
             )

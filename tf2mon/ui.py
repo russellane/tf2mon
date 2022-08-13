@@ -301,7 +301,7 @@ class UI:
     def show_status(self):
         """Update status line."""
 
-        line = self.monitor.commands.get_status_line() + f" UID={self.monitor.my.userid}"
+        line = self.monitor.controls.get_status_line() + f" UID={self.monitor.my.userid}"
 
         try:
             self.status_win.addstr(

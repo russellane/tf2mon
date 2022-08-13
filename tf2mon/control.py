@@ -4,12 +4,14 @@ import argparse
 
 from libcli import BaseCLI
 
-from tf2mon.command import CommandManager
+from tf2mon.command import Command, CommandManager
 from tf2mon.fkey import FKey
 
 
 class Control:
     """Application control."""
+
+    command: Command = None
 
     # Controls are created before the monitor and its ui.
     monitor = None
@@ -83,7 +85,11 @@ class ControlManager:
     """Collection of `Control`s."""
 
     items: dict[str, Control] = {}
+
     commands = CommandManager()
+    register_curses_handlers = commands.register_curses_handlers
+    get_regex_list = commands.get_regex_list
+    get_status_line = commands.get_status_line
 
     def __getitem__(self, name: str) -> Control:
         """Return the `Control` known as `name`."""
@@ -100,7 +106,14 @@ class ControlManager:
 
         control = self.items[name]
         control.fkey = FKey(keyspec)
-        self.commands.bind(control, keyspec, game_only)
+
+        control.command = Command(
+            control.name,
+            getattr(control, "status", None),
+            getattr(control, "handler", None),
+            getattr(control, "action", None),
+        )
+        self.commands.bind(control.command, keyspec, game_only)
 
     def add_arguments_to(self, parser) -> None:
         """Add arguments for all controls to `parser`."""
