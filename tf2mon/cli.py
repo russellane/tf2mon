@@ -74,6 +74,9 @@ class CLI(BaseCLI):
     controls.bind("KickLastCheaterControl", "[", game_only=True)
     controls.bind("KickLastRacistControl", "]", game_only=True)
     controls.bind("KickLastSuspectControl", "\\", game_only=True)
+    controls.bind("KicksPopControl", "KP_HOME")
+    controls.bind("KicksClearControl", "KP_LEFTARROW")
+    controls.bind("KicksPopleftControl", "KP_END")
 
     # def debug(self, text: str) -> None:
     #     """Override to silence."""

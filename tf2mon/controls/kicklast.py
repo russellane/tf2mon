@@ -7,7 +7,7 @@ from tf2mon.player import Player
 class KickLastControl(Control):
     """Kick last killer."""
 
-    name = "KICK-LAST-CHEATER"
+    name = None
     attr = None
 
     def handler(self, _match) -> None:

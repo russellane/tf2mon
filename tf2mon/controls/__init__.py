@@ -9,6 +9,7 @@ from tf2mon.controls.kicklast import (
     KickLastRacistControl,
     KickLastSuspectControl,
 )
+from tf2mon.controls.kicks import KicksClearControl, KicksPopControl, KicksPopleftControl
 from tf2mon.controls.loglevel import LogLevelControl
 from tf2mon.controls.loglocation import LogLocationControl
 from tf2mon.controls.motd import MotdControl
@@ -41,4 +42,7 @@ CLASS_LIST = [
     KickLastCheaterControl,
     KickLastRacistControl,
     KickLastSuspectControl,
+    KicksPopControl,
+    KicksClearControl,
+    KicksPopleftControl,
 ]

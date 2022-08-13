@@ -225,9 +225,6 @@ class Monitor:
         """Init and return `CommandManager`."""
 
         # numpad
-        self.commands.bind(self._cmd_kicks_pop(), "KP_HOME")
-        self.commands.bind(self._cmd_kicks_clear(), "KP_LEFTARROW")
-        self.commands.bind(self._cmd_kicks_popleft(), "KP_END")
         self.commands.bind(self._cmd_pull(), "KP_UPARROW")
         self.commands.bind(self._cmd_clear_queues(), "KP_5")
         self.commands.bind(self._cmd_push(), "KP_DOWNARROW")
@@ -263,39 +260,6 @@ class Monitor:
     #        oldest --> | popleft |  push   | popleft |
     #                   |         |         |         |
     #                   +-----------------------------+
-
-    def _cmd_kicks_pop(self) -> Command:
-
-        return Command(
-            name="KICKS-POP",
-            handler=lambda m: (
-                self.kicks.pop(),
-                self.ui.refresh_kicks(),
-            ),
-            action="tf2mon_kicks_pop",
-        )
-
-    def _cmd_kicks_clear(self) -> Command:
-
-        return Command(
-            name="KICKS-CLEAR",
-            handler=lambda m: (
-                self.kicks.clear(),
-                self.ui.refresh_kicks(),
-            ),
-            action="tf2mon_kicks_clear",
-        )
-
-    def _cmd_kicks_popleft(self) -> Command:
-
-        return Command(
-            name="KICKS-POPLEFT",
-            handler=lambda m: (
-                self.kicks.popleft(),
-                self.ui.refresh_kicks(),
-            ),
-            action="tf2mon_kicks_popleft",
-        )
 
     def _cmd_pull(self) -> Command:
 
