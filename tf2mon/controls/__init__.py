@@ -16,6 +16,7 @@ from tf2mon.controls.tauntflag import TauntFlagControl
 from tf2mon.controls.throeflag import ThroeFlagControl
 from tf2mon.controls.userpanel import UserPanelControl
 
+# ordered by fkey bindings
 CLASS_LIST = [
     HelpControl,
     MotdControl,
@@ -25,10 +26,10 @@ CLASS_LIST = [
     ShowKDControl,
     UserPanelControl,
     JoinOtherTeamControl,
-    LogLevelControl,
-    LogLocationControl,
-    ResetPaddingControl,
     SortOrderControl,
+    LogLocationControl,
+    LogLevelControl,
+    ResetPaddingControl,
     GridLayoutControl,
     ShowDebugControl,
     SingleStepControl,

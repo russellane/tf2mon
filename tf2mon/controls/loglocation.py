@@ -48,4 +48,5 @@ class LogLocationControl(CycleControl):
             default="NUL",
             help="choose format of logger location field",
         )
-        parser.get_default("cli").add_default_to_help(arg)
+        self.add_fkey_to_help(arg)
+        self.cli.add_default_to_help(arg)

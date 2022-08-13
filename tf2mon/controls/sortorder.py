@@ -44,4 +44,5 @@ class SortOrderControl(CycleControl):
             default="KD",
             help="choose sort order",
         )
-        parser.get_default("cli").add_default_to_help(arg)
+        self.add_fkey_to_help(arg)
+        self.cli.add_default_to_help(arg)

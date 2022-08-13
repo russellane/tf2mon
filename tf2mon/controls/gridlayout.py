@@ -48,4 +48,5 @@ class GridLayoutControl(CycleControl):
             default="MRGD",
             help="choose display layout",
         )
-        parser.get_default("cli").add_default_to_help(arg)
+        self.add_fkey_to_help(arg)
+        self.cli.add_default_to_help(arg)
