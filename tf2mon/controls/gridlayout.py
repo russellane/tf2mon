@@ -1,4 +1,4 @@
-"""Grid layout control."""
+"""Cycle Grid Layout."""
 
 from enum import Enum
 
@@ -12,7 +12,7 @@ from tf2mon.toggle import Toggle
 
 
 class GridLayoutControl(CycleControl):
-    """Grid layout control."""
+    """Cycle grid layout."""
 
     name = "TOGGLE-LAYOUT"
     enum = Enum(f"_e_{name}", "DFLT FULL TALL MRGD WIDE")

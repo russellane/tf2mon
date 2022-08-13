@@ -1,10 +1,10 @@
-"""Join other team control."""
+"""Join Other Team."""
 
 from tf2mon.control import Control
 
 
 class JoinOtherTeamControl(Control):
-    """Join other team control."""
+    """Join Other Team."""
 
     name = "SWITCH-MY-TEAM"
 

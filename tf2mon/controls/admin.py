@@ -4,7 +4,7 @@ from tf2mon.control import Control
 
 
 class ClearQueuesControl(Control):
-    """Docstring."""
+    """Clear kicks and spams queues."""
 
     name = "CLEAR-QUEUES"
     action = "tf2mon_clear_queues"
@@ -19,14 +19,14 @@ class ClearQueuesControl(Control):
 
 
 class PullControl(Control):
-    """Docstring."""
+    """Unused."""
 
     name = "PULL"
     action = "tf2mon_pull"
 
 
 class PushControl(Control):
-    """Docstring."""
+    """Push `steamids` from game to monitor."""
 
     name = "PUSH"
     action = "tf2mon_push"

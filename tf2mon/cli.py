@@ -80,7 +80,7 @@ class CLI(BaseCLI):
     controls.bind("SpamsPopControl", "KP_PGUP")
     controls.bind("SpamsClearControl", "KP_RIGHTARROW")
     controls.bind("SpamsPopleftControl", "KP_PGDN")
-    controls.bind("PullControl", "KP_UPARROW")
+    # controls.bind("PullControl", "KP_UPARROW")
     controls.bind("ClearQueuesControl", "KP_5")
     controls.bind("PushControl", "KP_DOWNARROW")
 
@@ -385,25 +385,8 @@ class CLI(BaseCLI):
 
         self.parser.add_argument_group(
             "Function Keys",
-            self.dedent(
-                """
-    These function keys are available in-game and in the monitor:
-
-        F1 Display help.
-        F2 Toggle Debug (control `say` vs `echo`).
-        F3 Enable/disable Taunts and Throes.
-        F4 Include kd-ratio in messages.
-        F5 Control User-panel display: Kicks, Spams, Duels and Auto.
-        F6 Join other team.
-        F7 Change scoreboard sort column.
-        F8 Change logger location format.
-        F9 Change grid layout.
-        [  Kick last killer as cheater.
-        ]  Kick last killer as racist.
-        \\  Mark last killer as suspect.
-        KP_DEL Begin single-stepping.
-                """
-            ),
+            "These function keys are available in-game and in the monitor:\n\n"
+            + self.controls.fkey_help(),
         )
 
         self.parser.add_argument_group(

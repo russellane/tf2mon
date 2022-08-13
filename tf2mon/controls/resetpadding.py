@@ -1,4 +1,4 @@
-"""Reset logger padding."""
+"""Reset logger `padding`."""
 
 from loguru import logger
 
@@ -6,7 +6,7 @@ from tf2mon.control import Control
 
 
 class ResetPaddingControl(Control):
-    """Reset logger padding."""
+    """Reset logger `padding`."""
 
     name = "RESET-PADDING"
 

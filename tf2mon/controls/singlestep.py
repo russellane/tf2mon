@@ -1,4 +1,4 @@
-"""Enable/disable single-stepping."""
+"""Enable/disable `Single-Step`."""
 
 from loguru import logger
 
@@ -6,7 +6,7 @@ from tf2mon.control import Control
 
 
 class SingleStepControl(Control):
-    """Enable/disable single-stepping."""
+    """Enable/disable `Single-Step`."""
 
     name = "SINGLE-STEP"
 

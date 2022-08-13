@@ -1,4 +1,4 @@
-"""Format of logger location field."""
+"""Cycle logger `location` format."""
 
 from enum import Enum
 
@@ -7,7 +7,7 @@ from tf2mon.toggle import Toggle
 
 
 class LogLocationControl(CycleControl):
-    """Format of logger location field."""
+    """Cycle logger `location` format."""
 
     name = "TOGGLE-LOG-LOCATION"
     enum = Enum(f"_e_{name}", "MOD NAM THM THN FILE NUL")

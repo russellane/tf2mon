@@ -1,4 +1,4 @@
-"""Logging level."""
+"""Cycle logger `level`."""
 
 from enum import Enum
 
@@ -7,7 +7,7 @@ from tf2mon.toggle import Toggle
 
 
 class LogLevelControl(CycleControl):
-    """Logging level."""
+    """Cycle logger `level`."""
 
     name = "TOGGLE-LOG-LEVEL"
     enum = Enum(f"_e_{name}", "INFO DEBUG TRACE")

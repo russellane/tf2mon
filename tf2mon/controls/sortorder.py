@@ -1,4 +1,4 @@
-"""Scoreboard sort-order control."""
+"""Cycle scoreboard Sort column."""
 
 from enum import Enum
 
@@ -7,7 +7,7 @@ from tf2mon.toggle import Toggle
 
 
 class SortOrderControl(CycleControl):
-    """Scoreboard sort-order control."""
+    """Cycle scoreboard Sort column."""
 
     name = "TOGGLE-SORT"
     enum = Enum(f"_e_{name}", "STEAMID K KD CONN USERNAME")

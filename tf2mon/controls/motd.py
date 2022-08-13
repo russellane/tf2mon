@@ -1,10 +1,10 @@
-"""Display message of the day."""
+"""Display Message of the Day."""
 
 from tf2mon.control import Control
 
 
 class MotdControl(Control):
-    """Display message of the day."""
+    """Display Message of the Day."""
 
     name = "MOTD"
 

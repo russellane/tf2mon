@@ -123,3 +123,12 @@ class ControlManager:
             if hasattr(control, "add_arguments_to"):
                 control.cli = cli
                 control.add_arguments_to(parser)
+
+    def fkey_help(self) -> str:
+        """Return help for function keys."""
+
+        lines = []
+        for control in [x for x in self.items.values() if x.fkey]:
+            # 17 == indent 4 + len("KP_RIGHTARROW")
+            lines.append(f"{control.fkey.keyspec:>17} {control.__doc__}")
+        return "\n".join(lines)
