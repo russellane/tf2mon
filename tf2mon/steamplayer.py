@@ -48,6 +48,7 @@ class SteamPlayer(Base):
             "loccountrycode",
             "locstatecode",
             "loccityid",
+            "mtime",
         ]:
             setattr(self, key, summary.get(key))
 
