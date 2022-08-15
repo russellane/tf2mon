@@ -62,6 +62,7 @@ class CLI(BaseCLI):
     controls.bind("TauntFlagControl", "F3")
     controls.bind("ThroeFlagControl", "Shift+F3")
     controls.bind("ShowKDControl", "F4")
+    controls.bind("ShowKillsControl", "Shift+F4")
     controls.bind("UserPanelControl", "F5")
     controls.bind("JoinOtherTeamControl", "F6")
     controls.bind("SortOrderControl", "F7")

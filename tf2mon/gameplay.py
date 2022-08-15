@@ -275,13 +275,14 @@ class Gameplay:
             weapon_state,
         )
 
-        self.monitor.ui.show_chat(
-            Chat(
-                killer,
-                False,
-                f"----- killed {victim.moniker!r:25} {weapon_state!r}",
-            ),
-        )
+        if self.monitor.controls["ShowKillsControl"].value:
+            level = "KILL"
+            if killer.team:
+                level += killer.team.name
+            self.monitor.ui.show_journal(
+                level,
+                f"         {killer.moniker!r:25} killed {victim.moniker!r:25} {weapon_state!r}",
+            )
 
         if killer == self.monitor.me:
             self.monitor.spammer.taunt(victim, weapon, crit)

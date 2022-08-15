@@ -279,6 +279,17 @@ class UI:
         win.addstr(line, self.user_color(chat.user, color))
         win.noutrefresh()
 
+    def show_journal(self, level: str, line: str) -> None:
+        """Display `line` in some pseudo "journal" window."""
+
+        if (win := self.chatwin_blu) is None:
+            return
+
+        if sum(win.getyx()):
+            win.addch("\n")
+        win.addstr(line, self.colormap[level])
+        win.noutrefresh()
+
     def _format_duels(self, user):
 
         lines = []
@@ -339,6 +350,9 @@ class UI:
             .splitlines()
         ):
             logger.log("help", line)
+
+        for line in self.monitor.controls.fkey_help().splitlines():
+            self.show_journal("help", line)
 
     def show_motd(self):
         """Show message of the day."""

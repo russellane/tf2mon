@@ -16,7 +16,7 @@ from tf2mon.controls.loglocation import LogLocationControl
 from tf2mon.controls.motd import MotdControl
 from tf2mon.controls.resetpadding import ResetPaddingControl
 from tf2mon.controls.showdebug import ShowDebugControl
-from tf2mon.controls.showkd import ShowKDControl
+from tf2mon.controls.showkd import ShowKDControl, ShowKillsControl
 from tf2mon.controls.singlestep import SingleStepControl
 from tf2mon.controls.sortorder import SortOrderControl
 from tf2mon.controls.spams import SpamsClearControl, SpamsPopControl, SpamsPopleftControl
@@ -32,6 +32,7 @@ CLASS_LIST = [
     TauntFlagControl,
     ThroeFlagControl,
     ShowKDControl,
+    ShowKillsControl,
     UserPanelControl,
     JoinOtherTeamControl,
     SortOrderControl,

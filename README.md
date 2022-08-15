@@ -161,6 +161,7 @@ By default, `tf2mon` starts reading `con_logfile` from its end
                  F3 Enable/disable `Taunt` messages.
            SHIFT+F3 Enable/disable `Throe` messages.
                  F4 Include `Kill/Death ratio` in `User.moniker`.
+           SHIFT+F4 Display kills in journal window.
                  F5 Cycle contents of User Panel.
                  F6 Join Other Team.
                  F7 Cycle scoreboard Sort column.
