@@ -25,29 +25,6 @@ Base = declarative_base(cls=Base)
 SESSION = None
 
 
-class InterceptHandler(logging.Handler):
-    """See https://loguru.readthedocs.io/en/stable/overview.html#entirely-compatible-with-standard-logging."""  # noqa
-
-    def emit(self, record):
-        """Redirect standard logging to loguru sink."""
-        # Get corresponding Loguru level if it exists
-        try:
-            level = logger.level(record.levelname).name
-        except ValueError:
-            level = record.levelno
-
-        # Find caller from where originated the logged message
-        frame, depth = logging.currentframe(), 2
-        while frame.f_code.co_filename == logging.__file__:
-            frame = frame.f_back
-            depth += 1
-
-        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
-
-
-logging.basicConfig(handlers=[InterceptHandler()], level=0)
-
-
 def Session(path=None) -> object:  # noqa invalid-name
     """Open and return new session with database."""
 
