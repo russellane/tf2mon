@@ -6,7 +6,7 @@ import steam.webapi
 from loguru import logger
 
 from tf2mon.database import NoResultFound, Session, select
-from tf2mon.steamid import BOT_STEAMID
+from tf2mon.steamid import BOT_STEAMID, SteamID
 from tf2mon.steamplayer import SteamPlayer
 
 MAX_AGE = 2 * 60 * 60
@@ -18,7 +18,7 @@ class SteamWebAPI:
     Results are cached to avoid banging the server.
     """
 
-    def __init__(self, webapi_key):
+    def __init__(self, webapi_key: str):
         """Initialize interface."""
 
         if webapi_key:
@@ -29,7 +29,7 @@ class SteamWebAPI:
 
         self._nbots = 0
 
-    def find_steamid(self, steamid) -> object:
+    def find_steamid(self, steamid: SteamID) -> SteamPlayer:
         """Lookup and return `SteamPlayer` with matching `steamid`.
 
         Always returns a `SteamPlayer` object, even for invalid steamids.
@@ -70,23 +70,13 @@ class SteamWebAPI:
 
         # update cache.
         if not steamplayer:
-            steamplayer = SteamPlayer()
-            steamplayer.steamid = steamid.id
+            steamplayer = SteamPlayer(steamid.id)
             new = True
         else:
             new = False
 
-        # for key, value in jplayer.items():
-        #     setattr(steamplayer, key, value)
-        steamplayer.personaname = jplayer.get("personaname")
-        steamplayer.profileurl = jplayer.get("profileurl")
-        steamplayer.personastate = jplayer.get("personastate")
-        steamplayer.realname = jplayer.get("realname")
-        steamplayer.timecreated = jplayer.get("timecreated")
-        steamplayer.loccountrycode = jplayer.get("loccountrycode")
-        steamplayer.locstatecode = jplayer.get("locstatecode")
-        steamplayer.loccityid = jplayer.get("loccityid")
-        steamplayer.mtime = now
+        jplayer["mtime"] = now
+        steamplayer.update(jplayer)
 
         if new:
             session.add(steamplayer)
@@ -95,12 +85,11 @@ class SteamWebAPI:
         #
         return steamplayer
 
-    def _create_gamebot(self, steamid, now) -> SteamPlayer:
+    def _create_gamebot(self, steamid: SteamID, now: int) -> SteamPlayer:
         """Create and return a gamebot."""
 
         self._nbots += 1
-        steamplayer = SteamPlayer()
-        steamplayer.steamid = steamid.id
+        steamplayer = SteamPlayer(steamid.id)
         steamplayer.personaname = ""
         steamplayer.profileurl = ""
         steamplayer.personastate = 0
@@ -112,11 +101,10 @@ class SteamWebAPI:
         steamplayer.mtime = now
         return steamplayer
 
-    def _create_invalid(self, steamid, now) -> SteamPlayer:
+    def _create_invalid(self, steamid: SteamID, now: int) -> SteamPlayer:
         """Create and return a dummy."""
 
-        steamplayer = SteamPlayer()
-        steamplayer.steamid = steamid.id
+        steamplayer = SteamPlayer(steamid.id)
         steamplayer.personaname = "?"
         steamplayer.profileurl = "?"
         steamplayer.personastate = 0

@@ -6,7 +6,7 @@ from steam.steamid import SteamID
 BOT_STEAMID = SteamID(1)
 
 
-def parse_steamid(s_steamid) -> SteamID:
+def parse_steamid(s_steamid: str) -> SteamID:
     """Parse and return `SteamID` from STATUS and LOBBY lines.
 
     Return `None` if invalid, or `BOT_STEAMID` if gamebot.
