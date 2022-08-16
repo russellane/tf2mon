@@ -6,11 +6,11 @@ from dataclasses import dataclass
 
 from loguru import logger
 
-from tf2mon.database import Database
+from tf2mon.database import Database, DatabaseTable
 
 
 @dataclass
-class Player:
+class Player(DatabaseTable):
     """A `Player`."""
 
     # pylint: disable=too-many-instance-attributes
@@ -83,12 +83,6 @@ class Player:
             # return SteamPlayer({k: row[k] for k in row.keys()})
         return None
 
-    @property
-    @classmethod
-    def _placeholders(cls) -> str:
-
-        return ",".join(["?"] * len(cls.__dataclass_fields__))  # noqa: no-member
-
     @classmethod
     def add(cls, steamid: int, attrs: list[str], name: str) -> "Player":
         """Add and return new `Player`."""
@@ -97,7 +91,7 @@ class Player:
         player.setattrs(attrs)
         player.track_appearance(name)
         Database().execute(
-            f"insert into {cls.__tablename__} values({cls._placeholders})",
+            f"insert into {cls.__tablename__} {cls.valueholders}",
             (
                 player.bot,
                 player.friends,

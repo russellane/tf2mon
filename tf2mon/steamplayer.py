@@ -3,12 +3,12 @@
 import time
 from dataclasses import InitVar, dataclass, field
 
-from tf2mon.database import Database
+from tf2mon.database import Database, DatabaseTable
 from tf2mon.steamid import BOT_STEAMID, SteamID
 
 
 @dataclass
-class SteamPlayer:
+class SteamPlayer(DatabaseTable):
     """Represent ['response']['players'] element from `ISteamUser.GetPlayerSummaries`."""
 
     # pylint: disable=too-many-instance-attributes

@@ -1,18 +1,30 @@
-import pytest  # noqa: unused-import
+import pytest
 
 from tf2mon.player import Player
 
+# pylint: disable=unused-argument
 
-def test_select_all(session):  # noqa: unused-argument
+
+def test_valueholders_cls():
+    assert Player.valueholders() == "values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+
+
+def test_valueholders_obj():
+    assert Player(0).valueholders() == "values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+
+
+def _test_select_all(session):
     for player in Player.select_all():
         print(player)
 
 
-def test_select_not_found(session):  # noqa: unused-argument
-    assert Player.lookup_steamid(-123) is None
+@pytest.mark.parametrize(("steamid"), [-3, -2, -1, 0, 1, 2, 3])
+def test_select_not_found(session, steamid):
+    assert Player.lookup_steamid(steamid) is None
 
 
-def test_select_find_one(session):  # noqa: unused-argument
-    player = Player.lookup_steamid(4377)
+@pytest.mark.parametrize(("steamid"), [4377])
+def test_select_found(session, steamid):
+    player = Player.lookup_steamid(steamid)
     assert player
-    print(player)
+    # print(player)

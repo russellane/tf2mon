@@ -1,5 +1,6 @@
 """Database."""
 
+import dataclasses
 import sqlite3
 
 from loguru import logger
@@ -19,3 +20,14 @@ def Database(path=None) -> object:  # noqa invalid-name
         DATABASE = conn.cursor()
 
     return DATABASE
+
+
+class DatabaseTable:
+    """Base class for all database tables."""
+
+    @classmethod
+    def valueholders(cls) -> str:
+        """Return text for sql `values` clause."""
+
+        placeholders = ",".join(["?"] * len(dataclasses.fields(cls)))
+        return f"values({placeholders})"
