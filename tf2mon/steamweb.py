@@ -5,7 +5,7 @@ import time
 import steam.webapi
 from loguru import logger
 
-from tf2mon.database import NoResultFound, Session, select
+from tf2mon.database import Database
 from tf2mon.steamid import BOT_STEAMID, SteamID
 from tf2mon.steamplayer import SteamPlayer
 
@@ -32,29 +32,31 @@ class SteamWebAPI:
     def find_steamid(self, steamid: SteamID) -> SteamPlayer:
         """Lookup and return `SteamPlayer` with matching `steamid`.
 
-        Always returns a `SteamPlayer` object, even for invalid steamids.
-
         Use web service to get "Player Summary" of given `steamid`.
         Create dummy object for game bots.
         """
 
         now = int(time.time())
 
-        if steamid == BOT_STEAMID:
-            return self._create_gamebot(steamid, now)
+        if steamid.id == BOT_STEAMID:
+            # create a dummy steamid for this bot; (not a hacker, a real game bot)
+            self._nbots += 1
+            return SteamPlayer(
+                {
+                    "steamid": steamid.id,
+                    "personaname": None,
+                    "profileurl": "",
+                    "personastate": 0,
+                    "realname": "",
+                    "timecreated": now - (self._nbots * 86400),
+                    "loccountrycode": "US",
+                    "locstatecode": "IL",
+                    "loccityid": "CHGO",
+                }
+            )
 
-        if not steamid.is_valid():
-            return self._create_invalid(steamid, now)
-
-        # check cache.
-        session = Session()
-        stmt = select(SteamPlayer).where(SteamPlayer.steamid == steamid.id)
-        result = session.scalars(stmt)
-        try:
-            steamplayer = result.one()
-        except NoResultFound:
-            # logger.debug('notfound')
-            steamplayer = None
+        # it's not a game bot; look in database.
+        steamplayer = SteamPlayer.find_steamid(steamid)
 
         if steamplayer and steamplayer.mtime > now - MAX_AGE:
             # logger.debug('current')
@@ -64,56 +66,47 @@ class SteamWebAPI:
 
         # not current or not in cache; call web service.
         player_summaries = self._get_player_summaries([steamid])
-        if len(player_summaries) != 1:
-            return self._create_invalid(steamid, now)
-        jplayer = player_summaries[0]
 
-        # update cache.
-        if not steamplayer:
-            steamplayer = SteamPlayer(steamid.id)
-            new = True
-        else:
-            new = False
+        if len(player_summaries) < 1:
+            # unexpected!
+            return SteamPlayer(
+                {
+                    "steamid": steamid.id,
+                    "personaname": "???",
+                    "profileurl": "",
+                    "personastate": "?",
+                    "realname": "",
+                    "timecreated": now,
+                    "loccountrycode": "",
+                    "locstatecode": "",
+                    "loccityid": "",
+                }
+            )
 
-        jplayer["mtime"] = now
-        steamplayer.update(jplayer)
+        steamplayer = SteamPlayer(player_summaries[0])
 
-        if new:
-            session.add(steamplayer)
-        session.commit()
+        try:
+            Database().execute(
+                "replace into steamplayers values(?,?,?,?,?,?,?,?,?,?)",
+                (
+                    steamplayer.steamid,
+                    steamplayer.personaname,
+                    steamplayer.profileurl,
+                    steamplayer.personastate,
+                    steamplayer.realname,
+                    steamplayer.timecreated,
+                    steamplayer.loccountrycode,
+                    steamplayer.locstatecode,
+                    steamplayer.loccityid,
+                    now,
+                ),
+            )
+        except Exception as err:
+            logger.critical(err)
+            raise
+        Database().connection.commit()
 
         #
-        return steamplayer
-
-    def _create_gamebot(self, steamid: SteamID, now: int) -> SteamPlayer:
-        """Create and return a gamebot."""
-
-        self._nbots += 1
-        steamplayer = SteamPlayer(steamid.id)
-        steamplayer.personaname = ""
-        steamplayer.profileurl = ""
-        steamplayer.personastate = 0
-        steamplayer.realname = ""
-        steamplayer.timecreated = now - (self._nbots * 86400)
-        steamplayer.loccountrycode = "US"
-        steamplayer.locstatecode = "IL"
-        steamplayer.loccityid = "CHGO"
-        steamplayer.mtime = now
-        return steamplayer
-
-    def _create_invalid(self, steamid: SteamID, now: int) -> SteamPlayer:
-        """Create and return a dummy."""
-
-        steamplayer = SteamPlayer(steamid.id)
-        steamplayer.personaname = "?"
-        steamplayer.profileurl = "?"
-        steamplayer.personastate = 0
-        steamplayer.realname = "?"
-        steamplayer.timecreated = now
-        steamplayer.loccountrycode = "?"
-        steamplayer.locstatecode = "?"
-        steamplayer.loccityid = "?"
-        steamplayer.mtime = now
         return steamplayer
 
     def _get_player_summaries(self, steamids):

@@ -1,23 +1,18 @@
-import pytest
+import pytest  # noqa: unused-import
 
-from tf2mon.database import NoResultFound, select
 from tf2mon.player import Player
 
 
-def test_select_all(session):
-    stmt = select(Player)
-    for _player in session.scalars(stmt):
-        pass  # print(player)
+def test_select_all(session):  # noqa: unused-argument
+    for player in Player.select_all():
+        print(player)
 
 
-def test_select_not_found(session):
-    stmt = select(Player).where(Player.steamid == -123)
-    result = session.scalars(stmt)
-    with pytest.raises(NoResultFound):
-        result.one()  # print(result.one())
+def test_select_not_found(session):  # noqa: unused-argument
+    assert Player.lookup_steamid(-123) is None
 
 
-def test_select_find_one(session):
-    stmt = select(Player).where(Player.steamid == 4377)
-    result = session.scalars(stmt)
-    result.one()  # print(result.one())
+def test_select_find_one(session):  # noqa: unused-argument
+    player = Player.lookup_steamid(4377)
+    assert player
+    print(player)

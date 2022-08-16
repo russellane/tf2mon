@@ -1,45 +1,48 @@
 """Table of `Player`s."""
 
-import contextlib
 import json
 import time
+from dataclasses import dataclass
 
 from loguru import logger
 
-from tf2mon.database import Base, Column, Integer, NoResultFound, Session, String, select
+from tf2mon.database import Database
 
 
-class Player(Base):
+@dataclass
+class Player:
     """A `Player`."""
+
+    # pylint: disable=too-many-instance-attributes
 
     __tablename__ = "players"
 
-    # key
-    steamid = Column(Integer, primary_key=True)
+    # database columns
+    steamid: int  # primary key
 
     # defcon6
-    bot = Column(String)
-    friends = Column(String)
-    tacobot = Column(String)
-    pazer = Column(String)
+    bot: str = ""
+    friends: str = ""
+    tacobot: str = ""
+    pazer: str = ""
 
     # playerlist.official
-    _cheater = Column(String)
-    _suspect = Column(String)
-    _exploiter = Column(String)
-    _racist = Column(String)
-    _last_name = Column(String)
-    _s_last_time = Column(String)
+    _cheater: str = ""
+    _suspect: str = ""
+    _exploiter: str = ""
+    _racist: str = ""
+    _last_name: str = ""
+    _s_last_time: str = ""
 
     # tf2mon
-    cheater = Column(String)
-    suspect = Column(String)
-    exploiter = Column(String)
-    racist = Column(String)
-    milenko = Column(Integer)
-    last_name = Column(String)
-    s_last_time = Column(String)
-    names = Column(String)
+    cheater: str = ""
+    suspect: str = ""
+    exploiter: str = ""
+    racist: str = ""
+    milenko: str = ""
+    last_name: str = ""
+    s_last_time: str = ""
+    names: str = ""
 
     # Attributes.
     # base
@@ -56,26 +59,35 @@ class Player(Base):
     TACOBOT = "tacobot"
     PAZER = "pazer"
 
-    def __init__(self, steamid: int):
-        """Initialize `Player` with primary key `steamid`."""
-
-        self.steamid = steamid
-
     def setattrs(self, attrs) -> None:
         """Docstring."""
         for attr in attrs:
             setattr(self, attr, attr)
 
-    @staticmethod
-    def lookup_steamid(steamid: int) -> "Player":
+    @classmethod
+    def select_all(cls) -> list["Player"]:
+        """Yield all `Player`s in database."""
+
+        for row in Database().execute(f"select * from {cls.__tablename__}"):
+            yield cls(dict(row))
+            # yield SteamPlayer({k: row[k] for k in row.keys()})
+
+    @classmethod
+    def lookup_steamid(cls, steamid: int) -> "Player":
         """Return `Player` for given steamid, else None if not found."""
 
-        stmt = select(Player).where(Player.steamid == steamid)
-        result = Session().scalars(stmt)
-        player = None
-        with contextlib.suppress(NoResultFound):
-            player = result.one()
-        return player
+        Database().execute(f"select * from {cls.__tablename__} where steamid=?", (steamid,))
+        if row := Database().fetchone():
+            return cls(dict(row))
+            # convert tuple-like sqlite3.Row to json document
+            # return SteamPlayer({k: row[k] for k in row.keys()})
+        return None
+
+    @property
+    @classmethod
+    def _placeholders(cls) -> str:
+
+        return ",".join(["?"] * len(cls.__dataclass_fields__))  # noqa: no-member
 
     @classmethod
     def add(cls, steamid: int, attrs: list[str], name: str) -> "Player":
@@ -84,7 +96,31 @@ class Player(Base):
         player = cls(steamid)
         player.setattrs(attrs)
         player.track_appearance(name)
-        Session().add(player)
+        Database().execute(
+            f"insert into {cls.__tablename__} values({cls._placeholders})",
+            (
+                player.bot,
+                player.friends,
+                player.tacobot,
+                player.pazer,
+                player._cheater,
+                player._suspect,
+                player._exploiter,
+                player._racist,
+                player._last_name,
+                player._s_last_time,
+                player.cheater,
+                player.suspect,
+                player.exploiter,
+                player.racist,
+                player.milenko,
+                player.last_name,
+                player.s_last_time,
+                player.names,
+            ),
+        )
+
+        Database().connection.commit()
         return player
 
     def track_appearance(self, name):

@@ -13,7 +13,7 @@ import tf2mon.controls
 import tf2mon.layouts
 from tf2mon.conlog import Conlog
 from tf2mon.control import ControlManager
-from tf2mon.database import Session
+from tf2mon.database import Database
 from tf2mon.hacker import HackerManager
 from tf2mon.logger import configure_logger
 from tf2mon.monitor import Monitor
@@ -483,14 +483,14 @@ class CLI(BaseCLI):
             self.parser.exit()
 
         if self.options.print_steamids:
-            Session(self.options.database)
+            Database(self.options.database)
             api = SteamWebAPI(webapi_key=self.config.get("webapi_key"))
             for steamid in self.options.print_steamids:
                 print(api.find_steamid(SteamID(steamid)))
             self.parser.exit()
 
         if self.options.print_hackers:
-            Session(self.options.database)
+            Database(self.options.database)
             hackers = HackerManager(self.options.hackers)
             with contextlib.suppress(BrokenPipeError):
                 hackers.print_report()

@@ -1,9 +1,9 @@
 import pytest
 
-from tf2mon.database import Session
+from tf2mon.database import Database
 
 
 @pytest.fixture(scope="session")
 def session():
 
-    return Session(".cache/tf2mon.db")
+    return Database(".cache/tf2mon.db")

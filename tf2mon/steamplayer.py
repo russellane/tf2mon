@@ -1,78 +1,102 @@
 """Table of `SteamPlayer`s."""
 
-import contextlib
 import time
+from dataclasses import InitVar, dataclass, field
 
-from tf2mon.database import Base, Column, Integer, NoResultFound, Session, String, select
+from tf2mon.database import Database
 from tf2mon.steamid import BOT_STEAMID, SteamID
 
 
-class SteamPlayer(Base):
+@dataclass
+class SteamPlayer:
     """Represent ['response']['players'] element from `ISteamUser.GetPlayerSummaries`."""
 
-    __tablename__ = "steamplayers"
+    # pylint: disable=too-many-instance-attributes
 
-    steamid = Column(Integer, primary_key=True)
-    personaname = Column(String)
-    profileurl = Column(String)
-    personastate = Column(String)
-    realname = Column(String)
-    timecreated = Column(Integer)
-    loccountrycode = Column(String)
-    locstatecode = Column(String)
-    loccityid = Column(String)
-    mtime = Column(Integer)
+    jdoc: InitVar[str]  # ['response']['players'] element
 
-    _age = None
+    # database columns
+    steamid: int = field(default=None, init=False)  # primary key
+    personaname: str = field(default="", init=False)
+    profileurl: str = field(default="", init=False)
+    personastate: str = field(default="", init=False)
+    realname: str = field(default="", init=False)
+    timecreated: int = field(default=None, init=False)
+    loccountrycode: str = field(default="", init=False)
+    locstatecode: str = field(default="", init=False)
+    loccityid: str = field(default="", init=False)
+    mtime: int = field(default=None, init=False)
 
-    def __init__(self, steamid: int):
-        """Initialize `SteamPlayer` with primary key `steamid`."""
+    # additional (non-database) properties
+    age: int = field(default=None, init=False)
 
-        self.steamid = steamid
+    def __post_init__(self, jdoc: dict[str, ...]):
+        """Init `SteamPlayer` from json document.
 
-    def setattrs(self, attrs) -> None:
-        """Docstring."""
+        Args:
+            jdoc:   `['response']['players']` element returned by
+                    `ISteamUser.GetPlayerSummaries`.
+        """
 
-        for attr in attrs:
-            setattr(self, attr, attr)
+        steamid = SteamID(jdoc.get("steamid"))
+        self.steamid = steamid.id
+        self.personaname = jdoc.get("personaname")
+        self.profileurl = jdoc.get("profileurl")
+        self.personastate = jdoc.get("personastate")
+        self.realname = jdoc.get("realname")
+        self.timecreated = jdoc.get("timecreated")
+        self.loccountrycode = jdoc.get("loccountrycode")
+        self.locstatecode = jdoc.get("locstatecode")
+        self.loccityid = jdoc.get("loccityid")
 
-    def update(self, summary: dict[str, ...]) -> None:
-        """Update properties from dict."""
+        #
+        if self.profileurl and self.profileurl == steamid.community_url + "/":
+            # for asthetics only; to avoid clutter
+            self.profileurl = None  # indicate long noisy determinable value
 
-        for key in [
-            "personaname",
-            "profileurl",
-            "personastate",
-            "realname",
-            "timecreated",
-            "loccountrycode",
-            "locstatecode",
-            "loccityid",
-            "mtime",
-        ]:
-            setattr(self, key, summary.get(key))
+        now = int(time.time())
+        if self.timecreated:
+            self.age = (now - self.timecreated) // 86400
+        self.mtime = jdoc.get("mtime", now)
+
+    @staticmethod
+    def select_all() -> list["SteamPlayer"]:
+        """Return list of all `SteamPlayer`s in database."""
+
+        for row in Database().execute("select * from steamplayers"):
+            yield SteamPlayer(dict(row))
+            # yield SteamPlayer({k: row[k] for k in row.keys()})
 
     @staticmethod
     def find_steamid(steamid: SteamID) -> "SteamPlayer":
         """Lookup and return `SteamPlayer` with matching `steamid`."""
 
-        stmt = select(SteamPlayer).where(SteamPlayer.steamid == steamid.id)
-        result = Session().scalars(stmt)
-        steamplayer = None
-        with contextlib.suppress(NoResultFound):
-            steamplayer = result.one()
-        return steamplayer
-
-    @property
-    def age(self) -> str:
-        """Docstring."""
-
-        if self._age is None:
-            self._age = (int(time.time()) - self.timecreated) // 86400 if self.timecreated else 0
-        return self._age
+        Database().execute("select * from steamplayers where steamid=?", (steamid.id,))
+        if row := Database().fetchone():
+            # convert tuple-like sqlite3.Row to json document
+            return SteamPlayer({k: row[k] for k in row.keys()})
+        return None
 
     @property
     def is_gamebot(self) -> bool:
-        """Docstring."""
+        """Return True if this is a legitimate game BOT; not a hacker."""
 
         return self.steamid == BOT_STEAMID
+
+    def create_table(self) -> None:
+        """Execute create table statement."""
+
+        Database().execute(
+            """create table if not exists steamplayers(
+                steamid integer primary key,
+                personaname text,
+                profileurl text,
+                personastate text,
+                realname text,
+                timecreated integer,
+                loccountrycode text,
+                locstatecode text,
+                loccityid text,
+                mtime integer)"""
+        )
+        Database().connection.commit()

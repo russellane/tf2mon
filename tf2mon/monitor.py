@@ -13,7 +13,7 @@ from loguru import logger
 import tf2mon.control
 from tf2mon.admin import Admin
 from tf2mon.conlog import Conlog
-from tf2mon.database import Session
+from tf2mon.database import Database
 from tf2mon.gameplay import Gameplay
 from tf2mon.msgqueue import MsgQueueManager
 from tf2mon.regex import Regex
@@ -66,7 +66,7 @@ class Monitor:
             self.admin.set_single_step_lineno(self.options.breakpoint)
 
         #
-        Session(self.options.database)
+        # Database(self.options.database)
         self.steam_web_api = SteamWebAPI(webapi_key=self.config.get("webapi_key"))
 
         #
@@ -161,6 +161,7 @@ class Monitor:
     def repl(self):
         """Read the console log file and play game."""
 
+        Database(self.options.database)
         self.conlog.open()
 
         while (line := self.conlog.readline()) is not None:
