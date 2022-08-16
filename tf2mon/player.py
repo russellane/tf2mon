@@ -69,8 +69,7 @@ class Player(DatabaseTable):
         """Yield all `Player`s in database."""
 
         for row in Database().execute(f"select * from {cls.__tablename__}"):
-            yield cls(dict(row))
-            # yield SteamPlayer({k: row[k] for k in row.keys()})
+            yield cls(*tuple(row))
 
     @classmethod
     def lookup_steamid(cls, steamid: int) -> "Player":
@@ -78,44 +77,21 @@ class Player(DatabaseTable):
 
         Database().execute(f"select * from {cls.__tablename__} where steamid=?", (steamid,))
         if row := Database().fetchone():
-            return cls(dict(row))
-            # convert tuple-like sqlite3.Row to json document
-            # return SteamPlayer({k: row[k] for k in row.keys()})
+            return cls(*tuple(row))
         return None
 
-    @classmethod
-    def add(cls, steamid: int, attrs: list[str], name: str) -> "Player":
-        """Add and return new `Player`."""
+    def upsert(self) -> None:
+        """Update or Insert this row into the table."""
 
-        player = cls(steamid)
-        player.setattrs(attrs)
-        player.track_appearance(name)
-        Database().execute(
-            f"insert into {cls.__tablename__} {cls.valueholders}",
-            (
-                player.bot,
-                player.friends,
-                player.tacobot,
-                player.pazer,
-                player._cheater,
-                player._suspect,
-                player._exploiter,
-                player._racist,
-                player._last_name,
-                player._s_last_time,
-                player.cheater,
-                player.suspect,
-                player.exploiter,
-                player.racist,
-                player.milenko,
-                player.last_name,
-                player.s_last_time,
-                player.names,
-            ),
-        )
-
+        try:
+            Database().execute(
+                f"replace into {self.__tablename__} {self.valueholders()}",
+                self.astuple(),
+            )
+        except Exception as err:
+            logger.critical(err)
+            raise
         Database().connection.commit()
-        return player
 
     def track_appearance(self, name):
         """Record user appearing as given name."""
@@ -124,7 +100,9 @@ class Player(DatabaseTable):
         self.s_last_time = self.strftime()
         logger.warning(f"time {self.s_last_time} name {self.last_name!r}")
 
+        logger.warning(f"self.names {self.names!r}")
         names = json.loads(self.names).get("json", []) if self.names else []
+        logger.warning(f"names {names!r}")
         if name not in names:
             logger.warning(f"adding name {name!r}")
             names.append(name)

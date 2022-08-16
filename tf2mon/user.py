@@ -222,7 +222,7 @@ class User:
             if not self.team:
                 self.assign_team(opponent.opposing_team)
 
-    def vet_player(self):
+    def vet(self):
         """Vet this player, whose `steamid` has just been obtained."""
 
         assert self.steamid
@@ -242,8 +242,11 @@ class User:
             logger.log("Player", self.player)
             self.player.setattrs(self.pending_attrs)
             self.player.track_appearance(self.username)
+            self.player.upsert()
+            # bobo1
             self.display_level = self.player.display_level
             logger.log(self.display_level, f"{self._clean_username!r} is here")
+            # bobo2
             self.pending_attrs = None
             if self.player.is_banned:
                 self.do_kick()
@@ -253,12 +256,24 @@ class User:
         # Have we tried to kick them, but had to spool the work because
         # `steamid` wasn't available yet?
         if self.pending_attrs:
-            self.player = Player.add(self.steamid.id, self.pending_attrs, self.username)
+            self.player = self._new_player(self.steamid.id, self.pending_attrs, self.username)
+            # bobo1
             self.display_level = self.player.display_level
             logger.log(self.display_level, f"{self} created {self.player}")
+            # bobo2
             self.pending_attrs = None
             if self.player.is_banned:
                 self.do_kick()
+
+    @staticmethod
+    def _new_player(steamid: int, attrs: list[str], name: str) -> Player:
+        """Create, insert and return new `Player`."""
+
+        player = Player(steamid)
+        player.setattrs(attrs)
+        player.track_appearance(name)
+        player.upsert()
+        return player
 
     def kick(self, attr):
         """Kick this user."""
@@ -286,11 +301,14 @@ class User:
         if self.player:
             if not getattr(self.player, attr):
                 self.player.setattrs([attr])
+                self.player.upsert()
                 logger.log(self.display_level, f"{self} added {attr} to {self.player}")
             else:
                 logger.info(f"{self} player {self.player} already {attr}")
         else:
-            self.player = Player.add(self.steamid.id, [attr] + self.pending_attrs, self.username)
+            self.player = self._new_player(
+                self.steamid.id, [attr] + self.pending_attrs, self.username
+            )
             self.display_level = self.player.display_level
             logger.log(self.display_level, f"{self} created {self.player}")
             self.pending_attrs = None

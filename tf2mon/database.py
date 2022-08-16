@@ -15,7 +15,7 @@ def Database(path=None) -> object:  # noqa invalid-name
     if not DATABASE and path:
 
         logger.info(f"Opening `{path}`")
-        conn = sqlite3.connect(path)
+        conn = sqlite3.connect(path, check_same_thread=False)
         conn.row_factory = sqlite3.Row
         DATABASE = conn.cursor()
 
@@ -31,3 +31,8 @@ class DatabaseTable:
 
         placeholders = ",".join(["?"] * len(dataclasses.fields(cls)))
         return f"values({placeholders})"
+
+    def astuple(self) -> tuple:
+        """Return column values."""
+
+        return dataclasses.astuple(self)

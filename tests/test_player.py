@@ -19,12 +19,13 @@ def _test_select_all(session):
 
 
 @pytest.mark.parametrize(("steamid"), [-3, -2, -1, 0, 1, 2, 3])
-def test_select_not_found(session, steamid):
+def test_lookup_steamid_not_found(session, steamid):
     assert Player.lookup_steamid(steamid) is None
 
 
 @pytest.mark.parametrize(("steamid"), [4377])
-def test_select_found(session, steamid):
+def _test_lookup_steamid_found(session, steamid):
     player = Player.lookup_steamid(steamid)
     assert player
-    # print(player)
+    print(f"\n=====> player.steamid={player.steamid!r}")
+    print(player)

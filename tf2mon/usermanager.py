@@ -110,7 +110,7 @@ class UserManager:
 
         #
         if not user.steamplayer:
-            user.vet_player()
+            user.vet()
 
     def lobby(self, s_steamid, teamname):
         """Respond to `gameplay.lobby` event."""
