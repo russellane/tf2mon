@@ -59,39 +59,49 @@ class Player(DatabaseTable):
     TACOBOT = "tacobot"
     PAZER = "pazer"
 
+    @classmethod
+    def create_table(cls) -> None:
+        """Execute create table statement."""
+
+        Database().execute(
+            f"create table if not exists {cls.__tablename__}"
+            """(
+                steamid integer primary key,
+                bot text,
+                friends text,
+                tacobot text,
+                pazer text,
+                _cheater text,
+                _suspect text,
+                _exploiter text,
+                _racist text,
+                _last_name text,
+                _s_last_time text,
+                cheater text,
+                suspect text,
+                exploiter text,
+                racist text,
+                milenko text,
+                last_name text,
+                s_last_time text,
+                names text
+            )""",
+        )
+        Database().connection.commit()
+
     def setattrs(self, attrs) -> None:
         """Docstring."""
         for attr in attrs:
             setattr(self, attr, attr)
 
     @classmethod
-    def select_all(cls) -> list["Player"]:
-        """Yield all `Player`s in database."""
-
-        for row in Database().execute(f"select * from {cls.__tablename__}"):
-            yield cls(*tuple(row))
-
-    @classmethod
-    def lookup_steamid(cls, steamid: int) -> "Player":
+    def fetch_steamid(cls, steamid: int) -> "Player":
         """Return `Player` for given steamid, else None if not found."""
 
         Database().execute(f"select * from {cls.__tablename__} where steamid=?", (steamid,))
         if row := Database().fetchone():
             return cls(*tuple(row))
         return None
-
-    def upsert(self) -> None:
-        """Update or Insert this row into the table."""
-
-        try:
-            Database().execute(
-                f"replace into {self.__tablename__} {self.valueholders()}",
-                self.astuple(),
-            )
-        except Exception as err:
-            logger.critical(err)
-            raise
-        Database().connection.commit()
 
     def track_appearance(self, name):
         """Record user appearing as given name."""

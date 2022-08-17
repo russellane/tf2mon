@@ -1,7 +1,7 @@
 """Table of `SteamPlayer`s."""
 
 import time
-from dataclasses import InitVar, dataclass, field
+from dataclasses import dataclass
 
 from tf2mon.database import Database, DatabaseTable
 from tf2mon.steamid import BOT_STEAMID, SteamID
@@ -13,90 +13,73 @@ class SteamPlayer(DatabaseTable):
 
     # pylint: disable=too-many-instance-attributes
 
-    jdoc: InitVar[str]  # ['response']['players'] element
+    __tablename__ = "steamplayers"
 
     # database columns
-    steamid: int = field(default=None, init=False)  # primary key
-    personaname: str = field(default="", init=False)
-    profileurl: str = field(default="", init=False)
-    personastate: str = field(default="", init=False)
-    realname: str = field(default="", init=False)
-    timecreated: int = field(default=None, init=False)
-    loccountrycode: str = field(default="", init=False)
-    locstatecode: str = field(default="", init=False)
-    loccityid: str = field(default="", init=False)
-    mtime: int = field(default=None, init=False)
+    steamid: int  # primary key
+    personaname: str = ""
+    profileurl: str = ""
+    personastate: int = 0
+    realname: str = ""
+    timecreated: int = 0
+    loccountrycode: str = ""
+    locstatecode: str = ""
+    loccityid: str = ""
+    mtime: int = 0
 
     # additional (non-database) properties
-    age: int = field(default=None, init=False)
+    # _age: int = field(default=0, init=False, repr=False)
 
-    def __post_init__(self, jdoc: dict[str, ...]):
-        """Init `SteamPlayer` from json document.
+    def __post_init__(self):
 
-        Args:
-            jdoc:   `['response']['players']` element returned by
-                    `ISteamUser.GetPlayerSummaries`.
-        """
-
-        steamid = SteamID(jdoc.get("steamid"))
-        self.steamid = steamid.id
-        self.personaname = jdoc.get("personaname")
-        self.profileurl = jdoc.get("profileurl")
-        self.personastate = jdoc.get("personastate")
-        self.realname = jdoc.get("realname")
-        self.timecreated = jdoc.get("timecreated")
-        self.loccountrycode = jdoc.get("loccountrycode")
-        self.locstatecode = jdoc.get("locstatecode")
-        self.loccityid = jdoc.get("loccityid")
-
-        #
+        steamid = SteamID(self.steamid)
         if self.profileurl and self.profileurl == steamid.community_url + "/":
             # for asthetics only; to avoid clutter
             self.profileurl = None  # indicate long noisy determinable value
 
         now = int(time.time())
+        self.age = 0
         if self.timecreated:
             self.age = (now - self.timecreated) // 86400
-        self.mtime = jdoc.get("mtime", now)
+        self.mtime = self.mtime or now
 
-    @staticmethod
-    def select_all() -> list["SteamPlayer"]:
-        """Return list of all `SteamPlayer`s in database."""
+    # @property
+    # def age(self) -> int:
+    #     """Return number of days since account was created."""
+    #     return self._age
 
-        for row in Database().execute("select * from steamplayers"):
-            yield SteamPlayer(dict(row))
-            # yield SteamPlayer({k: row[k] for k in row.keys()})
+    @classmethod
+    def create_table(cls) -> None:
+        """Execute create table statement."""
 
-    @staticmethod
-    def find_steamid(steamid: SteamID) -> "SteamPlayer":
-        """Lookup and return `SteamPlayer` with matching `steamid`."""
+        Database().execute(
+            f"create table if not exists {cls.__tablename__}"
+            """(
+                steamid integer primary key,
+                personaname text,
+                profileurl text,
+                personastate integer,
+                realname text,
+                timecreated integer,
+                loccountrycode text,
+                locstatecode text,
+                loccityid text,
+                mtime integer
+            )""",
+        )
+        Database().connection.commit()
 
-        Database().execute("select * from steamplayers where steamid=?", (steamid.id,))
+    @classmethod
+    def fetch_steamid(cls, steamid: int) -> "SteamPlayer":
+        """Return `SteamPlayer` for given steamid, else None if not found."""
+
+        Database().execute(f"select * from {cls.__tablename__} where steamid=?", (steamid,))
         if row := Database().fetchone():
-            # convert tuple-like sqlite3.Row to json document
-            return SteamPlayer({k: row[k] for k in row.keys()})
+            return cls(*tuple(row))
         return None
 
     @property
     def is_gamebot(self) -> bool:
         """Return True if this is a legitimate game BOT; not a hacker."""
 
-        return self.steamid == BOT_STEAMID
-
-    def create_table(self) -> None:
-        """Execute create table statement."""
-
-        Database().execute(
-            """create table if not exists steamplayers(
-                steamid integer primary key,
-                personaname text,
-                profileurl text,
-                personastate text,
-                realname text,
-                timecreated integer,
-                loccountrycode text,
-                locstatecode text,
-                loccityid text,
-                mtime integer)"""
-        )
-        Database().connection.commit()
+        return self.steamid == BOT_STEAMID.id

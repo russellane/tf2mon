@@ -1,10 +1,14 @@
+# import tf2mon.logger
+import logging
 from pathlib import Path
 
 import pytest
 import tomli
 
-from tf2mon.steamid import SteamID
+from tf2mon.steamplayer import SteamPlayer
 from tf2mon.steamweb import SteamWebAPI
+
+logging.basicConfig(force=True, level=logging.DEBUG)
 
 
 @pytest.fixture(name="api", scope="session")
@@ -17,19 +21,51 @@ def api_(session):  # noqa unused
     return SteamWebAPI(webapi_key)
 
 
-def test_find_steamid_1(api):
-    steamplayer = api.find_steamid(SteamID(42708103))
-    assert steamplayer.steamid == 42708103
-    # print(steamplayer)
+@pytest.mark.parametrize(("steamid"), [-3, -2, -1, 0])
+def test_fetch_steamid_not_found(api, steamid):
+    result = api.fetch_steamid(steamid)
+    # print(result)
+    assert result
+    assert result.personaname == "???"
 
 
-def test_find_steamid_2(api):
-    steamplayer = api.find_steamid(SteamID(123))
-    assert steamplayer.steamid == 123
-    # print(steamplayer)
+@pytest.mark.parametrize(
+    ("steamid", "expected"),
+    [
+        (
+            2,
+            SteamPlayer(
+                steamid=2,
+                personaname="alfred",
+                profileurl="https://steamcommunity.com/id/zoe/",
+                personastate=0,
+                realname="Alfred",
+                timecreated=1063193241,
+                loccountrycode=None,
+                locstatecode=None,
+                loccityid=None,
+            ),
+        ),
+    ],
+)
+def test_fetch_known_steamids(api, steamid, expected):
+    result = api.fetch_steamid(steamid)
+    assert result
+    assert result.steamid == expected.steamid
+    assert result.personaname == expected.personaname
+    assert result.profileurl == expected.profileurl
+    assert result.personastate == expected.personastate
+    assert result.realname == expected.realname
+    assert result.timecreated == expected.timecreated
+    assert result.loccountrycode == expected.loccountrycode
+    assert result.locstatecode == expected.locstatecode
+    assert result.loccityid == expected.loccityid
+    # assert result.mtime == expected.mtime
+    # print(f"result={result}")
 
 
-def test_no_find_steamid_1(api):
-    steamplayer = api.find_steamid(SteamID(-99))
-    assert steamplayer.steamid == 0
+@pytest.mark.parametrize(("steamid"), [42708103])
+def test_fetch_steamid_found(api, steamid):
+    steamplayer = api.fetch_steamid(steamid)
+    assert steamplayer
     # print(steamplayer)

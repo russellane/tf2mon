@@ -5,7 +5,6 @@ import time
 import steam.webapi
 from loguru import logger
 
-from tf2mon.database import Database
 from tf2mon.steamid import BOT_STEAMID, SteamID
 from tf2mon.steamplayer import SteamPlayer
 
@@ -29,7 +28,7 @@ class SteamWebAPI:
 
         self._nbots = 0
 
-    def find_steamid(self, steamid: SteamID) -> SteamPlayer:
+    def fetch_steamid(self, steamid: int) -> SteamPlayer:
         """Lookup and return `SteamPlayer` with matching `steamid`.
 
         Use web service to get "Player Summary" of given `steamid`.
@@ -38,12 +37,12 @@ class SteamWebAPI:
 
         now = int(time.time())
 
-        if steamid.id == BOT_STEAMID:
+        if steamid == BOT_STEAMID.id:
             # create a dummy steamid for this bot; (not a hacker, a real game bot)
             self._nbots += 1
             return SteamPlayer(
                 {
-                    "steamid": steamid.id,
+                    "steamid": steamid,
                     "personaname": None,
                     "profileurl": "",
                     "personastate": 0,
@@ -55,58 +54,40 @@ class SteamWebAPI:
                 }
             )
 
+        if not SteamID(steamid).is_valid():
+            return SteamPlayer(steamid=steamid, personaname="???", timecreated=now, mtime=now)
+
         # it's not a game bot; look in database.
-        steamplayer = SteamPlayer.find_steamid(steamid)
+        steamplayer = SteamPlayer.fetch_steamid(steamid)
 
         if steamplayer and steamplayer.mtime > now - MAX_AGE:
-            # logger.debug('current')
+            logger.debug("current")
             return steamplayer
-        # if steamplayer:
-        #     logger.debug('expired')
+        if steamplayer:
+            logger.debug("expired")
 
         # not current or not in cache; call web service.
-        player_summaries = self._get_player_summaries([steamid])
+        player_summaries = self._get_player_summaries([SteamID(steamid)])
 
         if len(player_summaries) < 1:
-            # unexpected!
-            return SteamPlayer(
-                {
-                    "steamid": steamid.id,
-                    "personaname": "???",
-                    "profileurl": "",
-                    "personastate": "?",
-                    "realname": "",
-                    "timecreated": now,
-                    "loccountrycode": "",
-                    "locstatecode": "",
-                    "loccityid": "",
-                }
-            )
+            return SteamPlayer(steamid=steamid, personaname="???", timecreated=now, mtime=now)
 
-        steamplayer = SteamPlayer(player_summaries[0])
+        summary = player_summaries[0]
 
-        try:
-            Database().execute(
-                "replace into steamplayers values(?,?,?,?,?,?,?,?,?,?)",
-                (
-                    steamplayer.steamid,
-                    steamplayer.personaname,
-                    steamplayer.profileurl,
-                    steamplayer.personastate,
-                    steamplayer.realname,
-                    steamplayer.timecreated,
-                    steamplayer.loccountrycode,
-                    steamplayer.locstatecode,
-                    steamplayer.loccityid,
-                    now,
-                ),
-            )
-        except Exception as err:
-            logger.critical(err)
-            raise
-        Database().connection.commit()
+        steamplayer = SteamPlayer(
+            steamid,
+            summary.get("personaname"),
+            summary.get("profileurl"),
+            summary.get("personastate"),
+            summary.get("realname"),
+            summary.get("timecreated"),
+            summary.get("loccountrycode"),
+            summary.get("locstatecode"),
+            summary.get("loccityid"),
+            now,
+        )
 
-        #
+        steamplayer.upsert()
         return steamplayer
 
     def _get_player_summaries(self, steamids):

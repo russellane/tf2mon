@@ -17,7 +17,6 @@ from tf2mon.database import Database
 from tf2mon.hacker import HackerManager
 from tf2mon.logger import configure_logger
 from tf2mon.monitor import Monitor
-from tf2mon.steamid import SteamID
 from tf2mon.steamweb import SteamWebAPI
 
 
@@ -486,7 +485,7 @@ class CLI(BaseCLI):
             Database(self.options.database)
             api = SteamWebAPI(webapi_key=self.config.get("webapi_key"))
             for steamid in self.options.print_steamids:
-                print(api.find_steamid(SteamID(steamid)))
+                print(api.fetch_steamid(steamid))
             self.parser.exit()
 
         if self.options.print_hackers:

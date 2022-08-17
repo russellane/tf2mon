@@ -4,28 +4,29 @@ from tf2mon.player import Player
 
 # pylint: disable=unused-argument
 
+VALUEHOLDERS = "values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+
 
 def test_valueholders_cls():
-    assert Player.valueholders() == "values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+    assert Player.valueholders() == VALUEHOLDERS
 
 
 def test_valueholders_obj():
-    assert Player(0).valueholders() == "values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+    assert Player(0).valueholders() == VALUEHOLDERS
 
 
 def _test_select_all(session):
-    for player in Player.select_all():
-        print(player)
+    for result in Player.select_all():
+        print(result)
 
 
-@pytest.mark.parametrize(("steamid"), [-3, -2, -1, 0, 1, 2, 3])
-def test_lookup_steamid_not_found(session, steamid):
-    assert Player.lookup_steamid(steamid) is None
+@pytest.mark.parametrize(("steamid"), [-3, -2, -1, 0, 1])
+def test_fetch_steamid_not_found(session, steamid):
+    assert Player.fetch_steamid(steamid) is None
 
 
 @pytest.mark.parametrize(("steamid"), [4377])
-def _test_lookup_steamid_found(session, steamid):
-    player = Player.lookup_steamid(steamid)
-    assert player
-    print(f"\n=====> player.steamid={player.steamid!r}")
-    print(player)
+def _test_fetch_steamid_found(session, steamid):
+    result = Player.fetch_steamid(steamid)
+    assert result
+    print(result)

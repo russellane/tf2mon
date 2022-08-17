@@ -228,7 +228,7 @@ class User:
         assert self.steamid
         self.dirty = True
 
-        self.steamplayer = self.monitor.steam_web_api.find_steamid(self.steamid)
+        self.steamplayer = self.monitor.steam_web_api.fetch_steamid(self.steamid.id)
         if self.steamplayer.is_gamebot:
             self.steamplayer.personaname = self.username
             self.pending_attrs = []
@@ -237,7 +237,7 @@ class User:
         logger.log("SteamPlayer", f"{self} SteamPlayer={self.steamplayer}")
 
         # known hacker?
-        self.player = Player.lookup_steamid(self.steamid.id)
+        self.player = Player.fetch_steamid(self.steamid.id)
         if self.player:
             logger.log("Player", self.player)
             self.player.setattrs(self.pending_attrs)

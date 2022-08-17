@@ -16,9 +16,11 @@ from tf2mon.conlog import Conlog
 from tf2mon.database import Database
 from tf2mon.gameplay import Gameplay
 from tf2mon.msgqueue import MsgQueueManager
+from tf2mon.player import Player
 from tf2mon.regex import Regex
 from tf2mon.role import Role
 from tf2mon.spammer import Spammer
+from tf2mon.steamplayer import SteamPlayer
 from tf2mon.steamweb import SteamWebAPI
 from tf2mon.ui import UI
 from tf2mon.user import Team
@@ -66,7 +68,6 @@ class Monitor:
             self.admin.set_single_step_lineno(self.options.breakpoint)
 
         #
-        # Database(self.options.database)
         self.steam_web_api = SteamWebAPI(webapi_key=self.config.get("webapi_key"))
 
         #
@@ -161,7 +162,7 @@ class Monitor:
     def repl(self):
         """Read the console log file and play game."""
 
-        Database(self.options.database)
+        Database(self.options.database, [Player, SteamPlayer])
         self.conlog.open()
 
         while (line := self.conlog.readline()) is not None:
