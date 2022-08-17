@@ -59,6 +59,12 @@ class Player(DatabaseTable):
     TACOBOT = "tacobot"
     PAZER = "pazer"
 
+    def __post_init__(self):
+        # additional (non-database) properties
+
+        self._s_prev_time = self._s_last_time
+        self.s_prev_time = self.s_last_time
+
     @classmethod
     def create_table(cls) -> None:
         """Execute create table statement."""
@@ -89,6 +95,27 @@ class Player(DatabaseTable):
         )
         Database().connection.commit()
 
+    def getattrs(self) -> list[str]:
+        """Docstring."""
+
+        return [
+            self.bot,
+            self.friends,
+            self.tacobot,
+            self.pazer,
+            self._cheater,
+            self._suspect,
+            self._exploiter,
+            self._racist,
+            self._last_name,
+            self._s_last_time,
+            self.cheater,
+            self.suspect,
+            self.exploiter,
+            self.racist,
+            self.milenko,
+        ]
+
     def setattrs(self, attrs) -> None:
         """Docstring."""
         for attr in attrs:
@@ -103,20 +130,38 @@ class Player(DatabaseTable):
             return cls(*tuple(row))
         return None
 
-    def track_appearance(self, name):
+    def track_appearance(self, name: str) -> None:
         """Record user appearing as given name."""
 
-        self.last_name = name
-        self.s_last_time = self.strftime()
-        logger.warning(f"time {self.s_last_time} name {self.last_name!r}")
+        level = self.display_level
+        leader = f"{level}: {self.steamid}"
 
-        logger.warning(f"self.names {self.names!r}")
-        names = json.loads(self.names).get("json", []) if self.names else []
-        logger.warning(f"names {names!r}")
-        if name not in names:
-            logger.warning(f"adding name {name!r}")
-            names.append(name)
-        self.names = json.dumps({"json": names})
+        logger.log(level, f"{leader}: name: `{name}`")
+        logger.log(level, f"{leader}: last={self.s_last_time} {self._s_last_time}")
+
+        self._s_prev_time = self._s_last_time
+        self.s_prev_time = self.s_last_time
+        self.s_last_time = self.strftime()
+
+        aliases = list(self.aliases)  # deserialize
+
+        if self.last_name not in aliases:
+            logger.log(level, f"{leader}: adding last_name `{self.last_name}`")
+            aliases.append(self.last_name)
+        self.last_name = name
+
+        if name not in aliases:
+            logger.log(level, f"{leader}: adding alias `{name}`")
+            aliases.append(name)
+
+        self.names = json.dumps({"json": aliases})  # serialize
+        self.upsert()
+
+    @property
+    def aliases(self) -> str:
+        """Return list of names used by this account."""
+
+        return json.loads(self.names).get("json", []) if self.names else []
 
     def strftime(self, seconds=None) -> str:
         """Return time formatted as a string."""
@@ -166,7 +211,7 @@ class Player(DatabaseTable):
             or self.bot
             or self.friends
             or self.tacobot
-            or self.pazer
+            # or self.pazer
         )
 
 

@@ -239,13 +239,13 @@ class User:
         # known hacker?
         self.player = Player.fetch_steamid(self.steamid.id)
         if self.player:
-            logger.log("Player", self.player)
+            # logger.log("Player", self.player.astuple())
             self.player.setattrs(self.pending_attrs)
             self.player.track_appearance(self.username)
-            self.player.upsert()
+            self.monitor.ui.show_player_intel(self.player)
             # bobo1
             self.display_level = self.player.display_level
-            logger.log(self.display_level, f"{self._clean_username!r} is here")
+            # logger.log(self.display_level, f"{self._clean_username!r} is here")
             # bobo2
             self.pending_attrs = None
             if self.player.is_banned:
@@ -272,7 +272,6 @@ class User:
         player = Player(steamid)
         player.setattrs(attrs)
         player.track_appearance(name)
-        player.upsert()
         return player
 
     def kick(self, attr):

@@ -290,6 +290,44 @@ class UI:
         win.addstr(line, self.colormap[level])
         win.noutrefresh()
 
+    def show_player_intel(self, player) -> None:
+        """Display what we know about `player`."""
+
+        level = player.display_level
+        leader = f"{level}: {player.steamid}"
+
+        # self.monitor.ui.show_journal(
+        #     "Player",
+        #     f"{leader}: {player}",
+        # )
+
+        # self.monitor.ui.show_journal(
+        #     level,
+        #     f"{leader}: {player.astuple()}",
+        # )
+
+        self.monitor.ui.show_journal(
+            level,
+            f"{leader}: name: `{player.last_name}`",
+        )
+
+        for alias in [x for x in player.aliases if x != player.last_name]:
+            self.monitor.ui.show_journal(
+                level,
+                f"{leader}: alias: `{alias}`",
+            )
+
+        self.monitor.ui.show_journal(
+            level,
+            # pylint: disable=protected-access
+            f"{leader}: prev={player.s_prev_time} {player._s_prev_time}",
+        )
+
+        self.monitor.ui.show_journal(
+            level,
+            f"{leader}: attrs={[x for x in player.getattrs() if x]}",
+        )
+
     def _format_duels(self, user):
 
         lines = []

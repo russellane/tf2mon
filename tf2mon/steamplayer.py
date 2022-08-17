@@ -27,9 +27,6 @@ class SteamPlayer(DatabaseTable):
     loccityid: str = ""
     mtime: int = 0
 
-    # additional (non-database) properties
-    # _age: int = field(default=0, init=False, repr=False)
-
     def __post_init__(self):
 
         steamid = SteamID(self.steamid)
@@ -38,15 +35,11 @@ class SteamPlayer(DatabaseTable):
             self.profileurl = None  # indicate long noisy determinable value
 
         now = int(time.time())
-        self.age = 0
+
+        self.age = 0  # number of days since account was created.
         if self.timecreated:
             self.age = (now - self.timecreated) // 86400
         self.mtime = self.mtime or now
-
-    # @property
-    # def age(self) -> int:
-    #     """Return number of days since account was created."""
-    #     return self._age
 
     @classmethod
     def create_table(cls) -> None:
