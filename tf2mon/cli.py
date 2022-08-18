@@ -13,7 +13,7 @@ import tf2mon
 import tf2mon.controls
 import tf2mon.layouts
 from tf2mon.conlog import Conlog
-from tf2mon.control import ControlManager
+from tf2mon.controls import Controls
 from tf2mon.database import Database
 from tf2mon.hacker import HackerManager
 from tf2mon.logger import configure_logger
@@ -51,7 +51,7 @@ class CLI(BaseCLI):
     }
 
     # Create all controls.
-    controls = ControlManager("tf2mon.controls", suffix="Control")
+    controls = Controls("tf2mon.controls", suffix="Control")
 
     # Bind some controls.
     controls.bind("HelpControl", "F1")

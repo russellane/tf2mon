@@ -165,22 +165,22 @@ By default, `tf2mon` starts reading `con_logfile` from its end
                  F6 Join Other Team.
                  F7 Cycle scoreboard Sort column.
                  F8 Cycle logger `location` format.
-            CTRL+F8 Reset logger `padding`.
            SHIFT+F8 Cycle logger `level`.
+            CTRL+F8 Reset logger `padding`.
                  F9 Cycle grid layout.
-               KP_5 Clear kicks and spams queues.
-             KP_DEL Enable/disable `Single-Step`.
-       KP_DOWNARROW Push `steamids` from game to monitor.
-             KP_END Pop first/oldest kicks queue message.
-            KP_HOME Pop last/latest kicks queue message.
              KP_INS Show debugging.
+             KP_DEL Enable/disable `Single-Step`.
+                  [ Kick last killer as `cheater`.
+                  ] Kick last killer as `racist`.
+                  \ Mark last killer as `suspect`.
+            KP_HOME Pop last/latest kicks queue message.
        KP_LEFTARROW Clear kicks queue.
-            KP_PGDN Pop first/oldest spams queue message.
+             KP_END Pop first/oldest kicks queue message.
             KP_PGUP Pop last/latest spams queue message.
       KP_RIGHTARROW Clear spams queue.
-                  [ Kick last killer as `cheater`.
-                  \ Mark last killer as `suspect`.
-                  ] Kick last killer as `racist`.
+            KP_PGDN Pop first/oldest spams queue message.
+               KP_5 Clear kicks and spams queues.
+       KP_DOWNARROW Push `steamids` from game to monitor.
 
 #### Where to Operate
   `tf2mon` works by reading the `con_logfile` to which `TF2` logs
