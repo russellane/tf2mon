@@ -126,12 +126,7 @@ class Monitor:
     def _run(self, win):
 
         self.ui = UI(win)
-        self.controls.register_curses_handlers()
-        self.controls["SortOrderControl"].start(self.options.sort_order)
-        self.controls["LogLocationControl"].start(self.options.log_location)
-        self.controls["LogLevelControl"].start(self.options.verbose)
-        self.controls["GridLayoutControl"].start(self.options.layout)
-
+        self.controls.start()
         self.reset_game()
 
         # no need for threads if exiting at end of conlog

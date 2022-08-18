@@ -26,9 +26,8 @@ class GridLayoutControl(CycleControl):
         enum.WIDE: WideLayout,
     }
 
-    #
-    def start(self, value: str) -> None:
-        self.toggle.start(self.enum.__dict__[value])
+    def start(self) -> None:
+        self.toggle.start(self.enum.__dict__[tf2mon.monitor.options.layout])
         tf2mon.monitor.ui.grid.handle_term_resized_event()
 
     def handler(self, _match) -> None:

@@ -85,7 +85,6 @@ class ControlManager:
     items: dict[str, Control] = {}
 
     commands = CommandManager()
-    register_curses_handlers = commands.register_curses_handlers
     get_regex_list = commands.get_regex_list
     get_status_line = commands.get_status_line
 
@@ -130,3 +129,11 @@ class ControlManager:
             # 17 == indent 4 + len("KP_RIGHTARROW")
             lines.append(f"{control.fkey.keyspec:>17} {control.__doc__}")
         return "\n".join(lines)
+
+    def start(self) -> None:
+        """Finalize initialization now that curses has been started."""
+
+        self.commands.register_curses_handlers()
+
+        for control in [x for x in self.items.values() if hasattr(x, "start")]:
+            control.start()

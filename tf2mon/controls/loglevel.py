@@ -19,11 +19,10 @@ class LogLevelControl(CycleControl):
         enum.TRACE: "TRACE",  # "-vv"
     }
 
-    #
-    def start(self, verbose: int) -> None:
+    def start(self) -> None:
         """Set logging level based on `--verbose`."""
 
-        tf2mon.monitor.ui.logsink.set_verbose(verbose)
+        tf2mon.monitor.ui.logsink.set_verbose(tf2mon.monitor.options.verbose)
         self.toggle.start(self.enum.__dict__[tf2mon.monitor.ui.logsink.level])
 
     def handler(self, _match) -> None:

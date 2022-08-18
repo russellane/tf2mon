@@ -22,9 +22,8 @@ class LogLocationControl(CycleControl):
         enum.NUL: None,
     }
 
-    #
-    def start(self, value: str) -> None:
-        self.toggle.start(self.enum.__dict__[value])
+    def start(self) -> None:
+        self.toggle.start(self.enum.__dict__[tf2mon.monitor.options.log_location])
         tf2mon.monitor.ui.logsink.set_location(self.items[self.toggle.value])
 
     def handler(self, _match) -> None:
