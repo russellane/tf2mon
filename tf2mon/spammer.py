@@ -74,20 +74,16 @@ class Spammer:
 
     _airblast_weapons = ("world", "deflect_promode", "deflect_rocket")
 
-    def __init__(self, monitor):
-        """Initialize."""
-        self.monitor = monitor
-
     def taunt(self, victim, weapon, crit):
         """Make noise when operator kills opponent."""
 
-        if self.monitor.ui.taunt_flag.value:
+        if tf2mon.monitor.controls["TauntFlagControl"].value:
             self._push_spam(self._crit_taunts if crit else self._no_crit_taunts, victim, weapon)
 
     def throe(self, killer, weapon, crit):
         """Make noise when opponent kills operator."""
 
-        if self.monitor.ui.throe_flag.value:
+        if tf2mon.monitor.controls["ThroeFlagControl"].value:
             spam = self._crit_throes if crit else self._no_crit_throes
             suffix = (" +" + killer.perk) if killer.perk else ""
             self._push_spam(spam, killer, weapon, suffix)
@@ -100,12 +96,12 @@ class Spammer:
 
         m = messages.cycle.format(
             user=user.moniker,
-            duel=self.monitor.my.duel_as_str(user),
+            duel=tf2mon.monitor.my.duel_as_str(user),
             weapon=weapon,
             killed=self._killed.cycle,
             insult=self._insults.cycle,
         )
-        self.monitor.spams.push("say " + m + suffix)
+        tf2mon.monitor.spams.push("say " + m + suffix)
 
     def spam(self, spamno):
         """Respond to SPAM command."""
@@ -117,4 +113,4 @@ class Spammer:
             logger.critical(f"bad spamno {spamno!r}")
             return
 
-        self.monitor.spams.pushleft(msg)
+        tf2mon.monitor.spams.pushleft(msg)

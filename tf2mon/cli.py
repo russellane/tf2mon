@@ -5,13 +5,16 @@ import threading
 from pathlib import Path
 from typing import Optional
 
-import steam.steamid
 import xdg
 from libcli import BaseCLI
 from loguru import logger
 
+import tf2mon
+import tf2mon.controls
 import tf2mon.layouts
 from tf2mon.conlog import Conlog
+from tf2mon.controls import Controls
+from tf2mon.database import Database
 from tf2mon.hacker import HackerManager
 from tf2mon.logger import configure_logger
 from tf2mon.monitor import Monitor
@@ -39,13 +42,46 @@ class CLI(BaseCLI):
         "con_logfile": Path("console.log"),
         #
         # databases.
-        "players": _cachedir / "steamplayers.db",
+        "database": _cachedir / "tf2mon.db",
         "hackers": _cachedir / "hackers.json",
         "exclude-file": Path(__file__).parent / "data" / "exclude.txt",
         "webapi_key": "",
         # this player.
         "player_name": "Bad Dad",
     }
+
+    # Create all controls.
+    controls = Controls("tf2mon.controls", suffix="Control")
+
+    # Bind some controls.
+    controls.bind("HelpControl", "F1")
+    controls.bind("MotdControl", "Ctrl+F1")
+    controls.bind("DebugFlagControl", "F2")
+    controls.bind("TauntFlagControl", "F3")
+    controls.bind("ThroeFlagControl", "Shift+F3")
+    controls.bind("ShowKDControl", "F4")
+    controls.bind("ShowKillsControl", "Shift+F4")
+    controls.bind("UserPanelControl", "F5")
+    controls.bind("JoinOtherTeamControl", "F6")
+    controls.bind("SortOrderControl", "F7")
+    controls.bind("LogLocationControl", "F8")
+    controls.bind("LogLevelControl", "Shift+F8")
+    controls.bind("ResetPaddingControl", "Ctrl+F8")
+    controls.bind("GridLayoutControl", "F9")
+    controls.bind("ShowDebugControl", "KP_INS")
+    controls.bind("SingleStepControl", "KP_DEL")
+    controls.bind("KickLastCheaterControl", "[", game_only=True)
+    controls.bind("KickLastRacistControl", "]", game_only=True)
+    controls.bind("KickLastSuspectControl", "\\", game_only=True)
+    controls.bind("KicksPopControl", "KP_HOME")
+    controls.bind("KicksClearControl", "KP_LEFTARROW")
+    controls.bind("KicksPopleftControl", "KP_END")
+    controls.bind("SpamsPopControl", "KP_PGUP")
+    controls.bind("SpamsClearControl", "KP_RIGHTARROW")
+    controls.bind("SpamsPopleftControl", "KP_PGDN")
+    # controls.bind("PullControl", "KP_UPARROW")
+    controls.bind("ClearQueuesControl", "KP_5")
+    controls.bind("PushControl", "KP_DOWNARROW")
 
     # def debug(self, text: str) -> None:
     #     """Override to silence."""
@@ -138,13 +174,7 @@ class CLI(BaseCLI):
         )
         self.add_default_to_help(arg)
 
-        arg = self.parser.add_argument(
-            "--layout",
-            choices=[x.name for x in list(tf2mon.layouts.LAYOUT_ENUM)],
-            default=list(tf2mon.layouts.LAYOUT_ENUM)[0].name,
-            help="choose display layout",
-        )
-        self.add_default_to_help(arg)
+        self.controls.add_arguments_to(self.parser)
 
         arg = self.parser.add_argument(
             "con_logfile",
@@ -228,11 +258,11 @@ class CLI(BaseCLI):
         group = self.parser.add_argument_group("Database options")
 
         arg = group.add_argument(
-            "--players",
+            "--database",
             metavar="FILE",
-            default=Path(self.config["players"]),
+            default=Path(self.config["database"]),
             type=Path,
-            help="cache `steam` user data",
+            help="main database",
         )
         self.add_default_to_help(arg)
 
@@ -354,25 +384,8 @@ class CLI(BaseCLI):
 
         self.parser.add_argument_group(
             "Function Keys",
-            self.dedent(
-                """
-    These function keys are available in-game and in the monitor:
-
-        F1 Display help.
-        F2 Toggle Debug (control `say` vs `echo`).
-        F3 Enable/disable Taunts and Throes.
-        F4 Include kd-ratio in messages.
-        F5 Control User-panel display: Kicks, Spams, Duels and Auto.
-        F6 Join other team.
-        F7 Change scoreboard sort column.
-        F8 Change logger location format.
-        F9 Change grid layout.
-        [  Kick last killer as cheater.
-        ]  Kick last killer as racist.
-        \\  Mark last killer as suspect.
-        KP_DEL Begin single-stepping.
-                """
-            ),
+            "These function keys are available in-game and in the monitor:\n\n"
+            + self.controls.fkey_help(),
         )
 
         self.parser.add_argument_group(
@@ -442,9 +455,6 @@ class CLI(BaseCLI):
     def main(self) -> None:
         """Command line interface entry point (method)."""
 
-        # if "webapi_key" not in self.config:
-        #     self.parser.error("Missing config `webapi_key`")
-
         if self.options.con_logfile == self.config["con_logfile"]:
             # Not given on command line; prefix with effective parent.
             # (configured default is a basename relative to `tf2_install_dir`)
@@ -471,21 +481,14 @@ class CLI(BaseCLI):
             self.parser.exit()
 
         if self.options.print_steamids:
-            api = SteamWebAPI(
-                dbpath=self.options.players,
-                webapi_key=self.config.get("webapi_key"),
-            )
-            api.connect()
-            for rawid in self.options.print_steamids:
-                steamid = steam.steamid.SteamID(rawid)
-                if not steamid.is_valid():
-                    logger.error(f"invalid steamid `{self.options.print_steamid}`")
-                else:
-                    steam_player = api.find_steamid(steamid)
-                    print(steam_player)
+            Database(self.options.database)
+            api = SteamWebAPI(webapi_key=self.config.get("webapi_key"))
+            for steamid in self.options.print_steamids:
+                print(api.fetch_steamid(steamid))
             self.parser.exit()
 
         if self.options.print_hackers:
+            Database(self.options.database)
             hackers = HackerManager(self.options.hackers)
             with contextlib.suppress(BrokenPipeError):
                 hackers.print_report()
@@ -497,8 +500,8 @@ class CLI(BaseCLI):
         #     print(str(hackers))
         #     self.parser.exit()
 
-        monitor = Monitor(self)
-        monitor.run()
+        tf2mon.monitor = Monitor(self)
+        tf2mon.monitor.run()
 
 
 def main(args: Optional[list[str]] = None) -> None:

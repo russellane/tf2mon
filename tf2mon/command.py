@@ -103,13 +103,11 @@ class CommandManager:
 
     def bind(
         self,
-        cmd_factory: Callable[..., Command],
+        command: Command,
         keyspec: str,
         game_only: bool = False,
     ) -> None:
-        """Bind `Command` returned by `cmd_factory` with `keyspec`."""
-
-        command = cmd_factory()
+        """Bind `command` with `keyspec`."""
 
         keystroke = FKey(keyspec)
         if (key := self.key_by_name.get(keystroke.name)) is None:
@@ -274,6 +272,6 @@ class CommandManager:
         items = []
         for key in self.key_by_name.values():
             for function in key.functions:
-                if function.command.status:
+                if hasattr(function.command, "status") and function.command.status:
                     items.append(f"{function.keystroke.label}={function.command.status()}")
         return " ".join(items)

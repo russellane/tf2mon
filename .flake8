@@ -5,6 +5,10 @@ ignore =
     W503 # black; line break before binary operator
     PLR0903 # Too few public methods (1/2) (too-few-public-methods)
 
-# don't check docstrings in tests
 per-file-ignores = 
+    # don't check docstrings in tests
     tests/*:D,PLC
+
+    # D102 Missing docstring in public method
+    # PLC0116 Missing function or method docstring (missing-function-docstring)
+    tf2mon/controls/*:D102,PLC0116

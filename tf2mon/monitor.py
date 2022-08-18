@@ -10,14 +10,17 @@ from pprint import pformat
 import libcurses
 from loguru import logger
 
+import tf2mon
 from tf2mon.admin import Admin
-from tf2mon.command import Command, CommandManager
 from tf2mon.conlog import Conlog
+from tf2mon.database import Database
 from tf2mon.gameplay import Gameplay
-from tf2mon.hacker import HackerAttr, HackerManager
 from tf2mon.msgqueue import MsgQueueManager
+from tf2mon.player import Player
+from tf2mon.regex import Regex
 from tf2mon.role import Role
 from tf2mon.spammer import Spammer
+from tf2mon.steamplayer import SteamPlayer
 from tf2mon.steamweb import SteamWebAPI
 from tf2mon.ui import UI
 from tf2mon.user import Team
@@ -32,14 +35,10 @@ class Monitor:
     def __init__(self, cli) -> None:
         """Initialize monitor."""
 
+        tf2mon.monitor = self
         self.options = cli.options
         self.config = cli.config
-
-        #
-        self.steam_web_api = SteamWebAPI(
-            dbpath=self.options.players,
-            webapi_key=self.config.get("webapi_key"),
-        )
+        self.controls = cli.controls
 
         # Location of TF2 `exec` scripts.
         self.tf2_scripts_dir = Path(self.options.tf2_install_dir, "cfg", "user")
@@ -51,7 +50,7 @@ class Monitor:
 
         # "Send" to TF2 through `msgqueues`.
         self.path_dynamic_script = self.tf2_scripts_dir / "tf2mon-pull.cfg"  # created often
-        self.msgqueues = MsgQueueManager(self, self.path_dynamic_script)
+        self.msgqueues = MsgQueueManager(self.path_dynamic_script)
 
         # "Receive" from TF2 through `conlog`.
         # Wait for con_logfile to exist, then open it.
@@ -65,12 +64,12 @@ class Monitor:
         )
 
         # this application's admin console
-        self.admin = Admin(self)
+        self.admin = Admin()
         if self.options.breakpoint is not None:
             self.admin.set_single_step_lineno(self.options.breakpoint)
 
         #
-        self.hackers = HackerManager(self.options.hackers)
+        self.steam_web_api = SteamWebAPI(webapi_key=self.config.get("webapi_key"))
 
         #
         self.roles = Role.get_roles_by_name()
@@ -102,20 +101,18 @@ class Monitor:
         self.spams = self.msgqueues.addq("spams")
 
         #
-        self.spammer = Spammer(self)
-
-        #
-        self.commands: CommandManager = self._commands()
+        self.spammer = Spammer()
 
         # admin command handlers
         self.regex_list = self.admin.regex_list
 
         # gameplay handlers
-        self.gameplay = Gameplay(self)
+        self.gameplay = Gameplay()
         self.regex_list += self.gameplay.regex_list
 
         # function key handlers
-        self.regex_list += self.commands.get_regex_list()
+        self.write_tf2_exec_script()
+        self.regex_list += self.controls.get_regex_list()
 
         #
         self.me = self.my = None
@@ -127,18 +124,18 @@ class Monitor:
         libcurses.wrapper(self._run)
 
     def _run(self, win):
-        self.commands.register_curses_handlers()
-        # Build user-interface
-        self.ui = UI(self, win)
+
+        self.ui = UI(win)
+        self.controls.start()
         self.reset_game()
 
         # no need for threads if exiting at end of conlog
         if not self.options.follow:
-            self.gameplay.repl()
+            self.repl()
             return
 
         # Read from conlog, write to display.
-        thread = threading.Thread(name="GAME", target=self.gameplay.repl, daemon=True)
+        thread = threading.Thread(name="GAME", target=self.repl, daemon=True)
         thread.start()
 
         # main thread reads from keyboard/mouse, and writes to display
@@ -150,12 +147,32 @@ class Monitor:
 
         logger.success("RESET GAME")
 
-        self.users = UserManager(self)
+        self.users = UserManager()
         self.me = self.my = self.users.find_username(self.config["player_name"])
         self.me.assign_team(Team.BLU)
         self.my.display_level = "user"
         self.chats = []
         self.msgqueues.clear()
+
+    def repl(self):
+        """Read the console log file and play game."""
+
+        Database(self.options.database, [Player, SteamPlayer])
+        self.conlog.open()
+
+        while (line := self.conlog.readline()) is not None:
+            if not line:
+                continue
+
+            regex = Regex.search_list(line, self.regex_list)
+            if not regex:
+                logger.log("ignore", self.conlog.last_line)
+                continue
+
+            self.admin.step(line)
+            regex.handler(regex.re_match_obj)
+            self.msgqueues.send()
+            self.ui.update_display()
 
     def breakpoint(self):
         """Drop into python debugger."""
@@ -199,217 +216,18 @@ class Monitor:
 
         return self.conlog.is_eof or self.options.toggles or self.admin.is_single_stepping
 
-    def _commands(self) -> CommandManager:
-        """Init and return `CommandManager`."""
-
-        commands = CommandManager()
-        commands.bind(self._cmd_help, "F1")
-        commands.bind(self._cmd_motd, "Ctrl+F1")
-        commands.bind(self._cmd_debug_flag, "F2")
-        commands.bind(self._cmd_taunt_flag, "F3")
-        commands.bind(self._cmd_show_kd, "F4")
-        commands.bind(self._cmd_user_panel, "F5")
-        commands.bind(self._cmd_join_other_team, "F6")
-        commands.bind(self._cmd_sort_order, "F7")
-        commands.bind(self._cmd_log_location, "F8")
-        commands.bind(self._cmd_log_level, "Shift+F8")
-        commands.bind(self._cmd_reset_padding, "Ctrl+F8")
-        commands.bind(self._cmd_grid_layout, "F9")
-        commands.bind(self._cmd_show_debug, "KP_INS")
-        commands.bind(self._cmd_single_step, "KP_DEL")
-        commands.bind(self._cmd_kick_last_cheater, "[", game_only=True)
-        commands.bind(self._cmd_kick_last_racist, "]", game_only=True)
-        commands.bind(self._cmd_kick_last_suspect, "\\", game_only=True)
-
-        # numpad
-        commands.bind(self._cmd_kicks_pop, "KP_HOME")
-        commands.bind(self._cmd_kicks_clear, "KP_LEFTARROW")
-        commands.bind(self._cmd_kicks_popleft, "KP_END")
-        commands.bind(self._cmd_pull, "KP_UPARROW")
-        commands.bind(self._cmd_clear_queues, "KP_5")
-        commands.bind(self._cmd_push, "KP_DOWNARROW")
-        commands.bind(self._cmd_spams_pop, "KP_PGUP")
-        commands.bind(self._cmd_spams_clear, "KP_RIGHTARROW")
-        commands.bind(self._cmd_spams_popleft, "KP_PGDN")
+    def write_tf2_exec_script(self):
+        """Write tf2 exec script."""
 
         if self.tf2_scripts_dir.is_dir():
             logger.info(f"Writing `{self.path_static_script}`")
-            script = commands.as_tf2_exec_script(
+            script = self.controls.commands.as_tf2_exec_script(
                 str(self.path_static_script.relative_to(self.tf2_scripts_dir.parent)),
                 str(self.path_dynamic_script.relative_to(self.tf2_scripts_dir.parent)),
             )
             self.path_static_script.write_text(script, encoding="utf-8")
         else:
             logger.warning(f"Not writing `{self.path_static_script}`")
-
-        return commands
-
-    @staticmethod
-    def _on_off(key, value):
-        return key.upper() if value else key
-
-    def _cmd_help(self) -> Command:
-
-        return Command(
-            name="HELP",
-            status=lambda: "HELP",
-            handler=lambda m: self.ui.show_help(),
-        )
-
-    def _cmd_motd(self) -> Command:
-
-        return Command(
-            name="MOTD",
-            handler=lambda m: self.ui.show_motd(),
-        )
-
-    def _cmd_debug_flag(self) -> Command:
-        def _action() -> None:
-            if self.toggling_enabled:
-                _ = self.ui.debug_flag.toggle
-                self.ui.show_status()
-
-        return Command(
-            name="TOGGLE-DEBUG",
-            status=lambda: self._on_off("debug", self.ui.debug_flag.value),
-            handler=lambda m: _action(),
-        )
-
-    def _cmd_taunt_flag(self) -> Command:
-        def _action() -> None:
-            if self.toggling_enabled:
-                _ = self.ui.taunt_flag.toggle
-                self.ui.show_status()
-
-        return Command(
-            name="TOGGLE-TAUNT",
-            status=lambda: self._on_off("taunt", self.ui.taunt_flag.value),
-            handler=lambda m: _action(),
-        )
-
-    def _cmd_show_kd(self) -> Command:
-        def _action() -> None:
-            if self.toggling_enabled:
-                _ = self.ui.show_kd.toggle
-                self.ui.show_status()
-
-        return Command(
-            name="TOGGLE-KD",
-            status=lambda: self._on_off("kd", self.ui.show_kd.value),
-            handler=lambda m: _action(),
-        )
-
-    def _cmd_user_panel(self) -> Command:
-        def _action() -> None:
-            _ = self.ui.user_panel.toggle
-            self.ui.update_display()
-
-        return Command(
-            name="TOGGLE-USER-PANEL",
-            status=lambda: self.ui.user_panel.value.name,
-            handler=lambda m: _action(),
-        )
-
-    def _cmd_join_other_team(self) -> Command:
-        def _action() -> None:
-            if self.toggling_enabled:
-                self.me.assign_team(self.my.opposing_team)
-                self.ui.update_display()
-
-        return Command(
-            name="SWITCH-MY-TEAM",
-            status=lambda: self.my.team.name if self.my.team else "blu",
-            handler=lambda m: _action(),
-        )
-
-    def _cmd_sort_order(self) -> Command:
-
-        return Command(
-            name="TOGGLE-SORT",
-            status=lambda: self.ui.sort_order.value.name,
-            handler=lambda m: (
-                self.ui.set_sort_order(self.ui.sort_order.toggle),
-                self.ui.update_display(),
-            ),
-        )
-
-    def _cmd_log_level(self) -> Command:
-
-        return Command(
-            name="TOGGLE-LOG-LEVEL",
-            status=lambda: self.ui.log_level.value.name,
-            handler=lambda m: (
-                self.ui.cycle_log_level(),
-                self.ui.show_status(),
-            ),
-        )
-
-    def _cmd_log_location(self) -> Command:
-
-        return Command(
-            name="TOGGLE-LOG-LOCATION",
-            status=lambda: self.ui.log_location.value.name,
-            handler=lambda m: (
-                self.ui.cycle_log_location(),
-                self.ui.show_status(),
-            ),
-        )
-
-    def _cmd_reset_padding(self) -> Command:
-
-        return Command(
-            name="RESET-PADDING",
-            handler=lambda m: (
-                self.ui.logsink.reset_padding(),
-                logger.info("padding reset"),
-            ),
-        )
-
-    def _cmd_grid_layout(self) -> Command:
-
-        return Command(
-            name="TOGGLE-LAYOUT",
-            status=lambda: self.ui.grid_layout.value.name,
-            handler=lambda m: self.ui.cycle_grid_layout(),
-        )
-
-    def _cmd_single_step(self) -> Command:
-
-        return Command(
-            name="SINGLE-STEP",
-            handler=lambda m: self.admin.start_single_stepping(),
-        )
-
-    def _cmd_show_debug(self) -> Command:
-
-        return Command(
-            name="SHOW-DEBUG",
-            handler=lambda m: self.ui.show_debug(),
-        )
-
-    def _cmd_kick_last_cheater(self) -> Command:
-
-        return Command(
-            name="KICK-LAST-CHEATER",
-            status=lambda: HackerAttr.CHEATER.name,
-            handler=lambda m: self.kick_my_last_killer(HackerAttr.CHEATER),
-        )
-
-    def _cmd_kick_last_racist(self) -> Command:
-
-        return Command(
-            name="KICK-LAST-RACIST",
-            status=lambda: HackerAttr.RACIST.name,
-            handler=lambda m: self.kick_my_last_killer(HackerAttr.RACIST),
-        )
-
-    def _cmd_kick_last_suspect(self) -> Command:
-
-        return Command(
-            name="KICK-LAST-SUSPECT",
-            status=lambda: HackerAttr.SUSPECT.name,
-            handler=lambda m: self.kick_my_last_killer(HackerAttr.SUSPECT),
-        )
 
     # --------------------------------------------------------------------------
     # Numpad
@@ -429,98 +247,3 @@ class Monitor:
     #        oldest --> | popleft |  push   | popleft |
     #                   |         |         |         |
     #                   +-----------------------------+
-
-    def _cmd_kicks_pop(self) -> Command:
-
-        return Command(
-            name="KICKS-POP",
-            handler=lambda m: (
-                self.kicks.pop(),
-                self.ui.refresh_kicks(),
-            ),
-            action="tf2mon_kicks_pop",
-        )
-
-    def _cmd_kicks_clear(self) -> Command:
-
-        return Command(
-            name="KICKS-CLEAR",
-            handler=lambda m: (
-                self.kicks.clear(),
-                self.ui.refresh_kicks(),
-            ),
-            action="tf2mon_kicks_clear",
-        )
-
-    def _cmd_kicks_popleft(self) -> Command:
-
-        return Command(
-            name="KICKS-POPLEFT",
-            handler=lambda m: (
-                self.kicks.popleft(),
-                self.ui.refresh_kicks(),
-            ),
-            action="tf2mon_kicks_popleft",
-        )
-
-    def _cmd_pull(self) -> Command:
-
-        return Command(
-            name="PULL",
-            # handler=lambda m: logger.trace('pull'),
-            action="tf2mon_pull",
-        )
-
-    def _cmd_clear_queues(self) -> Command:
-
-        return Command(
-            name="CLEAR-QUEUES",
-            handler=lambda m: (
-                self.kicks.clear(),
-                self.ui.refresh_kicks(),
-                self.spams.clear(),
-                self.ui.refresh_spams(),
-            ),
-            action="tf2mon_clear_queues",
-        )
-
-    def _cmd_push(self) -> Command:
-
-        return Command(
-            name="PUSH",
-            # handler=lambda m: logger.trace('push'),
-            action="tf2mon_push",
-        )
-
-    def _cmd_spams_pop(self) -> Command:
-
-        return Command(
-            name="SPAMS-POP",
-            handler=lambda m: (
-                self.spams.pop(),
-                self.ui.refresh_spams(),
-            ),
-            action="tf2mon_spams_pop",
-        )
-
-    def _cmd_spams_clear(self) -> Command:
-
-        return Command(
-            name="SPAMS-CLEAR",
-            handler=lambda m: (
-                self.spams.clear(),
-                self.ui.refresh_spams(),
-            ),
-            action="tf2mon_spams_clear",
-        )
-
-    def _cmd_spams_popleft(self) -> Command:
-
-        return Command(
-            name="SPAMS-POPLEFT",
-            handler=lambda m: (
-                self.spams.popleft(),
-                self.ui.refresh_spams(),
-            ),
-            action="tf2mon_spams_popleft",
-        )

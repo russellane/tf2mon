@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 
 
 @dataclass
-class Column:
+class TextColumn:
     """Column formatter."""
 
     width: int | float
@@ -47,10 +47,10 @@ class Column:
 
 
 @dataclass
-class Table:
+class TextTable:
     """Table formatter."""
 
-    columns: list[Column] = None
+    columns: list[TextColumn] = None
     _formatted_header: str = field(default=None, init=False)
     _fmt_detail: str = field(default=None, init=False)
 
@@ -75,38 +75,3 @@ class Table:
                 result.append(column.fmt_detail.format(value))
 
         return " ".join(result)
-
-
-if __name__ == "__main__":
-
-    table = Table(
-        [
-            Column(-10, "STEAMID"),
-            Column(4.1, "KD"),
-            Column(-4, "AGE"),
-            Column(1, "P"),
-            Column(2, "CC"),
-            Column(2, "SC"),
-            Column(4, "CI"),
-            Column(25, "PERSONANAME"),
-            Column(0, "REALNAME"),
-        ]
-    )
-
-    for col in table.columns:
-        print(col)
-
-    print(table.formatted_header)
-    print(
-        table.format_detail(
-            12345,
-            3.14159,
-            60,
-            "1",
-            "2",
-            "3",
-            "4",
-            "Persona Name",
-            "Real Name",
-        )
-    )

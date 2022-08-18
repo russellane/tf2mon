@@ -10,15 +10,13 @@ import tf2mon
 class MsgQueue:
     """Communication mechanism to "send" data to the game."""
 
-    def __init__(self, monitor, name):
+    def __init__(self, name):
         """Create new `MsgQueue`.
 
         Args:
-            monitor: the monitor.
             name:   name of message queue.
         """
 
-        self.monitor = monitor
         self.name = name
         self.msgs = deque()
 
@@ -82,7 +80,7 @@ class MsgQueue:
             last_ack = f" ; echo {tf2mon.APPTAG}{self.name.upper()}-POP"
             first_ack = last_ack + "LEFT"
         else:
-            _echo = "say" if self.monitor.ui.debug_flag.value else "echo"
+            _echo = "say" if tf2mon.monitor.controls["DebugFlagControl"].value else "echo"
             last = first = f"{_echo} the {self.name} queue is empty."
             last_ack = first_ack = ""
 
@@ -95,10 +93,9 @@ class MsgQueue:
 class MsgQueueManager:
     """Collection of `MsgQueue`s."""
 
-    def __init__(self, monitor, path):
+    def __init__(self, path):
         """Initialize collection of `MsgQueue`s."""
 
-        self.monitor = monitor
         # list(MsgQueue)
         self._queues = []
         self._file = None
@@ -109,7 +106,7 @@ class MsgQueueManager:
     def addq(self, name):
         """Create `MsgQueue` with `name`, add to collection and return it."""
 
-        queue = MsgQueue(self.monitor, name)
+        queue = MsgQueue(name)
         self._queues.append(queue)
         return queue
 

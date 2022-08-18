@@ -5,33 +5,15 @@ import curses
 import os
 import sys
 import textwrap
-from enum import Enum
 
 import libcurses
 from loguru import logger
 
-import tf2mon.layouts
+import tf2mon
 from tf2mon.scoreboard import Scoreboard
-from tf2mon.toggle import Toggle
 from tf2mon.user import Team, UserState
 
 # from playsound import playsound
-
-
-# These would have been defined within class UI (because they're only used internally)
-# but `pydoc` doesn't display their values when defined there; it does when defined here.
-
-USER_PANEL = Enum("_user_panel_enum", "AUTO DUELS KICKS SPAMS")
-USER_PANEL.__doc__ = "Contents of user panel."
-
-LOG_LEVEL = Enum("_lvl_enum", "INFO DEBUG TRACE")
-LOG_LEVEL.__doc__ = "Logging level."
-
-LOG_LOCATION = Enum("_loc_enum", "MOD NAM THM THN FILE NUL")
-LOG_LOCATION.__doc__ = "Format of logger location field."
-
-SORT_ORDER = Enum("_sort_order_enum", "STEAMID K KD CONN USERNAME")
-SORT_ORDER.__doc__ = "Scoreboard sort column."
 
 
 class UI:
@@ -39,51 +21,11 @@ class UI:
 
     # pylint: disable=too-many-instance-attributes
 
-    _log_levels = {
-        LOG_LEVEL.INFO: "INFO",  # ""
-        LOG_LEVEL.DEBUG: "DEBUG",  # "-v"
-        LOG_LEVEL.TRACE: "TRACE",  # "-vv"
-    }
-    log_level = Toggle("_lvl_cycle", LOG_LEVEL)
-
-    _log_locations = {
-        LOG_LOCATION.MOD: "{module}.{function}:{line}",
-        LOG_LOCATION.NAM: "{name}.{function}:{line}",
-        LOG_LOCATION.THM: "{thread.name}:{module}.{function}:{line}",
-        LOG_LOCATION.THN: "{thread.name}:{name}.{function}:{line}",
-        LOG_LOCATION.FILE: "{file}:{function}:{line}",
-        LOG_LOCATION.NUL: None,
-    }
-    log_location = Toggle("_loc_cycle", LOG_LOCATION)
-
-    def __init__(self, monitor, win: curses.window):
+    def __init__(self, win: curses.window):
         """Initialize User Interface."""
 
-        self.monitor = monitor
         self.notify_operator = False
         self.sound_alarm = False
-
-        # F2 Toggle Debug (control `say` vs `echo`).
-        self.debug_flag = Toggle("_df", [False, True])
-
-        # F3 Enable/disable Taunts and Throes.
-        self.taunt_flag = Toggle("_tf", [False, True])
-        self.throe_flag = Toggle("_gf", [True, False])
-
-        # F4 Include kd-ratio in messages (`User.moniker`)
-        self.show_kd = Toggle("_kd", [False, True])
-
-        # F5 Control User-panel display: Kicks, Spams, Duels and Auto.
-        self.user_panel = Toggle("_up", USER_PANEL)
-
-        # options when displaying USER_PANEL.USER
-        # self.show_actions = Toggle("_sa", [True, False])
-        # if self.show_actions.value:
-        #     lines.extend(user.actions)
-
-        # Scoreboard sort column.
-        self.sort_order = Toggle("_so", SORT_ORDER)
-        self.sort_order.start(SORT_ORDER.KD)
 
         # create empty grid
         self.grid = libcurses.Grid(win)
@@ -101,12 +43,6 @@ class UI:
         self.status_win: curses.window = None
         self.cmdline_win: curses.window = None
 
-        # the windows may be placed in different arrangements.
-        self.grid_layout = Toggle("_grid_layout", tf2mon.layouts.LAYOUT_ENUM)
-        # enum from name
-        layout = tf2mon.layouts.LAYOUT_ENUM.__dict__[self.monitor.options.layout]
-        self.grid_layout.start(layout)
-
         # `register_builder` 1) calls `build_grid` and 2) configures
         # `KEY_RESIZE` to call it again each time that event occurs.
         self.grid.register_builder(self.build_grid)
@@ -114,32 +50,15 @@ class UI:
         #
         self.logsink = libcurses.Sink(self.logger_win)
         #
-        self.logsink.set_verbose(self.monitor.options.verbose)
-        self.log_level.start(LOG_LEVEL.__dict__[self.logsink.level])
-        #
-        self.log_location.start(LOG_LOCATION.MOD)
-        self.logsink.set_location(self._log_locations[self.log_location.value])
 
         self.colormap = libcurses.get_colormap()
         #
-        self._scoreboard = Scoreboard(
-            self.monitor,
+        self.scoreboard = Scoreboard(
             self.scorewin_blu,
             self.colormap[Team.BLU.name],
             self.scorewin_red,
             self.colormap[Team.RED.name],
         )
-
-        self.set_sort_order(self.sort_order.value)
-
-    def cycle_grid_layout(self):
-        """Use next grid layout."""
-
-        _ = self.grid_layout.cycle
-
-        # self.grid.boxes = self.grid.boxes[:1]
-        self.grid.handle_term_resized_event()
-        self.show_status()
 
     def build_grid(self):
         """Add boxes to grid.
@@ -147,7 +66,7 @@ class UI:
         Called at init, on KEY_RESIZE events, and when layout changes.
         """
 
-        klass = tf2mon.layouts.LAYOUT_CLASSES[self.grid_layout.value]
+        klass = tf2mon.monitor.controls["GridLayoutControl"].value
         try:
             layout = klass(self.grid)
         except AssertionError:
@@ -208,22 +127,6 @@ class UI:
         self.refresh_chats()
         self.grid.redraw()
 
-    def cycle_log_level(self) -> None:
-        """Cycle logging level in logger window."""
-
-        self.logsink.set_level(self._log_levels[self.log_level.cycle])
-
-    def cycle_log_location(self) -> None:
-        """Cycle format of location in messages displayed in logger window."""
-
-        self.logsink.set_location(self._log_locations[self.log_location.cycle])
-
-    def set_sort_order(self, sort_order):
-        """Set scoreboard sort column."""
-
-        self.monitor.users.set_sort_order(sort_order)
-        self._scoreboard.set_sort_order(sort_order)
-
     def getline(self, prompt=None):
         """Read and return next line from keyboard."""
 
@@ -237,7 +140,7 @@ class UI:
 
         if self.sound_alarm:
             self.sound_alarm = False
-            if self.monitor.conlog.is_eof:  # don't do this when replaying logfile from start
+            if tf2mon.monitor.conlog.is_eof:  # don't do this when replaying logfile from start
                 ...
                 # playsound('/usr/share/sounds/sound-icons/prompt.wav')
                 # playsound('/usr/share/sounds/sound-icons/cembalo-10.wav')
@@ -246,12 +149,12 @@ class UI:
 
         self.refresh_kicks()
         self.refresh_spams()
-        self.refresh_duels(self.monitor.me)
-        self.refresh_user(self.monitor.me)
+        self.refresh_duels(tf2mon.monitor.me)
+        self.refresh_user(tf2mon.monitor.me)
         # chatwin_blu and chatwin_red are rendered from gameplay/_playerchat
-        self._scoreboard.show_scores(
-            team1=list(self.monitor.users.active_team_users(Team.BLU)),
-            team2=list(self.monitor.users.active_team_users(Team.RED)),
+        self.scoreboard.show_scores(
+            team1=list(tf2mon.monitor.users.active_team_users(Team.BLU)),
+            team2=list(tf2mon.monitor.users.active_team_users(Team.RED)),
         )
         self.show_status()
         self.grid.refresh()
@@ -266,7 +169,7 @@ class UI:
             if win:
                 win.erase()
 
-        for chat in self.monitor.chats:
+        for chat in tf2mon.monitor.chats:
             self.show_chat(chat)
 
     def refresh_kicks(self):
@@ -275,19 +178,19 @@ class UI:
         if self.kicks_win:
             # ic(self.kicks_win.getbegyx())
             # ic(self.kicks_win.getmaxyx())
-            self._show_lines("KICKS", reversed(self.monitor.kicks.msgs), self.kicks_win)
+            self._show_lines("KICKS", reversed(tf2mon.monitor.kicks.msgs), self.kicks_win)
 
         # if self.user_win:
-        #     self.refresh_user(self.monitor.me)
+        #     self.refresh_user(tf2mon.monitor.me)
 
     def refresh_spams(self):
         """Refresh spams panel."""
 
         if self.spams_win:
-            self._show_lines("SPAMS", reversed(self.monitor.spams.msgs), self.spams_win)
+            self._show_lines("SPAMS", reversed(tf2mon.monitor.spams.msgs), self.spams_win)
 
         if self.user_win:
-            self.refresh_user(self.monitor.me)
+            self.refresh_user(tf2mon.monitor.me)
 
     def refresh_duels(self, user):
         """Refresh duels panel."""
@@ -296,30 +199,32 @@ class UI:
             self._show_lines("user", self._format_duels(user), self.duels_win)
 
         if self.user_win:
-            self.refresh_user(self.monitor.me)
+            self.refresh_user(tf2mon.monitor.me)
 
     def refresh_user(self, user):
         """Refresh user panel."""
 
+        ctrl = tf2mon.monitor.controls["UserPanelControl"]
+
         if self.user_win:
-            if self.user_panel.value == USER_PANEL.KICKS or (
-                self.user_panel.value == USER_PANEL.AUTO and self.monitor.kicks.msgs
+            if ctrl.value == ctrl.enum.KICKS or (
+                ctrl.value == ctrl.enum.AUTO and tf2mon.monitor.kicks.msgs
             ):
                 self._show_lines(
                     "KICKS",
-                    reversed(self.monitor.kicks.msgs)
-                    if self.monitor.kicks.msgs
+                    reversed(tf2mon.monitor.kicks.msgs)
+                    if tf2mon.monitor.kicks.msgs
                     else ["No Kicks"],
                     self.user_win,
                 )
             #
-            elif self.user_panel.value == USER_PANEL.SPAMS or (
-                self.user_panel.value == USER_PANEL.AUTO and self.monitor.spams.msgs
+            elif ctrl.value == ctrl.enum.SPAMS or (
+                ctrl.value == ctrl.enum.AUTO and tf2mon.monitor.spams.msgs
             ):
                 self._show_lines(
                     "SPAMS",
-                    reversed(self.monitor.spams.msgs)
-                    if self.monitor.spams.msgs
+                    reversed(tf2mon.monitor.spams.msgs)
+                    if tf2mon.monitor.spams.msgs
                     else ["No Spams"],
                     self.user_win,
                 )
@@ -335,10 +240,10 @@ class UI:
         if user.display_level:
             color = self.colormap[user.display_level]
 
-        if user == self.monitor.my.last_killer:
+        if user == tf2mon.monitor.my.last_killer:
             color |= curses.A_BOLD | curses.A_ITALIC
 
-        if user == self.monitor.my.last_victim:
+        if user == tf2mon.monitor.my.last_victim:
             color |= curses.A_BOLD
 
         if user.selected:
@@ -373,6 +278,55 @@ class UI:
         win.addstr(line, self.user_color(chat.user, color))
         win.noutrefresh()
 
+    def show_journal(self, level: str, line: str) -> None:
+        """Display `line` in some pseudo "journal" window."""
+
+        if (win := self.chatwin_blu) is None:
+            return
+
+        if sum(win.getyx()):
+            win.addch("\n")
+        win.addstr(line, self.colormap[level])
+        win.noutrefresh()
+
+    def show_player_intel(self, player) -> None:
+        """Display what we know about `player`."""
+
+        level = player.display_level
+        leader = f"{level}: {player.steamid}"
+
+        # tf2mon.monitor.ui.show_journal(
+        #     "Player",
+        #     f"{leader}: {player}",
+        # )
+
+        # tf2mon.monitor.ui.show_journal(
+        #     level,
+        #     f"{leader}: {player.astuple()}",
+        # )
+
+        tf2mon.monitor.ui.show_journal(
+            level,
+            f"{leader}: name: `{player.last_name}`",
+        )
+
+        for alias in [x for x in player.aliases if x != player.last_name]:
+            tf2mon.monitor.ui.show_journal(
+                level,
+                f"{leader}: alias: `{alias}`",
+            )
+
+        tf2mon.monitor.ui.show_journal(
+            level,
+            # pylint: disable=protected-access
+            f"{leader}: prev={player.s_prev_time} {player._s_prev_time}",
+        )
+
+        tf2mon.monitor.ui.show_journal(
+            level,
+            f"{leader}: attrs={[x for x in player.getattrs() if x]}",
+        )
+
     def _format_duels(self, user):
 
         lines = []
@@ -395,7 +349,7 @@ class UI:
     def show_status(self):
         """Update status line."""
 
-        line = self.monitor.commands.get_status_line() + f" UID={self.monitor.my.userid}"
+        line = tf2mon.monitor.controls.get_status_line() + f" UID={tf2mon.monitor.my.userid}"
 
         try:
             self.status_win.addstr(
@@ -434,10 +388,13 @@ class UI:
         ):
             logger.log("help", line)
 
+        for line in tf2mon.monitor.controls.fkey_help().splitlines():
+            self.show_journal("help", line)
+
     def show_motd(self):
         """Show message of the day."""
 
-        motd = self.monitor.tf2_scripts_dir.parent / "motd.txt"
+        motd = tf2mon.monitor.tf2_scripts_dir.parent / "motd.txt"
         logger.log("help", f" {motd} ".center(80, "-"))
 
         with open(motd, encoding="utf-8") as file:

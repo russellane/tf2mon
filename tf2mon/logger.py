@@ -1,28 +1,46 @@
 """Logger config."""
 
+import contextlib
+import logging
+import os
+import stat
 import sys
 
 from loguru import logger
 
 
+class InterceptHandler(logging.Handler):
+    """See https://loguru.readthedocs.io/en/stable/overview.html#entirely-compatible-with-standard-logging."""  # noqa
+
+    def emit(self, record):
+        """Redirect standard logging to loguru sink."""
+        # Get corresponding Loguru level if it exists
+        try:
+            level = logger.level(record.levelname).name
+        except ValueError:
+            level = record.levelno
+
+        # Find caller from where originated the logged message
+        frame, depth = logging.currentframe(), 2
+        while frame.f_code.co_filename == logging.__file__:
+            frame = frame.f_back
+            depth += 1
+
+        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+
+
+logging.basicConfig(handlers=[InterceptHandler()], level=0)
+
+
 def configure_logger() -> None:
     """Logger config."""
 
-    # Configure `stderr` logger; not reconfigurable.
-
     logger.remove()
-    logger.add(
-        sys.stderr,
-        level="TRACE",
-        format="|".join(
-            [
-                "{time:HH:mm:ss.SSS}",
-                "{thread.name}:{name}.{function}:{line}",
-                "{level}",
-                "{message}",
-            ]
-        ),
-    )
+    logger.add(sys.stderr, level="TRACE", colorize=False)
+
+    with contextlib.suppress(OSError):
+        if stat.S_ISREG(os.stat(3).st_mode):
+            logger.add(os.fdopen(3, mode="w"), level="TRACE", colorize=True)
 
     add_logging_levels()
 
@@ -99,7 +117,8 @@ def add_logging_levels() -> None:
     logger.level("logline", no=_debug, color="<yellow>")
     logger.level("nextline", no=_warn, color="<yellow>")
     logger.level("console", no=_always, color="<green><bold>")
-    logger.level("hacker", no=_always, color="<yellow><reverse>")
+    logger.level("Player", no=_always, color="<yellow><reverse>")
+    logger.level("SteamPlayer", no=_debug, color="<green>")
     logger.level("regex", no=_trace, color="<magenta>")
     logger.level("report", no=_always, color="<cyan>")
     logger.level("server", no=_trace, color="<cyan>")
@@ -109,6 +128,10 @@ def add_logging_levels() -> None:
     logger.level("RED", no=_debug, color="<red>")
     logger.level("BLU", no=_debug, color="<cyan>")
 
+    logger.level("BOT", no=_always, color="<cyan><reverse>")
+    logger.level("FRIENDS", no=_always, color="<cyan><reverse>")
+    logger.level("TACOBOT", no=_always, color="<cyan><reverse>")
+    logger.level("PAZER", no=_always, color="<cyan><reverse>")
     logger.level("MILENKO", no=_always, color="<yellow><bold><italic><reverse>")
     logger.level("CHEATER", no=_always, color="<yellow><bold><italic>")
     logger.level("SUSPECT", no=_always, color="<magenta><bold><italic>")

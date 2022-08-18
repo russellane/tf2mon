@@ -3,15 +3,13 @@
 import csv
 import json
 import time
-from collections import defaultdict
 from enum import Enum
 from pathlib import Path
 
 from loguru import logger
-from steam.steamid import SteamID
 
-from tf2mon.column import Column, Table
-from tf2mon.steamplayer import SteamPlayer
+from tf2mon.steamid import BOT_STEAMID, SteamID
+from tf2mon.texttable import TextColumn, TextTable
 
 JsonType = dict[str, object]
 
@@ -26,7 +24,25 @@ class HackerAttr(Enum):
     RACIST = "racist"
     # tf2mon's additional values
     MILENKO = "milenko"  # track milenko's bot-hunting bots
-    GAMEBOT = "bot"  # legitimate gamebot; eg `Numnutz`
+    GAMEBOT = "gamebot"  # legitimate gamebot; eg `Numnutz`
+    # defcon6
+    BOT = "bot"
+    FRIENDS = "friends"
+    TACOBOT = "tacobot"
+    PAZER = "pazer"
+
+
+DEFCON6 = [
+    HackerAttr.BOT,
+    HackerAttr.FRIENDS,
+    HackerAttr.TACOBOT,
+    HackerAttr.PAZER,
+]
+
+BANNED = [
+    HackerAttr.CHEATER,
+    HackerAttr.RACIST,
+] + DEFCON6
 
 
 FMT_TIME = "%FT%T"
@@ -110,12 +126,14 @@ class Hacker:
     @property
     def is_banned(self):
         """Return True if hacker is suspect or racist."""
-        return HackerAttr.CHEATER in self.attributes or HackerAttr.RACIST in self.attributes
 
-    def attributes_to_str(self):
-        """Return a displayable representation of the attributes."""
+        return any([x for x in self.attributes if x in BANNED])  # noqa
 
-        return ",".join([x.value for x in self.attributes])
+    @property
+    def is_defcon6(self):
+        """Return True if hacker has a defcon6 attribute."""
+
+        return any([x for x in self.attributes if x in DEFCON6])  # noqa
 
     def __repr__(self):
         return str(self.__dict__)
@@ -157,7 +175,6 @@ class HackerManager:
 
         self._path = path
         self._hackers_by_steamid: dict[SteamID, Hacker] = {}
-        self._hackers_by_name = defaultdict(list)
         self.load(self._path)
 
     def __call__(self) -> dict[SteamID, Hacker]:
@@ -212,8 +229,6 @@ class HackerManager:
                     hacker.s_last_time = cached.s_last_time
 
             self._hackers_by_steamid[hacker.steamid] = hacker
-            for name in hacker.names:
-                self._hackers_by_name[name].append(hacker)
 
     def __str__(self):
         """Return database as `json` document."""
@@ -236,25 +251,19 @@ class HackerManager:
         logger.info(f"Writing `--hackers` database at `{self._path}`")
         self._path.write_text(str(self), encoding="utf-8")
 
-    def lookup_name(self, name) -> Hacker:
-        """Return `Hacker` for given name, else None if not found."""
-
-        logger.trace(f"name {name}")
-        return self._hackers_by_name.get(name)
-
     def lookup_steamid(self, steamid) -> Hacker:
         """Return `Hacker` for given steamid, else None if not found."""
 
         logger.trace(f"steamid {steamid.id}")
         return self._hackers_by_steamid.get(steamid)
 
-    def add(self, steamid, attribute, name) -> Hacker:
+    def add(self, steamid, attributes, name) -> Hacker:
         """Create new `Hacker`, add to database, and return it."""
 
         now = int(time.time())
         hacker = Hacker(
             {
-                "attributes": [HackerAttr(attribute)],
+                "attributes": [HackerAttr(x) for x in attributes],
                 "last_seen": {
                     "player_name": name,
                     "time": now,
@@ -265,7 +274,6 @@ class HackerManager:
             }
         )
         self._hackers_by_steamid[hacker.steamid] = hacker
-        self._hackers_by_name[name].append(hacker)
         return hacker
 
     def load_gamebots(self, path) -> None:
@@ -274,7 +282,7 @@ class HackerManager:
         Used by qvalve; not used by tf2mon.
         """
 
-        steamid = SteamID(SteamPlayer.BOT_S_STEAMID)
+        steamid = BOT_STEAMID
 
         with open(path, encoding="utf-8") as file:
             for (name,) in csv.reader(file):
@@ -283,13 +291,13 @@ class HackerManager:
     def print_report(self) -> None:
         """Print database report."""
 
-        table = Table(
+        table = TextTable(
             [
-                Column(-10, "STEAMID"),
-                Column(10, "ATTRS"),
-                Column(25, "LASTTIME"),
-                Column(30, "LASTNAME"),
-                Column(0, "NAMES"),
+                TextColumn(-10, "STEAMID"),
+                TextColumn(10, "ATTRS"),
+                TextColumn(25, "LASTTIME"),
+                TextColumn(30, "LASTNAME"),
+                TextColumn(0, "NAMES"),
             ]
         )
 
