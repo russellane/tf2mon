@@ -2,6 +2,7 @@
 
 from loguru import logger
 
+import tf2mon
 from tf2mon.steamid import BOT_STEAMID, parse_steamid
 from tf2mon.user import Team, User, UserState
 
@@ -9,10 +10,9 @@ from tf2mon.user import Team, User, UserState
 class UserManager:
     """Collection of `User` objects."""
 
-    def __init__(self, monitor):
+    def __init__(self):
         """Initialize `User` manager."""
 
-        self.monitor = monitor
         self._users_by_username = {}
         self._users_by_userid = {}
         self._users_by_steamid = {}
@@ -29,7 +29,7 @@ class UserManager:
         username = username.replace(";", ".")
 
         if not (user := self._users_by_username.get(username)):
-            user = User(self.monitor, username)
+            user = User(username)
             self._users_by_username[user.username] = user
             logger.log("ADDUSER", user)
 
@@ -47,7 +47,7 @@ class UserManager:
         # pylint: disable=too-many-branches
         # pylint: disable=too-many-locals
 
-        self.monitor.ui.notify_operator = False
+        tf2mon.monitor.ui.notify_operator = False
 
         if not (steamid := parse_steamid(s_steamid)):
             return  # invalid
@@ -154,7 +154,7 @@ class UserManager:
                 for x in self._users_by_username.values()
                 if x.state == UserState.ACTIVE and x.team == team
             ],
-            key=self.monitor.controls["SortOrderControl"].value,
+            key=tf2mon.monitor.controls["SortOrderControl"].value,
         )
 
     def kick_userid(self, userid, attr):
@@ -177,7 +177,7 @@ class UserManager:
         """
 
         for user in list(self._users_by_username.values()):
-            if user == self.monitor.me:
+            if user == tf2mon.monitor.me:
                 continue
             user.n_status_checks += 1
             if user.n_status_checks == self._max_status_checks:

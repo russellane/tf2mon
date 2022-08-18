@@ -7,6 +7,7 @@ from typing import NewType
 from fuzzywuzzy import fuzz
 from loguru import logger
 
+import tf2mon
 from tf2mon.player import Player
 
 UserKey = NewType("UserKey", str)
@@ -49,15 +50,12 @@ class User:
         self.cheater_chat_seen = self._re_cheater_chats.search(chat.msg)
         return self.cheater_chat_seen
 
-    def __init__(self, monitor, username):
+    def __init__(self, username):
         """Create `User`."""
 
-        # pylint: disable=too-many-statements
-
-        self.monitor = monitor
         self.username = username.replace(";", ".")
 
-        if m := self.monitor._re_racist.search(self.username):
+        if m := tf2mon.monitor._re_racist.search(self.username):
             self._clean_username = (
                 m.string[: m.start()] + str("n" * (m.end() - m.start())) + m.string[m.end() :]
             )
@@ -83,7 +81,7 @@ class User:
         self.state = UserState.ACTIVE
         self.n_status_checks = 0
         self.nsnipes = 0
-        self.role = self.monitor.unknown_role
+        self.role = tf2mon.monitor.unknown_role
         self.ncaptures = 0
         self.ndefenses = 0
         self.chats = []
@@ -132,7 +130,7 @@ class User:
         if self._is_cheater_name(self.username):
             self.kick(Player.CHEATER)
 
-        if self.monitor.is_racist_text(self.username):
+        if tf2mon.monitor.is_racist_text(self.username):
             self.kick(Player.RACIST)
 
         self.cheater_chat_seen = False
@@ -159,7 +157,7 @@ class User:
     def moniker(self):
         """Return name, optionally including his kill/death ratio."""
 
-        if not self.monitor.controls["ShowKDControl"].value:
+        if not tf2mon.monitor.controls["ShowKDControl"].value:
             return self._clean_username
 
         # pylint: disable=consider-using-f-string
@@ -228,7 +226,7 @@ class User:
         assert self.steamid
         self.dirty = True
 
-        self.steamplayer = self.monitor.steam_web_api.fetch_steamid(self.steamid.id)
+        self.steamplayer = tf2mon.monitor.steam_web_api.fetch_steamid(self.steamid.id)
         if self.steamplayer.is_gamebot:
             self.steamplayer.personaname = self.username
             self.pending_attrs = []
@@ -242,7 +240,7 @@ class User:
             # logger.log("Player", self.player.astuple())
             self.player.setattrs(self.pending_attrs)
             self.player.track_appearance(self.username)
-            self.monitor.ui.show_player_intel(self.player)
+            tf2mon.monitor.ui.show_player_intel(self.player)
             # bobo1
             self.display_level = self.player.display_level
             # logger.log(self.display_level, f"{self._clean_username!r} is here")
@@ -284,7 +282,7 @@ class User:
         #   user.__init__
         #   tf2mon.usermanager.kick_userid
 
-        # if self.userid in self.monitor.users.kicked_userids:
+        # if self.userid in tf2mon.monitor.users.kicked_userids:
         #     logger.debug(f"already kicked userid {self.userid}")
         #     return
 
@@ -293,8 +291,8 @@ class User:
             self.pending_attrs.append(attr)
             self.display_level = attr.upper()
             logger.log(self.display_level, f"{self} needs steamid, Press KP_DOWNARROW to PUSH")
-            self.monitor.ui.notify_operator = True
-            self.monitor.ui.sound_alarm = True
+            tf2mon.monitor.ui.notify_operator = True
+            tf2mon.monitor.ui.sound_alarm = True
             return
 
         if self.player:
@@ -331,9 +329,9 @@ class User:
         cmd = f"CALLVOTE KICK {self.userid}"
         msg += f", {cmd}"
 
-        self.monitor.kicks.push(msg)
-        self.monitor.kicks.push(cmd)
-        self.monitor.users.kicked_userids[self.userid] = True
+        tf2mon.monitor.kicks.push(msg)
+        tf2mon.monitor.kicks.push(cmd)
+        tf2mon.monitor.users.kicked_userids[self.userid] = True
 
     _re_cheater_names = re.compile(
         "|".join(
@@ -353,7 +351,7 @@ class User:
             return True
 
         for user in [
-            x for x in self.monitor.users.active_users() if x.steamplayer and not x.player
+            x for x in tf2mon.monitor.users.active_users() if x.steamplayer and not x.player
         ]:
             ratio = fuzz.ratio(name, user.username)
             if ratio > 80:

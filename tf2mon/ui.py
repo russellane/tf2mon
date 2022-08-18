@@ -9,6 +9,7 @@ import textwrap
 import libcurses
 from loguru import logger
 
+import tf2mon
 from tf2mon.scoreboard import Scoreboard
 from tf2mon.user import Team, UserState
 
@@ -20,10 +21,9 @@ class UI:
 
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, monitor, win: curses.window):
+    def __init__(self, win: curses.window):
         """Initialize User Interface."""
 
-        self.monitor = monitor
         self.notify_operator = False
         self.sound_alarm = False
 
@@ -54,7 +54,6 @@ class UI:
         self.colormap = libcurses.get_colormap()
         #
         self.scoreboard = Scoreboard(
-            self.monitor,
             self.scorewin_blu,
             self.colormap[Team.BLU.name],
             self.scorewin_red,
@@ -67,7 +66,7 @@ class UI:
         Called at init, on KEY_RESIZE events, and when layout changes.
         """
 
-        klass = self.monitor.controls["GridLayoutControl"].value
+        klass = tf2mon.monitor.controls["GridLayoutControl"].value
         try:
             layout = klass(self.grid)
         except AssertionError:
@@ -141,7 +140,7 @@ class UI:
 
         if self.sound_alarm:
             self.sound_alarm = False
-            if self.monitor.conlog.is_eof:  # don't do this when replaying logfile from start
+            if tf2mon.monitor.conlog.is_eof:  # don't do this when replaying logfile from start
                 ...
                 # playsound('/usr/share/sounds/sound-icons/prompt.wav')
                 # playsound('/usr/share/sounds/sound-icons/cembalo-10.wav')
@@ -150,12 +149,12 @@ class UI:
 
         self.refresh_kicks()
         self.refresh_spams()
-        self.refresh_duels(self.monitor.me)
-        self.refresh_user(self.monitor.me)
+        self.refresh_duels(tf2mon.monitor.me)
+        self.refresh_user(tf2mon.monitor.me)
         # chatwin_blu and chatwin_red are rendered from gameplay/_playerchat
         self.scoreboard.show_scores(
-            team1=list(self.monitor.users.active_team_users(Team.BLU)),
-            team2=list(self.monitor.users.active_team_users(Team.RED)),
+            team1=list(tf2mon.monitor.users.active_team_users(Team.BLU)),
+            team2=list(tf2mon.monitor.users.active_team_users(Team.RED)),
         )
         self.show_status()
         self.grid.refresh()
@@ -170,7 +169,7 @@ class UI:
             if win:
                 win.erase()
 
-        for chat in self.monitor.chats:
+        for chat in tf2mon.monitor.chats:
             self.show_chat(chat)
 
     def refresh_kicks(self):
@@ -179,19 +178,19 @@ class UI:
         if self.kicks_win:
             # ic(self.kicks_win.getbegyx())
             # ic(self.kicks_win.getmaxyx())
-            self._show_lines("KICKS", reversed(self.monitor.kicks.msgs), self.kicks_win)
+            self._show_lines("KICKS", reversed(tf2mon.monitor.kicks.msgs), self.kicks_win)
 
         # if self.user_win:
-        #     self.refresh_user(self.monitor.me)
+        #     self.refresh_user(tf2mon.monitor.me)
 
     def refresh_spams(self):
         """Refresh spams panel."""
 
         if self.spams_win:
-            self._show_lines("SPAMS", reversed(self.monitor.spams.msgs), self.spams_win)
+            self._show_lines("SPAMS", reversed(tf2mon.monitor.spams.msgs), self.spams_win)
 
         if self.user_win:
-            self.refresh_user(self.monitor.me)
+            self.refresh_user(tf2mon.monitor.me)
 
     def refresh_duels(self, user):
         """Refresh duels panel."""
@@ -200,32 +199,32 @@ class UI:
             self._show_lines("user", self._format_duels(user), self.duels_win)
 
         if self.user_win:
-            self.refresh_user(self.monitor.me)
+            self.refresh_user(tf2mon.monitor.me)
 
     def refresh_user(self, user):
         """Refresh user panel."""
 
-        ctrl = self.monitor.controls["UserPanelControl"]
+        ctrl = tf2mon.monitor.controls["UserPanelControl"]
 
         if self.user_win:
             if ctrl.value == ctrl.enum.KICKS or (
-                ctrl.value == ctrl.enum.AUTO and self.monitor.kicks.msgs
+                ctrl.value == ctrl.enum.AUTO and tf2mon.monitor.kicks.msgs
             ):
                 self._show_lines(
                     "KICKS",
-                    reversed(self.monitor.kicks.msgs)
-                    if self.monitor.kicks.msgs
+                    reversed(tf2mon.monitor.kicks.msgs)
+                    if tf2mon.monitor.kicks.msgs
                     else ["No Kicks"],
                     self.user_win,
                 )
             #
             elif ctrl.value == ctrl.enum.SPAMS or (
-                ctrl.value == ctrl.enum.AUTO and self.monitor.spams.msgs
+                ctrl.value == ctrl.enum.AUTO and tf2mon.monitor.spams.msgs
             ):
                 self._show_lines(
                     "SPAMS",
-                    reversed(self.monitor.spams.msgs)
-                    if self.monitor.spams.msgs
+                    reversed(tf2mon.monitor.spams.msgs)
+                    if tf2mon.monitor.spams.msgs
                     else ["No Spams"],
                     self.user_win,
                 )
@@ -241,10 +240,10 @@ class UI:
         if user.display_level:
             color = self.colormap[user.display_level]
 
-        if user == self.monitor.my.last_killer:
+        if user == tf2mon.monitor.my.last_killer:
             color |= curses.A_BOLD | curses.A_ITALIC
 
-        if user == self.monitor.my.last_victim:
+        if user == tf2mon.monitor.my.last_victim:
             color |= curses.A_BOLD
 
         if user.selected:
@@ -296,34 +295,34 @@ class UI:
         level = player.display_level
         leader = f"{level}: {player.steamid}"
 
-        # self.monitor.ui.show_journal(
+        # tf2mon.monitor.ui.show_journal(
         #     "Player",
         #     f"{leader}: {player}",
         # )
 
-        # self.monitor.ui.show_journal(
+        # tf2mon.monitor.ui.show_journal(
         #     level,
         #     f"{leader}: {player.astuple()}",
         # )
 
-        self.monitor.ui.show_journal(
+        tf2mon.monitor.ui.show_journal(
             level,
             f"{leader}: name: `{player.last_name}`",
         )
 
         for alias in [x for x in player.aliases if x != player.last_name]:
-            self.monitor.ui.show_journal(
+            tf2mon.monitor.ui.show_journal(
                 level,
                 f"{leader}: alias: `{alias}`",
             )
 
-        self.monitor.ui.show_journal(
+        tf2mon.monitor.ui.show_journal(
             level,
             # pylint: disable=protected-access
             f"{leader}: prev={player.s_prev_time} {player._s_prev_time}",
         )
 
-        self.monitor.ui.show_journal(
+        tf2mon.monitor.ui.show_journal(
             level,
             f"{leader}: attrs={[x for x in player.getattrs() if x]}",
         )
@@ -350,7 +349,7 @@ class UI:
     def show_status(self):
         """Update status line."""
 
-        line = self.monitor.controls.get_status_line() + f" UID={self.monitor.my.userid}"
+        line = tf2mon.monitor.controls.get_status_line() + f" UID={tf2mon.monitor.my.userid}"
 
         try:
             self.status_win.addstr(
@@ -389,13 +388,13 @@ class UI:
         ):
             logger.log("help", line)
 
-        for line in self.monitor.controls.fkey_help().splitlines():
+        for line in tf2mon.monitor.controls.fkey_help().splitlines():
             self.show_journal("help", line)
 
     def show_motd(self):
         """Show message of the day."""
 
-        motd = self.monitor.tf2_scripts_dir.parent / "motd.txt"
+        motd = tf2mon.monitor.tf2_scripts_dir.parent / "motd.txt"
         logger.log("help", f" {motd} ".center(80, "-"))
 
         with open(motd, encoding="utf-8") as file:

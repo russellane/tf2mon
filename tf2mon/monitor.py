@@ -10,6 +10,7 @@ from pprint import pformat
 import libcurses
 from loguru import logger
 
+import tf2mon
 from tf2mon.admin import Admin
 from tf2mon.conlog import Conlog
 from tf2mon.database import Database
@@ -34,6 +35,7 @@ class Monitor:
     def __init__(self, cli) -> None:
         """Initialize monitor."""
 
+        tf2mon.monitor = self
         self.options = cli.options
         self.config = cli.config
         self.controls = cli.controls
@@ -48,7 +50,7 @@ class Monitor:
 
         # "Send" to TF2 through `msgqueues`.
         self.path_dynamic_script = self.tf2_scripts_dir / "tf2mon-pull.cfg"  # created often
-        self.msgqueues = MsgQueueManager(self, self.path_dynamic_script)
+        self.msgqueues = MsgQueueManager(self.path_dynamic_script)
 
         # "Receive" from TF2 through `conlog`.
         # Wait for con_logfile to exist, then open it.
@@ -62,7 +64,7 @@ class Monitor:
         )
 
         # this application's admin console
-        self.admin = Admin(self)
+        self.admin = Admin()
         if self.options.breakpoint is not None:
             self.admin.set_single_step_lineno(self.options.breakpoint)
 
@@ -99,13 +101,13 @@ class Monitor:
         self.spams = self.msgqueues.addq("spams")
 
         #
-        self.spammer = Spammer(self)
+        self.spammer = Spammer()
 
         # admin command handlers
         self.regex_list = self.admin.regex_list
 
         # gameplay handlers
-        self.gameplay = Gameplay(self)
+        self.gameplay = Gameplay()
         self.regex_list += self.gameplay.regex_list
 
         # function key handlers
@@ -123,7 +125,7 @@ class Monitor:
 
     def _run(self, win):
 
-        self.ui = UI(self, win)
+        self.ui = UI(win)
         self.controls.register_curses_handlers()
         self.controls["SortOrderControl"].start(self.options.sort_order)
         self.controls["LogLocationControl"].start(self.options.log_location)
@@ -150,7 +152,7 @@ class Monitor:
 
         logger.success("RESET GAME")
 
-        self.users = UserManager(self)
+        self.users = UserManager()
         self.me = self.my = self.users.find_username(self.config["player_name"])
         self.me.assign_team(Team.BLU)
         self.my.display_level = "user"

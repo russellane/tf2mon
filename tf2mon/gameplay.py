@@ -2,6 +2,7 @@
 
 from loguru import logger
 
+import tf2mon
 from tf2mon.chat import Chat
 from tf2mon.player import Player
 from tf2mon.regex import Regex
@@ -12,20 +13,18 @@ class Gameplay:
 
     # pylint: disable=line-too-long
 
-    def __init__(self, monitor):
+    def __init__(self):
         """Initialize Gameplay."""
 
         leader = (
             r"^(\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}: )?"  # anchor to head; optional timestamp
         )
 
-        self.monitor = monitor
-
         self.regex_list = [
             # new server
             Regex(
                 leader + "(Client reached server_spawn.$|Connected to [0-9])",
-                lambda m: self.monitor.reset_game(),
+                lambda m: tf2mon.monitor.reset_game(),
             ),
             # capture/defend
             Regex(
@@ -107,16 +106,16 @@ class Gameplay:
             #
             # Regex(
             #    '^Teams have been switched',
-            #    lambda m: self.monitor.switch_teams()),
+            #    lambda m: tf2mon.monitor.switch_teams()),
             #
             Regex(
                 leader + r"You have switched to team (?P<teamname>\w+) and will",
-                lambda m: self.monitor.me.assign_team(m.group("teamname")),
+                lambda m: tf2mon.monitor.me.assign_team(m.group("teamname")),
             ),
             # hostname: Valve Matchmaking Server (Virginia iad-1/srcds148 #53)
             Regex(
                 "^hostname: (.*)",
-                lambda m: self.monitor.users.check_status(),
+                lambda m: tf2mon.monitor.users.check_status(),
             ),
             # "FFD700[RTD] FF4040your mother rolled 32CD32PowerPlay."
             Regex(
@@ -141,7 +140,7 @@ class Gameplay:
 
         for name in username.split(", "):  # fix: names containing commas
 
-            user = self.monitor.users.find_username(name)
+            user = tf2mon.monitor.users.find_username(name)
 
             user.assign_teamno(int(s_teamno))
 
@@ -160,18 +159,18 @@ class Gameplay:
     def playerchat(self, _leader, _dead, teamflag, username, msg):
         """Handle message."""
 
-        user = self.monitor.users.find_username(username)
+        user = tf2mon.monitor.users.find_username(username)
         chat = Chat(user, teamflag, msg)
 
         user.chats.append(chat)
-        self.monitor.chats.append(chat)
-        self.monitor.ui.show_chat(chat)
+        tf2mon.monitor.chats.append(chat)
+        tf2mon.monitor.ui.show_chat(chat)
 
         # if this is a team chat, then we know we're on the same team, and
         # if one of us knows which team we're on and the other doesn't, we
         # can assign.
 
-        me = my = self.monitor.me
+        me = my = tf2mon.monitor.me
         if chat.teamflag and user != me:
             # we're on the same team
             if not user.team:
@@ -181,7 +180,7 @@ class Gameplay:
                 me.assign_team(user.team)
 
         # inspect msg
-        if self.monitor.is_racist_text(chat.msg):
+        if tf2mon.monitor.is_racist_text(chat.msg):
             user.kick(Player.RACIST)
 
         elif user.is_cheater_chat(chat):
@@ -193,8 +192,8 @@ class Gameplay:
         # pylint: disable=too-many-branches
         # pylint: disable=too-many-statements
 
-        killer = self.monitor.users.find_username(s_killer)
-        victim = self.monitor.users.find_username(s_victim)
+        killer = tf2mon.monitor.users.find_username(s_killer)
+        victim = tf2mon.monitor.users.find_username(s_victim)
 
         killer.last_victim = victim
         victim.last_killer = killer
@@ -243,9 +242,9 @@ class Gameplay:
 
         # subtotal opponents by weapon_state -----------------------------------
 
-        if role := self.monitor.role_by_weapon.get(weapon):
+        if role := tf2mon.monitor.role_by_weapon.get(weapon):
             killer.role = role
-            if killer.role == self.monitor.sniper_role:
+            if killer.role == tf2mon.monitor.sniper_role:
                 killer.nsnipes += 1
         else:
             role = killer.role
@@ -275,20 +274,20 @@ class Gameplay:
             weapon_state,
         )
 
-        if self.monitor.controls["ShowKillsControl"].value:
+        if tf2mon.monitor.controls["ShowKillsControl"].value:
             level = "KILL"
             if killer.team:
                 level += killer.team.name
-            self.monitor.ui.show_journal(
+            tf2mon.monitor.ui.show_journal(
                 level,
                 f"         {killer.moniker!r:25} killed {victim.moniker!r:25} {weapon_state!r}",
             )
 
-        if killer == self.monitor.me:
-            self.monitor.spammer.taunt(victim, weapon, crit)
+        if killer == tf2mon.monitor.me:
+            tf2mon.monitor.spammer.taunt(victim, weapon, crit)
 
-        if victim == self.monitor.me:
-            self.monitor.spammer.throe(killer, weapon, crit)
+        if victim == tf2mon.monitor.me:
+            tf2mon.monitor.spammer.throe(killer, weapon, crit)
 
         if not victim.team and killer.team:
             victim.assign_team(killer.opposing_team)
@@ -298,26 +297,26 @@ class Gameplay:
     def connected(self, _leader, username):
         """Handle message."""
 
-        logger.log("CONNECT", self.monitor.users.find_username(username))
+        logger.log("CONNECT", tf2mon.monitor.users.find_username(username))
 
-        self.monitor.ui.notify_operator = True
+        tf2mon.monitor.ui.notify_operator = True
 
     def status(self, _leader, userid, username, steamid, elapsed, ping):
         """Handle message."""
 
         # pylint: disable=too-many-arguments
 
-        self.monitor.users.status(userid, username, steamid, elapsed, ping)
+        tf2mon.monitor.users.status(userid, username, steamid, elapsed, ping)
 
     def lobby(self, _leader, steamid, teamname):
         """Handle message."""
 
-        self.monitor.users.lobby(steamid, teamname)
+        tf2mon.monitor.users.lobby(steamid, teamname)
 
     def perk(self, username, perk):
         """Handle message."""
 
-        user = self.monitor.users.find_username(username) if username else self.monitor.me
+        user = tf2mon.monitor.users.find_username(username) if username else tf2mon.monitor.me
 
         if perk:
             logger.log("PERK-ON", f"{user} {perk!r}")

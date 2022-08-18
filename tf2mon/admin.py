@@ -13,15 +13,14 @@ from tf2mon.regex import Regex
 class Admin:
     """Admin Console."""
 
-    def __init__(self, monitor):
+    def __init__(self):
         """Initialize Admin Console."""
 
-        self.monitor = monitor
         self._single_step_event = threading.Event()
-        self.is_single_stepping = self.monitor.options.single_step
+        self.is_single_stepping = tf2mon.monitor.options.single_step
         self._single_step_re = None
 
-        if pattern := self.monitor.options.search:
+        if pattern := tf2mon.monitor.options.search:
             if pattern.startswith("/"):
                 pattern = pattern[1:]
             self.set_single_step_pattern(pattern)
@@ -47,7 +46,7 @@ class Admin:
             # stop single-stepping until eof, then single-step again
             Regex("^(r|run|g|go)$", lambda m: self.set_single_step_lineno(0)),
             # dump internals
-            Regex("^dump$", lambda m: self.monitor.dump()),
+            Regex("^dump$", lambda m: tf2mon.monitor.dump()),
             # pause when logfile reaches `lineno`.
             Regex(
                 R"^(b|break|breakpoint)[= ](?P<lineno>\d+)$",
@@ -60,20 +59,26 @@ class Admin:
             # kick cheater
             Regex(
                 R"^kick[= ](?P<userid>\d+)$",
-                lambda m: self.monitor.users.kick_userid(int(m.group("userid")), Player.CHEATER),
+                lambda m: tf2mon.monitor.users.kick_userid(
+                    int(m.group("userid")), Player.CHEATER
+                ),
             ),
             # kick racist
             Regex(
                 R"^kkk[= ](?P<userid>\d+)$",
-                lambda m: self.monitor.users.kick_userid(int(m.group("userid")), Player.RACIST),
+                lambda m: tf2mon.monitor.users.kick_userid(
+                    int(m.group("userid")), Player.RACIST
+                ),
             ),
             # mark suspect
             Regex(
                 R"^suspect[= ](?P<userid>\d+)$",
-                lambda m: self.monitor.users.kick_userid(int(m.group("userid")), Player.SUSPECT),
+                lambda m: tf2mon.monitor.users.kick_userid(
+                    int(m.group("userid")), Player.SUSPECT
+                ),
             ),
             # drop to python debugger
-            Regex("^PDB$", lambda m: self.monitor.breakpoint()),
+            Regex("^PDB$", lambda m: tf2mon.monitor.breakpoint()),
             # deprecated, legacy, support old conlogs.
             Regex(
                 "^(TOGGLE-SCOREBOARD|TOGGLE-QUEUES|CHATS-POP|CHATS-POPLEFT|CHATS-CLEAR)$",
@@ -102,7 +107,7 @@ class Admin:
         """Begin single-stepping at `lineno` if given else at eof."""
 
         if lineno:
-            self.monitor.conlog.inject_cmd(lineno, "SINGLE-STEP")
+            tf2mon.monitor.conlog.inject_cmd(lineno, "SINGLE-STEP")
         else:
             # stop single-stepping until eof, then single-step again
             self._stop_single_stepping()
@@ -157,7 +162,7 @@ class Admin:
 
         level = "nextline" if self.is_single_stepping else "logline"
         logger.log(level, "-" * 80)
-        logger.log(level, self.monitor.conlog.last_line)
+        logger.log(level, tf2mon.monitor.conlog.last_line)
 
         # check gate
         self._single_step_event.wait()
@@ -167,22 +172,22 @@ class Admin:
     def repl(self):
         """Admin console read-evaluate-process-loop."""
 
-        while not self.monitor.conlog.is_eof or self.monitor.options.follow:
+        while not tf2mon.monitor.conlog.is_eof or tf2mon.monitor.options.follow:
 
-            self.monitor.ui.update_display()
+            tf2mon.monitor.ui.update_display()
 
             prompt = tf2mon.APPNAME
             if self.is_single_stepping:
                 prompt += " (single-stepping)"
             prompt += ": "
 
-            if (line := self.monitor.ui.getline(prompt)) is None:
+            if (line := tf2mon.monitor.ui.getline(prompt)) is None:
                 logger.log("console", "quit eof")
                 return
 
             if line == "":  # enter
-                if self.monitor.conlog.is_eof:
-                    logger.log("console", f"lineno={self.monitor.conlog.lineno} <EOF>")
+                if tf2mon.monitor.conlog.is_eof:
+                    logger.log("console", f"lineno={tf2mon.monitor.conlog.lineno} <EOF>")
                 # else:
                 #     logger.trace("step...")
                 self._single_step_event.set()

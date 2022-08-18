@@ -4,6 +4,7 @@ import curses
 
 import libcurses
 
+import tf2mon
 from tf2mon.player import Player
 from tf2mon.texttable import TextColumn, TextTable
 
@@ -39,20 +40,16 @@ class Scoreboard:
         ]
     )
 
-    def __init__(self, monitor, win1, color1, win2, color2):
+    def __init__(self, win1, color1, win2, color2):
         """Create scoreboard for two teams.
 
         Args:
-            monitor:    the monitor.
             win1:       curses window for team 1
             color1:     base color for team 2
             win2:       curses window for team 2
             color2:     base color for team 2
         """
 
-        # pylint: disable=too-many-arguments
-
-        self.monitor = monitor
         self.win1 = win1
         self.color1 = color1
         self.win2 = win2
@@ -93,7 +90,7 @@ class Scoreboard:
         # Fill in whatever space is left on the scoreboards with users
         # whose team is unknown; doesn't matter which side they're
         # displayed on.
-        unassigned = [x for x in self.monitor.users.active_users() if not x.team]
+        unassigned = [x for x in tf2mon.monitor.users.active_users() if not x.team]
 
         #
         nusers = self.win1.getmaxyx()[0] - 1
@@ -158,7 +155,7 @@ class Scoreboard:
                     0,
                     user.last_scoreboard_line,
                     ncols,
-                    self.monitor.ui.user_color(user, color),
+                    tf2mon.monitor.ui.user_color(user, color),
                 )
             except curses.error:
                 break
@@ -175,10 +172,10 @@ class Scoreboard:
         if mouse.button != 1:
             return False  # not handled
 
-        for active_user in self.monitor.users.active_users():
+        for active_user in tf2mon.monitor.users.active_users():
             active_user.selected = False
         user.selected = True
-        self.monitor.ui.update_display()
+        tf2mon.monitor.ui.update_display()
 
         if mouse.nclicks == 2:
             user.kick(Player.CHEATER)
