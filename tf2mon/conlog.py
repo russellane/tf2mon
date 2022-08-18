@@ -166,28 +166,3 @@ class Conlog:
         with open(self.path, encoding="utf-8", errors="replace") as file:
             for line in [x for x in file if not self.re_exclude.search(x)]:
                 print(line.rstrip("\n"))
-
-    def _exclude_lines(self) -> [str]:
-        """Return list of lines to exclude."""
-
-        return [
-            "Failed to find attachment point specified for",
-            "# userid name",
-            "##### CTexture::LoadTextureBitsFromFile",
-            "CMaterialVar::GetVecValue: trying to get a vec value for",
-            "Cannot update control point",
-            "DataTable warning: tf_objective_resource: Out-of-range value",
-            "EmitSound: pitch out of bounds",
-            'Error: Material "models/workshop/player/items/all_class',
-            "Lobby updated",
-            "Missing Vgui material",
-            'No such variable "',
-            "Requesting texture value from var",
-            "SOLID_VPHYSICS static prop with no vphysics model!",
-            "SetupBones: invalid bone array size",
-            "ertexlit_and_unlit_generic_bump_ps20b.vcs",
-            "m_face->glyph->bitmap.width is 0 for ch:32",
-            "to attach particle system",
-            "to get specular",
-            "unknown particle system",
-        ]
