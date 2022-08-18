@@ -169,7 +169,7 @@ By default, `tf2mon` starts reading `con_logfile` from its end
             CTRL+F8 Reset logger `padding`.
                  F9 Cycle grid layout.
              KP_INS Show debugging.
-             KP_DEL Enable/disable `Single-Step`.
+             KP_DEL Start single-stepping.
                   [ Kick last killer as `cheater`.
                   ] Kick last killer as `racist`.
                   \ Mark last killer as `suspect`.
