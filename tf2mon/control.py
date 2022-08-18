@@ -1,6 +1,8 @@
 """Application control."""
 
 import argparse
+import importlib
+import pkgutil
 
 from libcli import BaseCLI
 
@@ -10,7 +12,29 @@ from tf2mon.fkey import FKey
 
 
 class Control:
-    """Application control."""
+    """Application control.
+
+    Optional methods that derived classes MAY define:
+    :g/[gh]..attr/p
+
+        status
+            Return current value as `str` formatted for display.
+
+        handler
+            Perform monitor function.
+
+        action
+            Game "script" text to `exec`.
+
+        add_arguments_to
+            Add control to cli `parser`.
+
+        start
+            Start using curses/user-interface.
+            Finalize initialization after curses has been started.
+            ...
+
+    """
 
     command: Command = None
 
@@ -83,10 +107,37 @@ class ControlManager:
     """Collection of `Control`s."""
 
     items: dict[str, Control] = {}
+    bindings: list[Control] = []
 
     commands = CommandManager()
     get_regex_list = commands.get_regex_list
     get_status_line = commands.get_status_line
+
+    def __init__(
+        self,
+        modname: str,
+        prefix: str = None,
+        suffix: str = None,
+    ) -> None:
+        """Add all `Control`s in module `modname`."""
+
+        modpath = importlib.import_module(modname, __name__).__path__
+        base_name = (prefix or "") + (suffix or "")
+
+        for modinfo in pkgutil.iter_modules(modpath):
+            module = importlib.import_module(f"{modname}.{modinfo.name}", __name__)
+
+            if not prefix and not suffix and hasattr(module, "Control"):
+                module.Control()
+                continue
+
+            for name in [x for x in dir(module) if x != base_name]:
+                if prefix and not name.startswith(prefix):
+                    continue
+                if suffix and not name.endswith(suffix):
+                    continue
+                if (klass := getattr(module, name, None)) is not None:
+                    self.add(klass())
 
     def __getitem__(self, name: str) -> Control:
         """Return the `Control` known as `name`."""
@@ -102,6 +153,7 @@ class ControlManager:
         """Bind the control known as `name` to `keyspec`."""
 
         control = self.items[name]
+        self.bindings.append(control)
         control.fkey = FKey(keyspec)
 
         control.command = Command(
@@ -125,7 +177,7 @@ class ControlManager:
         """Return help for function keys."""
 
         lines = []
-        for control in [x for x in self.items.values() if x.fkey]:
+        for control in self.bindings:
             # 17 == indent 4 + len("KP_RIGHTARROW")
             lines.append(f"{control.fkey.keyspec:>17} {control.__doc__}")
         return "\n".join(lines)

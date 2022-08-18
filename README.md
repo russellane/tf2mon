@@ -2,10 +2,9 @@
 
 #### Usage
     tf2mon [--rewind | --no-rewind] [--follow | --no-follow]
-           [--tf2-install-dir DIR]
-           [--sort-order {STEAMID,K,KD,CONN,USERNAME}]
+           [--tf2-install-dir DIR] [--layout {DFLT,FULL,TALL,MRGD,WIDE}]
            [--log-location {MOD,NAM,THM,THN,FILE,NUL}]
-           [--layout {DFLT,FULL,TALL,MRGD,WIDE}] [--list-con-logfile]
+           [--sort-order {STEAMID,K,KD,CONN,USERNAME}] [--list-con-logfile]
            [--trunc-con-logfile] [--clean-con-logfile]
            [--exclude-file FILE] [--single-step] [--break LINENO]
            [--search PATTERN] [--inject-cmd LINENO:CMD]
@@ -47,13 +46,13 @@ By default, `tf2mon` starts reading `con_logfile` from its end
     --no-follow         Exit at end of logfile (default: `False`).
     --tf2-install-dir DIR
                         TF2 installation directory (default: `~/tf2`).
-    --sort-order {STEAMID,K,KD,CONN,USERNAME}
-                        Choose sort order (fkey: `F7`) (default: `KD`).
+    --layout {DFLT,FULL,TALL,MRGD,WIDE}
+                        Choose display layout (fkey: `F9`) (default: `MRGD`).
     --log-location {MOD,NAM,THM,THN,FILE,NUL}
                         Choose format of logger location field (fkey: `F8`)
                         (default: `NUL`).
-    --layout {DFLT,FULL,TALL,MRGD,WIDE}
-                        Choose display layout (fkey: `F9`) (default: `MRGD`).
+    --sort-order {STEAMID,K,KD,CONN,USERNAME}
+                        Choose sort order (fkey: `F7`) (default: `KD`).
     --list-con-logfile  Show path to logfile and exit.
     --trunc-con-logfile
                         Truncate logfile and exit.
@@ -166,22 +165,22 @@ By default, `tf2mon` starts reading `con_logfile` from its end
                  F6 Join Other Team.
                  F7 Cycle scoreboard Sort column.
                  F8 Cycle logger `location` format.
-           SHIFT+F8 Cycle logger `level`.
             CTRL+F8 Reset logger `padding`.
+           SHIFT+F8 Cycle logger `level`.
                  F9 Cycle grid layout.
-             KP_INS Show debugging.
+               KP_5 Clear kicks and spams queues.
              KP_DEL Enable/disable `Single-Step`.
-                  [ Kick last killer as `cheater`.
-                  ] Kick last killer as `racist`.
-                  \ Mark last killer as `suspect`.
-            KP_HOME Pop last/latest kicks queue message.
-       KP_LEFTARROW Clear kicks queue.
+       KP_DOWNARROW Push `steamids` from game to monitor.
              KP_END Pop first/oldest kicks queue message.
+            KP_HOME Pop last/latest kicks queue message.
+             KP_INS Show debugging.
+       KP_LEFTARROW Clear kicks queue.
+            KP_PGDN Pop first/oldest spams queue message.
             KP_PGUP Pop last/latest spams queue message.
       KP_RIGHTARROW Clear spams queue.
-            KP_PGDN Pop first/oldest spams queue message.
-               KP_5 Clear kicks and spams queues.
-       KP_DOWNARROW Push `steamids` from game to monitor.
+                  [ Kick last killer as `cheater`.
+                  \ Mark last killer as `suspect`.
+                  ] Kick last killer as `racist`.
 
 #### Where to Operate
   `tf2mon` works by reading the `con_logfile` to which `TF2` logs

@@ -51,9 +51,7 @@ class CLI(BaseCLI):
     }
 
     # Create all controls.
-    controls = ControlManager()
-    for _ in tf2mon.controls.CLASS_LIST:
-        controls.add(_())
+    controls = ControlManager("tf2mon.controls", suffix="Control")
 
     # Bind some controls.
     controls.bind("HelpControl", "F1")
