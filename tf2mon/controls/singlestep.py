@@ -2,6 +2,7 @@
 
 from loguru import logger
 
+import tf2mon
 from tf2mon.control import Control
 
 
@@ -11,5 +12,5 @@ class SingleStepControl(Control):
     name = "SINGLE-STEP"
 
     def handler(self, _match) -> None:
-        self.monitor.admin.start_single_stepping()
+        tf2mon.monitor.admin.start_single_stepping()
         logger.info("single-step")

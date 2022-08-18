@@ -2,6 +2,7 @@
 
 from enum import Enum
 
+import tf2mon
 from tf2mon.control import CycleControl
 from tf2mon.toggle import Toggle
 
@@ -23,13 +24,13 @@ class SortOrderControl(CycleControl):
     #
     def start(self, value: str) -> None:
         self.toggle.start(self.enum.__dict__[value])
-        self.monitor.ui.scoreboard.set_sort_order(self.toggle.value.name)
+        tf2mon.monitor.ui.scoreboard.set_sort_order(self.toggle.value.name)
         assert self.toggle.value.name == value
 
     def handler(self, _match) -> None:
         _ = self.toggle.toggle
-        self.monitor.ui.scoreboard.set_sort_order(self.toggle.value.name)
-        self.monitor.ui.update_display()
+        tf2mon.monitor.ui.scoreboard.set_sort_order(self.toggle.value.name)
+        tf2mon.monitor.ui.update_display()
 
     def add_arguments_to(self, parser) -> None:
         arg = parser.add_argument(

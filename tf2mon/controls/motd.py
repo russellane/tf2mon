@@ -1,5 +1,6 @@
 """Display Message of the Day."""
 
+import tf2mon
 from tf2mon.control import Control
 
 
@@ -9,4 +10,4 @@ class MotdControl(Control):
     name = "MOTD"
 
     def handler(self, _match) -> None:
-        self.monitor.ui.show_motd()
+        tf2mon.monitor.ui.show_motd()

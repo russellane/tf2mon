@@ -1,5 +1,6 @@
 """Kicks queue control."""
 
+import tf2mon
 from tf2mon.control import Control
 
 
@@ -12,10 +13,10 @@ class ClearQueuesControl(Control):
     def handler(self, _match) -> None:
         """Handle event."""
 
-        self.monitor.kicks.clear()
-        self.monitor.ui.refresh_kicks()
-        self.monitor.spams.clear()
-        self.monitor.ui.refresh_spams()
+        tf2mon.monitor.kicks.clear()
+        tf2mon.monitor.ui.refresh_kicks()
+        tf2mon.monitor.spams.clear()
+        tf2mon.monitor.ui.refresh_spams()
 
 
 class PullControl(Control):

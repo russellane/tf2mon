@@ -1,5 +1,6 @@
 """Kicks queue control."""
 
+import tf2mon
 from tf2mon.control import Control
 
 
@@ -10,8 +11,8 @@ class KicksPopControl(Control):
     action = "tf2mon_kicks_pop"
 
     def handler(self, _match) -> None:
-        self.monitor.kicks.pop()
-        self.monitor.ui.refresh_kicks()
+        tf2mon.monitor.kicks.pop()
+        tf2mon.monitor.ui.refresh_kicks()
 
 
 class KicksClearControl(Control):
@@ -21,8 +22,8 @@ class KicksClearControl(Control):
     action = "tf2mon_kicks_clear"
 
     def handler(self, _match) -> None:
-        self.monitor.kicks.clear()
-        self.monitor.ui.refresh_kicks()
+        tf2mon.monitor.kicks.clear()
+        tf2mon.monitor.ui.refresh_kicks()
 
 
 class KicksPopleftControl(Control):
@@ -32,5 +33,5 @@ class KicksPopleftControl(Control):
     action = "tf2mon_kicks_popleft"
 
     def handler(self, _match) -> None:
-        self.monitor.kicks.popleft()
-        self.monitor.ui.refresh_kicks()
+        tf2mon.monitor.kicks.popleft()
+        tf2mon.monitor.ui.refresh_kicks()

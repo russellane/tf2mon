@@ -10,7 +10,6 @@ from pprint import pformat
 import libcurses
 from loguru import logger
 
-import tf2mon.control
 from tf2mon.admin import Admin
 from tf2mon.conlog import Conlog
 from tf2mon.database import Database
@@ -125,7 +124,6 @@ class Monitor:
     def _run(self, win):
 
         self.ui = UI(self, win)
-        tf2mon.control.Control.monitor = self
         self.controls.register_curses_handlers()
         self.controls["SortOrderControl"].start(self.options.sort_order)
         self.controls["LogLocationControl"].start(self.options.log_location)

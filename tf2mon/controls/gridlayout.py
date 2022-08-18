@@ -2,6 +2,7 @@
 
 from enum import Enum
 
+import tf2mon
 from tf2mon.control import CycleControl
 from tf2mon.layouts.default import DefaultLayout
 from tf2mon.layouts.full import FullLayout
@@ -28,12 +29,12 @@ class GridLayoutControl(CycleControl):
     #
     def start(self, value: str) -> None:
         self.toggle.start(self.enum.__dict__[value])
-        self.monitor.ui.grid.handle_term_resized_event()
+        tf2mon.monitor.ui.grid.handle_term_resized_event()
 
     def handler(self, _match) -> None:
         _ = self.toggle.toggle
-        self.monitor.ui.grid.handle_term_resized_event()
-        self.monitor.ui.show_status()
+        tf2mon.monitor.ui.grid.handle_term_resized_event()
+        tf2mon.monitor.ui.show_status()
 
     def add_arguments_to(self, parser) -> None:
         arg = parser.add_argument(

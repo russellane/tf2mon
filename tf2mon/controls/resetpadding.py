@@ -2,6 +2,7 @@
 
 from loguru import logger
 
+import tf2mon
 from tf2mon.control import Control
 
 
@@ -11,5 +12,5 @@ class ResetPaddingControl(Control):
     name = "RESET-PADDING"
 
     def handler(self, _match) -> None:
-        self.monitor.ui.logsink.reset_padding()
+        tf2mon.monitor.ui.logsink.reset_padding()
         logger.info("padding reset")

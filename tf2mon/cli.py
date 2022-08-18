@@ -9,6 +9,7 @@ import xdg
 from libcli import BaseCLI
 from loguru import logger
 
+import tf2mon
 import tf2mon.controls
 import tf2mon.layouts
 from tf2mon.conlog import Conlog
@@ -501,8 +502,8 @@ class CLI(BaseCLI):
         #     print(str(hackers))
         #     self.parser.exit()
 
-        monitor = Monitor(self)
-        monitor.run()
+        tf2mon.monitor = Monitor(self)
+        tf2mon.monitor.run()
 
 
 def main(args: Optional[list[str]] = None) -> None:

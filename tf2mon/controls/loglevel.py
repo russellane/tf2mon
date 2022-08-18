@@ -2,6 +2,7 @@
 
 from enum import Enum
 
+import tf2mon
 from tf2mon.control import CycleControl
 from tf2mon.toggle import Toggle
 
@@ -22,9 +23,9 @@ class LogLevelControl(CycleControl):
     def start(self, verbose: int) -> None:
         """Set logging level based on `--verbose`."""
 
-        self.monitor.ui.logsink.set_verbose(verbose)
-        self.toggle.start(self.enum.__dict__[self.monitor.ui.logsink.level])
+        tf2mon.monitor.ui.logsink.set_verbose(verbose)
+        self.toggle.start(self.enum.__dict__[tf2mon.monitor.ui.logsink.level])
 
     def handler(self, _match) -> None:
-        self.monitor.ui.logsink.set_level(self.items[self.toggle.cycle])
-        self.monitor.ui.show_status()
+        tf2mon.monitor.ui.logsink.set_level(self.items[self.toggle.cycle])
+        tf2mon.monitor.ui.show_status()

@@ -2,6 +2,7 @@
 
 from enum import Enum
 
+import tf2mon
 from tf2mon.control import CycleControl
 from tf2mon.toggle import Toggle
 
@@ -24,11 +25,11 @@ class LogLocationControl(CycleControl):
     #
     def start(self, value: str) -> None:
         self.toggle.start(self.enum.__dict__[value])
-        self.monitor.ui.logsink.set_location(self.items[self.toggle.value])
+        tf2mon.monitor.ui.logsink.set_location(self.items[self.toggle.value])
 
     def handler(self, _match) -> None:
-        self.monitor.ui.logsink.set_location(self.items[self.toggle.cycle])
-        self.monitor.ui.show_status()
+        tf2mon.monitor.ui.logsink.set_location(self.items[self.toggle.cycle])
+        tf2mon.monitor.ui.show_status()
 
     def status(self) -> str:
         return self.toggle.value.name

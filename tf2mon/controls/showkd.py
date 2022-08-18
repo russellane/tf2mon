@@ -15,4 +15,4 @@ class ShowKillsControl(BoolControl):
     """Display kills in journal window."""
 
     name = "TOGGLE-SHOW-KILLS"
-    toggle = Toggle("kd", [False, True])
+    toggle = Toggle("kills", [False, True])

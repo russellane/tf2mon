@@ -4,6 +4,7 @@ import argparse
 
 from libcli import BaseCLI
 
+import tf2mon
 from tf2mon.command import Command, CommandManager
 from tf2mon.fkey import FKey
 
@@ -12,9 +13,6 @@ class Control:
     """Application control."""
 
     command: Command = None
-
-    # Controls are created before the monitor and its ui.
-    monitor = None
 
     # Optional; function key to operate control.
     fkey: FKey = None
@@ -47,9 +45,9 @@ class BoolControl(Control):
     def handler(self, _match) -> None:
         """Handle event."""
 
-        if self.monitor.toggling_enabled:
+        if tf2mon.monitor.toggling_enabled:
             _ = self.toggle.toggle
-            self.monitor.ui.show_status()
+            tf2mon.monitor.ui.show_status()
 
     def status(self) -> str:
         """Return value formatted for display."""
