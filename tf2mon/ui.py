@@ -204,7 +204,7 @@ class UI:
     def refresh_user(self, user):
         """Refresh user panel."""
 
-        ctrl = tf2mon.monitor.controls["UserPanelControl"]
+        ctrl = tf2mon.monitor.controls("UserPanelControl")
 
         if self.user_win:
             if ctrl.value == ctrl.enum.KICKS or (

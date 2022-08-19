@@ -157,7 +157,7 @@ class User:
     def moniker(self):
         """Return name, optionally including his kill/death ratio."""
 
-        if not tf2mon.monitor.controls["ShowKDControl"].value:
+        if not tf2mon.monitor.controls("ShowKDControl").value:
             return self._clean_username
 
         # pylint: disable=consider-using-f-string

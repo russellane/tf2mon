@@ -44,6 +44,11 @@ class Controls:
                 if (klass := getattr(module, name, None)) is not None:
                     self.add(klass())
 
+    def __call__(self, name: str) -> Control:
+        """Return the `Control` known as `name`."""
+
+        return self.items[name]
+
     def __getitem__(self, name: str) -> Control:
         """Return the `Control` known as `name`."""
 

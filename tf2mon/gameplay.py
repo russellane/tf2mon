@@ -274,7 +274,7 @@ class Gameplay:
             weapon_state,
         )
 
-        if tf2mon.monitor.controls["ShowKillsControl"].value:
+        if tf2mon.monitor.controls("ShowKillsControl").value:
             level = "KILL"
             if killer.team:
                 level += killer.team.name
