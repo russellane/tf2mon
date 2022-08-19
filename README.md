@@ -165,9 +165,11 @@ By default, `tf2mon` starts reading `con_logfile` from its end
                  F6 Join Other Team.
                  F7 Cycle scoreboard Sort column.
                  F8 Cycle logger `location` format.
-           SHIFT+F8 Cycle logger `level`.
             CTRL+F8 Reset logger `padding`.
+           SHIFT+F8 Cycle logger `level`.
                  F9 Cycle grid layout.
+            CTRL+F9 Clear chat windows.
+           SHIFT+F9 Clear chat windows.
              KP_INS Show debugging.
              KP_DEL Start single-stepping.
                   [ Kick last killer as `cheater`.

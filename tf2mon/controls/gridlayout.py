@@ -33,7 +33,7 @@ class GridLayoutControl(CycleControl):
     def handler(self, _match) -> None:
         _ = self.toggle.toggle
         tf2mon.ui.grid.handle_term_resized_event()
-        tf2mon.ui.show_status()
+        tf2mon.ui.update_display()
 
     def add_arguments_to(self, parser) -> None:
         arg = parser.add_argument(
