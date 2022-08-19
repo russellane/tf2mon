@@ -36,7 +36,6 @@ class Monitor:
         """Initialize monitor."""
 
         tf2mon.monitor = self
-        self.config = cli.config
         self.controls = cli.controls
 
         # Location of TF2 `exec` scripts.
@@ -68,7 +67,7 @@ class Monitor:
             self.admin.set_single_step_lineno(tf2mon.options.breakpoint)
 
         #
-        self.steam_web_api = SteamWebAPI(webapi_key=self.config.get("webapi_key"))
+        self.steam_web_api = SteamWebAPI(webapi_key=tf2mon.config.get("webapi_key"))
 
         #
         self.roles = Role.get_roles_by_name()
@@ -147,7 +146,7 @@ class Monitor:
         logger.success("RESET GAME")
 
         self.users = UserManager()
-        self.me = self.my = self.users.find_username(self.config["player_name"])
+        self.me = self.my = self.users.find_username(tf2mon.config.get("player_name"))
         self.me.assign_team(Team.BLU)
         self.my.display_level = "user"
         self.chats = []

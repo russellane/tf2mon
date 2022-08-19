@@ -455,6 +455,7 @@ class CLI(BaseCLI):
     def main(self) -> None:
         """Command line interface entry point (method)."""
 
+        tf2mon.config = self.config
         tf2mon.options = self.options
 
         if self.options.con_logfile == self.config["con_logfile"]:
