@@ -36,12 +36,11 @@ class Monitor:
         """Initialize monitor."""
 
         tf2mon.monitor = self
-        self.options = cli.options
         self.config = cli.config
         self.controls = cli.controls
 
         # Location of TF2 `exec` scripts.
-        self.tf2_scripts_dir = Path(self.options.tf2_install_dir, "cfg", "user")
+        self.tf2_scripts_dir = Path(tf2mon.options.tf2_install_dir, "cfg", "user")
         if not self.tf2_scripts_dir.is_dir():
             logger.warning(f"Missing TF2 scripts dir `{self.tf2_scripts_dir}`")
 
@@ -55,18 +54,18 @@ class Monitor:
         # "Receive" from TF2 through `conlog`.
         # Wait for con_logfile to exist, then open it.
         self.conlog = Conlog(
-            self.options.con_logfile,
-            exclude_file=self.options.exclude_file,
-            rewind=self.options.rewind,
-            follow=self.options.follow,
-            inject_cmds=self.options.inject_cmds,
-            inject_file=self.options.inject_file,
+            tf2mon.options.con_logfile,
+            exclude_file=tf2mon.options.exclude_file,
+            rewind=tf2mon.options.rewind,
+            follow=tf2mon.options.follow,
+            inject_cmds=tf2mon.options.inject_cmds,
+            inject_file=tf2mon.options.inject_file,
         )
 
         # this application's admin console
         self.admin = Admin()
-        if self.options.breakpoint is not None:
-            self.admin.set_single_step_lineno(self.options.breakpoint)
+        if tf2mon.options.breakpoint is not None:
+            self.admin.set_single_step_lineno(tf2mon.options.breakpoint)
 
         #
         self.steam_web_api = SteamWebAPI(webapi_key=self.config.get("webapi_key"))
@@ -130,7 +129,7 @@ class Monitor:
         self.reset_game()
 
         # no need for threads if exiting at end of conlog
-        if not self.options.follow:
+        if not tf2mon.options.follow:
             self.repl()
             return
 
@@ -157,7 +156,7 @@ class Monitor:
     def repl(self):
         """Read the console log file and play game."""
 
-        Database(self.options.database, [Player, SteamPlayer])
+        Database(tf2mon.options.database, [Player, SteamPlayer])
         self.conlog.open()
 
         while (line := self.conlog.readline()) is not None:
@@ -214,7 +213,7 @@ class Monitor:
         it is not checked by keys that only alter the display.
         """
 
-        return self.conlog.is_eof or self.options.toggles or self.admin.is_single_stepping
+        return self.conlog.is_eof or tf2mon.options.toggles or self.admin.is_single_stepping
 
     def write_tf2_exec_script(self):
         """Write tf2 exec script."""
