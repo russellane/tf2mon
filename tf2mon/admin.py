@@ -17,10 +17,10 @@ class Admin:
         """Initialize Admin Console."""
 
         self._single_step_event = threading.Event()
-        self.is_single_stepping = tf2mon.monitor.options.single_step
+        self.is_single_stepping = tf2mon.options.single_step
         self._single_step_re = None
 
-        if pattern := tf2mon.monitor.options.search:
+        if pattern := tf2mon.options.search:
             if pattern.startswith("/"):
                 pattern = pattern[1:]
             self.set_single_step_pattern(pattern)
@@ -172,7 +172,7 @@ class Admin:
     def repl(self):
         """Admin console read-evaluate-process-loop."""
 
-        while not tf2mon.monitor.conlog.is_eof or tf2mon.monitor.options.follow:
+        while not tf2mon.monitor.conlog.is_eof or tf2mon.options.follow:
 
             tf2mon.ui.update_display()
 

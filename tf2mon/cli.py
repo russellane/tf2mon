@@ -455,6 +455,8 @@ class CLI(BaseCLI):
     def main(self) -> None:
         """Command line interface entry point (method)."""
 
+        tf2mon.options = self.options
+
         if self.options.con_logfile == self.config["con_logfile"]:
             # Not given on command line; prefix with effective parent.
             # (configured default is a basename relative to `tf2_install_dir`)

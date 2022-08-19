@@ -24,7 +24,7 @@ class LogLevelControl(CycleControl):
     def start(self) -> None:
         """Set logging level based on `--verbose`."""
 
-        tf2mon.ui.logsink.set_verbose(tf2mon.monitor.options.verbose)
+        tf2mon.ui.logsink.set_verbose(tf2mon.options.verbose)
         self.toggle.start(self.enum.__dict__[tf2mon.ui.logsink.level])
 
     def handler(self, _match) -> None:
@@ -48,7 +48,7 @@ class LogLocationControl(CycleControl):
     }
 
     def start(self) -> None:
-        self.toggle.start(self.enum.__dict__[tf2mon.monitor.options.log_location])
+        self.toggle.start(self.enum.__dict__[tf2mon.options.log_location])
         tf2mon.ui.logsink.set_location(self.items[self.toggle.value])
 
     def handler(self, _match) -> None:

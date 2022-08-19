@@ -22,9 +22,9 @@ class SortOrderControl(CycleControl):
     }
 
     def start(self) -> None:
-        self.toggle.start(self.enum.__dict__[tf2mon.monitor.options.sort_order])
+        self.toggle.start(self.enum.__dict__[tf2mon.options.sort_order])
         tf2mon.ui.scoreboard.set_sort_order(self.toggle.value.name)
-        assert self.toggle.value.name == tf2mon.monitor.options.sort_order
+        assert self.toggle.value.name == tf2mon.options.sort_order
 
     def handler(self, _match) -> None:
         _ = self.toggle.toggle
