@@ -24,12 +24,12 @@ class LogLevelControl(CycleControl):
     def start(self) -> None:
         """Set logging level based on `--verbose`."""
 
-        tf2mon.monitor.ui.logsink.set_verbose(tf2mon.monitor.options.verbose)
-        self.toggle.start(self.enum.__dict__[tf2mon.monitor.ui.logsink.level])
+        tf2mon.ui.logsink.set_verbose(tf2mon.monitor.options.verbose)
+        self.toggle.start(self.enum.__dict__[tf2mon.ui.logsink.level])
 
     def handler(self, _match) -> None:
-        tf2mon.monitor.ui.logsink.set_level(self.items[self.toggle.cycle])
-        tf2mon.monitor.ui.show_status()
+        tf2mon.ui.logsink.set_level(self.items[self.toggle.cycle])
+        tf2mon.ui.show_status()
 
 
 class LogLocationControl(CycleControl):
@@ -49,11 +49,11 @@ class LogLocationControl(CycleControl):
 
     def start(self) -> None:
         self.toggle.start(self.enum.__dict__[tf2mon.monitor.options.log_location])
-        tf2mon.monitor.ui.logsink.set_location(self.items[self.toggle.value])
+        tf2mon.ui.logsink.set_location(self.items[self.toggle.value])
 
     def handler(self, _match) -> None:
-        tf2mon.monitor.ui.logsink.set_location(self.items[self.toggle.cycle])
-        tf2mon.monitor.ui.show_status()
+        tf2mon.ui.logsink.set_location(self.items[self.toggle.cycle])
+        tf2mon.ui.show_status()
 
     def status(self) -> str:
         return self.toggle.value.name
@@ -75,5 +75,5 @@ class ResetPaddingControl(Control):
     name = "RESET-PADDING"
 
     def handler(self, _match) -> None:
-        tf2mon.monitor.ui.logsink.reset_padding()
+        tf2mon.ui.logsink.reset_padding()
         logger.info("padding reset")

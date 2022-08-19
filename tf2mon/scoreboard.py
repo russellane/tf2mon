@@ -155,7 +155,7 @@ class Scoreboard:
                     0,
                     user.last_scoreboard_line,
                     ncols,
-                    tf2mon.monitor.ui.user_color(user, color),
+                    tf2mon.ui.user_color(user, color),
                 )
             except curses.error:
                 break
@@ -175,7 +175,7 @@ class Scoreboard:
         for active_user in tf2mon.monitor.users.active_users():
             active_user.selected = False
         user.selected = True
-        tf2mon.monitor.ui.update_display()
+        tf2mon.ui.update_display()
 
         if mouse.nclicks == 2:
             user.kick(Player.CHEATER)

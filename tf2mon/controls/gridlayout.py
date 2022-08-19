@@ -28,12 +28,12 @@ class GridLayoutControl(CycleControl):
 
     def start(self) -> None:
         self.toggle.start(self.enum.__dict__[tf2mon.monitor.options.layout])
-        tf2mon.monitor.ui.grid.handle_term_resized_event()
+        tf2mon.ui.grid.handle_term_resized_event()
 
     def handler(self, _match) -> None:
         _ = self.toggle.toggle
-        tf2mon.monitor.ui.grid.handle_term_resized_event()
-        tf2mon.monitor.ui.show_status()
+        tf2mon.ui.grid.handle_term_resized_event()
+        tf2mon.ui.show_status()
 
     def add_arguments_to(self, parser) -> None:
         arg = parser.add_argument(

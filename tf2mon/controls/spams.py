@@ -12,7 +12,7 @@ class SpamsPopControl(Control):
 
     def handler(self, _match) -> None:
         tf2mon.monitor.spams.pop()
-        tf2mon.monitor.ui.refresh_spams()
+        tf2mon.ui.refresh_spams()
 
 
 class SpamsClearControl(Control):
@@ -23,7 +23,7 @@ class SpamsClearControl(Control):
 
     def handler(self, _match) -> None:
         tf2mon.monitor.spams.clear()
-        tf2mon.monitor.ui.refresh_spams()
+        tf2mon.ui.refresh_spams()
 
 
 class SpamsPopleftControl(Control):
@@ -34,4 +34,4 @@ class SpamsPopleftControl(Control):
 
     def handler(self, _match) -> None:
         tf2mon.monitor.spams.popleft()
-        tf2mon.monitor.ui.refresh_spams()
+        tf2mon.ui.refresh_spams()

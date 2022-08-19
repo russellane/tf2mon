@@ -47,7 +47,7 @@ class UserManager:
         # pylint: disable=too-many-branches
         # pylint: disable=too-many-locals
 
-        tf2mon.monitor.ui.notify_operator = False
+        tf2mon.ui.notify_operator = False
 
         if not (steamid := parse_steamid(s_steamid)):
             return  # invalid

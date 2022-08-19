@@ -69,7 +69,7 @@ class BoolControl(Control):
 
         if tf2mon.monitor.toggling_enabled:
             _ = self.toggle.toggle
-            tf2mon.monitor.ui.show_status()
+            tf2mon.ui.show_status()
 
     def status(self) -> str:
         """Return value formatted for display."""

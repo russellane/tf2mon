@@ -7,27 +7,6 @@ from tf2mon.control import BoolControl, Control
 from tf2mon.toggle import Toggle
 
 
-class HelpControl(Control):
-    """Display Help."""
-
-    name = "HELP"
-
-    def handler(self, _match) -> None:
-        tf2mon.monitor.ui.show_help()
-
-    def status(self) -> str:
-        return self.name
-
-
-class MotdControl(Control):
-    """Display Message of the Day."""
-
-    name = "MOTD"
-
-    def handler(self, _match) -> None:
-        tf2mon.monitor.ui.show_motd()
-
-
 class DebugFlagControl(BoolControl):
     """Enable/disable debug (use `ECHO` or `SAY`)."""
 
@@ -41,7 +20,10 @@ class ShowDebugControl(Control):
     name = "SHOW-DEBUG"
 
     def handler(self, _match) -> None:
-        tf2mon.monitor.ui.show_debug()
+        tf2mon.ui.show_journal("help", " Grid ".center(80, "-"))
+        tf2mon.ui.show_journal("help", str(tf2mon.ui.grid))
+        for box in tf2mon.ui.grid.boxes:
+            tf2mon.ui.show_journal("help", tf2mon.ui.grid.winyx(box))
 
 
 class TauntFlagControl(BoolControl):
@@ -80,7 +62,7 @@ class JoinOtherTeamControl(Control):
     def handler(self, _match) -> None:
         if tf2mon.monitor.toggling_enabled:
             tf2mon.monitor.me.assign_team(tf2mon.monitor.my.opposing_team)
-            tf2mon.monitor.ui.update_display()
+            tf2mon.ui.update_display()
 
     def status(self) -> str:
         return tf2mon.monitor.my.team.name  # if tf2mon.monitor.my.team else "blu"
@@ -96,9 +78,9 @@ class ClearQueuesControl(Control):
         """Handle event."""
 
         tf2mon.monitor.kicks.clear()
-        tf2mon.monitor.ui.refresh_kicks()
+        tf2mon.ui.refresh_kicks()
         tf2mon.monitor.spams.clear()
-        tf2mon.monitor.ui.refresh_spams()
+        tf2mon.ui.refresh_spams()
 
 
 class PushControl(Control):

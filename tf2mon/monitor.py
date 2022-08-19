@@ -125,7 +125,7 @@ class Monitor:
 
     def _run(self, win):
 
-        self.ui = UI(win)
+        tf2mon.ui = self.ui = UI(win)
         self.controls.start()
         self.reset_game()
 

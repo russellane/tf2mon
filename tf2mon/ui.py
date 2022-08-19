@@ -4,7 +4,6 @@ import contextlib
 import curses
 import os
 import sys
-import textwrap
 
 import libcurses
 from loguru import logger
@@ -180,8 +179,8 @@ class UI:
             # ic(self.kicks_win.getmaxyx())
             self._show_lines("KICKS", reversed(tf2mon.monitor.kicks.msgs), self.kicks_win)
 
-        # if self.user_win:
-        #     self.refresh_user(tf2mon.monitor.me)
+        if self.user_win:
+            self.refresh_user(tf2mon.monitor.me)
 
     def refresh_spams(self):
         """Refresh spams panel."""
@@ -295,34 +294,34 @@ class UI:
         level = player.display_level
         leader = f"{level}: {player.steamid}"
 
-        # tf2mon.monitor.ui.show_journal(
+        # self.show_journal(
         #     "Player",
         #     f"{leader}: {player}",
         # )
 
-        # tf2mon.monitor.ui.show_journal(
+        # self.show_journal(
         #     level,
         #     f"{leader}: {player.astuple()}",
         # )
 
-        tf2mon.monitor.ui.show_journal(
+        self.show_journal(
             level,
             f"{leader}: name: `{player.last_name}`",
         )
 
         for alias in [x for x in player.aliases if x != player.last_name]:
-            tf2mon.monitor.ui.show_journal(
+            self.show_journal(
                 level,
                 f"{leader}: alias: `{alias}`",
             )
 
-        tf2mon.monitor.ui.show_journal(
+        self.show_journal(
             level,
             # pylint: disable=protected-access
             f"{leader}: prev={player.s_prev_time} {player._s_prev_time}",
         )
 
-        tf2mon.monitor.ui.show_journal(
+        self.show_journal(
             level,
             f"{leader}: attrs={[x for x in player.getattrs() if x]}",
         )
@@ -368,42 +367,3 @@ class UI:
             for line in lines:
                 win.addstr(line + "\n", self.colormap[level])
         win.noutrefresh()
-
-    def show_help(self):
-        """Show help."""
-
-        for line in (
-            textwrap.dedent(
-                """
-    Press Enter to process next line.
-    Enter "b 500" to set breakpoint at line 500.
-    Enter "/pattern[/i]" to set search pattern.
-    Enter "/" to clear search pattern.
-    Enter "c" to continue.
-    Enter "quit" or press ^D to quit."
-                """
-            )
-            .strip()
-            .splitlines()
-        ):
-            logger.log("help", line)
-
-        for line in tf2mon.monitor.controls.fkey_help().splitlines():
-            self.show_journal("help", line)
-
-    def show_motd(self):
-        """Show message of the day."""
-
-        motd = tf2mon.monitor.tf2_scripts_dir.parent / "motd.txt"
-        logger.log("help", f" {motd} ".center(80, "-"))
-
-        with open(motd, encoding="utf-8") as file:
-            for line in file:
-                logger.log("help", line.strip())
-
-    def show_debug(self):
-        """Debug grid."""
-
-        logger.debug(self.grid)
-        for box in self.grid.boxes:
-            logger.debug(self.grid.winyx(box))

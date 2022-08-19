@@ -174,14 +174,14 @@ class Admin:
 
         while not tf2mon.monitor.conlog.is_eof or tf2mon.monitor.options.follow:
 
-            tf2mon.monitor.ui.update_display()
+            tf2mon.ui.update_display()
 
             prompt = tf2mon.APPNAME
             if self.is_single_stepping:
                 prompt += " (single-stepping)"
             prompt += ": "
 
-            if (line := tf2mon.monitor.ui.getline(prompt)) is None:
+            if (line := tf2mon.ui.getline(prompt)) is None:
                 logger.log("console", "quit eof")
                 return
 

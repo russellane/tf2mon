@@ -164,7 +164,7 @@ class Gameplay:
 
         user.chats.append(chat)
         tf2mon.monitor.chats.append(chat)
-        tf2mon.monitor.ui.show_chat(chat)
+        tf2mon.ui.show_chat(chat)
 
         # if this is a team chat, then we know we're on the same team, and
         # if one of us knows which team we're on and the other doesn't, we
@@ -278,7 +278,7 @@ class Gameplay:
             level = "KILL"
             if killer.team:
                 level += killer.team.name
-            tf2mon.monitor.ui.show_journal(
+            tf2mon.ui.show_journal(
                 level,
                 f"         {killer.moniker!r:25} killed {victim.moniker!r:25} {weapon_state!r}",
             )
@@ -299,7 +299,7 @@ class Gameplay:
 
         logger.log("CONNECT", tf2mon.monitor.users.find_username(username))
 
-        tf2mon.monitor.ui.notify_operator = True
+        tf2mon.ui.notify_operator = True
 
     def status(self, _leader, userid, username, steamid, elapsed, ping):
         """Handle message."""

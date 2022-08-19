@@ -240,7 +240,7 @@ class User:
             # logger.log("Player", self.player.astuple())
             self.player.setattrs(self.pending_attrs)
             self.player.track_appearance(self.username)
-            tf2mon.monitor.ui.show_player_intel(self.player)
+            tf2mon.ui.show_player_intel(self.player)
             # bobo1
             self.display_level = self.player.display_level
             # logger.log(self.display_level, f"{self._clean_username!r} is here")
@@ -291,8 +291,8 @@ class User:
             self.pending_attrs.append(attr)
             self.display_level = attr.upper()
             logger.log(self.display_level, f"{self} needs steamid, Press KP_DOWNARROW to PUSH")
-            tf2mon.monitor.ui.notify_operator = True
-            tf2mon.monitor.ui.sound_alarm = True
+            tf2mon.ui.notify_operator = True
+            tf2mon.ui.sound_alarm = True
             return
 
         if self.player:

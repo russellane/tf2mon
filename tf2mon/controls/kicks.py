@@ -12,7 +12,7 @@ class KicksPopControl(Control):
 
     def handler(self, _match) -> None:
         tf2mon.monitor.kicks.pop()
-        tf2mon.monitor.ui.refresh_kicks()
+        tf2mon.ui.refresh_kicks()
 
 
 class KicksClearControl(Control):
@@ -23,7 +23,7 @@ class KicksClearControl(Control):
 
     def handler(self, _match) -> None:
         tf2mon.monitor.kicks.clear()
-        tf2mon.monitor.ui.refresh_kicks()
+        tf2mon.ui.refresh_kicks()
 
 
 class KicksPopleftControl(Control):
@@ -34,4 +34,4 @@ class KicksPopleftControl(Control):
 
     def handler(self, _match) -> None:
         tf2mon.monitor.kicks.popleft()
-        tf2mon.monitor.ui.refresh_kicks()
+        tf2mon.ui.refresh_kicks()

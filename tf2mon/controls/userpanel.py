@@ -17,7 +17,7 @@ class UserPanelControl(Control):
     def handler(self, _match) -> None:
         if tf2mon.monitor.toggling_enabled:
             _ = self.toggle.toggle
-            tf2mon.monitor.ui.update_display()
+            tf2mon.ui.update_display()
 
     def status(self) -> str:
         return self.toggle.value.name
