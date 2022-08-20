@@ -13,9 +13,10 @@ from loguru import logger
 import tf2mon
 from tf2mon.admin import Admin
 from tf2mon.conlog import Conlog
+from tf2mon.controls import Controls
 from tf2mon.database import Database
 from tf2mon.gameplay import Gameplay
-from tf2mon.msgqueue import MsgQueueManager
+from tf2mon.msgqueue import MsgQueue, MsgQueueManager
 from tf2mon.player import Player
 from tf2mon.regex import Regex
 from tf2mon.role import Role
@@ -24,7 +25,7 @@ from tf2mon.steamplayer import SteamPlayer
 from tf2mon.steamweb import SteamWebAPI
 from tf2mon.ui import UI
 from tf2mon.user import Team
-from tf2mon.usermanager import UserManager
+from tf2mon.usermanager import User, UserManager
 
 
 class Monitor:
@@ -32,11 +33,63 @@ class Monitor:
 
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, cli) -> None:
-        """Initialize monitor."""
+    # Initialize items needed to build the CLI parser now.
+    controls = Controls("tf2mon.controls", suffix="Control")
+    controls.bind("HelpControl", "F1")
+    controls.bind("MotdControl", "Ctrl+F1")
+    controls.bind("DebugFlagControl", "F2")
+    controls.bind("TauntFlagControl", "F3")
+    controls.bind("ThroeFlagControl", "Shift+F3")
+    controls.bind("ShowKDControl", "F4")
+    controls.bind("ShowKillsControl", "Shift+F4")
+    controls.bind("UserPanelControl", "F5")
+    controls.bind("JoinOtherTeamControl", "F6")
+    controls.bind("SortOrderControl", "F7")
+    controls.bind("LogLocationControl", "F8")
+    controls.bind("ResetPaddingControl", "Ctrl+F8")
+    controls.bind("LogLevelControl", "Shift+F8")
+    controls.bind("GridLayoutControl", "F9")
+    controls.bind("ClearChatsControl", "Shift+F9")
+    controls.bind("ShowDebugControl", "KP_INS")
+    controls.bind("SingleStepControl", "KP_DEL")
+    controls.bind("KickLastCheaterControl", "[", game_only=True)
+    controls.bind("KickLastRacistControl", "]", game_only=True)
+    controls.bind("KickLastSuspectControl", "\\", game_only=True)
+    controls.bind("KicksPopControl", "KP_HOME")
+    controls.bind("KicksClearControl", "KP_LEFTARROW")
+    controls.bind("KicksPopleftControl", "KP_END")
+    controls.bind("SpamsPopControl", "KP_PGUP")
+    controls.bind("SpamsClearControl", "KP_RIGHTARROW")
+    controls.bind("SpamsPopleftControl", "KP_PGDN")
+    controls.bind("ClearQueuesControl", "KP_5")
+    controls.bind("PushControl", "KP_DOWNARROW")
 
-        tf2mon.monitor = self
-        self.controls = cli.controls
+    # Defer initializing these items until after parsing args.
+    tf2_scripts_dir: Path
+    path_static_script: Path
+    path_dynamic_script: Path
+    msgqueues: MsgQueueManager
+    kicks: MsgQueue
+    spams: MsgQueue
+    conlog: Conlog
+    steam_web_api: SteamWebAPI
+    roles: dict[str, list[Role]]
+    sniper_role: Role
+    unknown_role: Role
+    role_by_weapon: dict[str, str]
+    _re_racist: type[re.Pattern]
+    users: UserManager
+    me: User
+    my: User
+    chats: list
+    spammer: Spammer
+    admin: Admin
+    gameplay: Gameplay
+    regex_list: list
+    ui: UI
+
+    def _init(self) -> None:
+        """Complete initialization; post CLI, options now available."""
 
         # Location of TF2 `exec` scripts.
         self.tf2_scripts_dir = Path(tf2mon.options.tf2_install_dir, "cfg", "user")
@@ -49,6 +102,8 @@ class Monitor:
         # "Send" to TF2 through `msgqueues`.
         self.path_dynamic_script = self.tf2_scripts_dir / "tf2mon-pull.cfg"  # created often
         self.msgqueues = MsgQueueManager(self.path_dynamic_script)
+        self.kicks = self.msgqueues.addq("kicks")
+        self.spams = self.msgqueues.addq("spams")
 
         # "Receive" from TF2 through `conlog`.
         # Wait for con_logfile to exist, then open it.
@@ -60,11 +115,6 @@ class Monitor:
             inject_cmds=tf2mon.options.inject_cmds,
             inject_file=tf2mon.options.inject_file,
         )
-
-        # this application's admin console
-        self.admin = Admin()
-        if tf2mon.options.breakpoint is not None:
-            self.admin.set_single_step_lineno(tf2mon.options.breakpoint)
 
         #
         self.steam_web_api = SteamWebAPI(webapi_key=tf2mon.config.get("webapi_key"))
@@ -88,18 +138,12 @@ class Monitor:
             re.compile("|".join(lines), flags=re.IGNORECASE) if len(lines) > 0 else None
         )
 
-        # users
-        self.users = None
-
-        # chats
         self.chats = []
-
-        # message queues
-        self.kicks = self.msgqueues.addq("kicks")
-        self.spams = self.msgqueues.addq("spams")
-
-        #
         self.spammer = Spammer()
+        # this application's admin console
+        self.admin = Admin()
+        if tf2mon.options.breakpoint is not None:
+            self.admin.set_single_step_lineno(tf2mon.options.breakpoint)
 
         # admin command handlers
         self.regex_list = self.admin.regex_list
@@ -112,17 +156,14 @@ class Monitor:
         self.write_tf2_exec_script()
         self.regex_list += self.controls.get_regex_list()
 
-        #
-        self.me = self.my = None
-        self.ui = None
-        self.reset_game()
-
     def run(self):
         """Run the Monitor."""
+
         libcurses.wrapper(self._run)
 
     def _run(self, win):
 
+        self._init()
         tf2mon.ui = self.ui = UI(win)
         self.controls.start()
         self.reset_game()

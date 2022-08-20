@@ -10,14 +10,12 @@ from libcli import BaseCLI
 from loguru import logger
 
 import tf2mon
-import tf2mon.controls
 import tf2mon.layouts
+from tf2mon._monitor import Monitor
 from tf2mon.conlog import Conlog
-from tf2mon.controls import Controls
 from tf2mon.database import Database
 from tf2mon.hacker import HackerManager
 from tf2mon.logger import configure_logger
-from tf2mon.monitor import Monitor
 from tf2mon.steamweb import SteamWebAPI
 
 
@@ -49,40 +47,6 @@ class CLI(BaseCLI):
         # this player.
         "player_name": "Bad Dad",
     }
-
-    # Create all controls.
-    controls = Controls("tf2mon.controls", suffix="Control")
-
-    # Bind some controls.
-    controls.bind("HelpControl", "F1")
-    controls.bind("MotdControl", "Ctrl+F1")
-    controls.bind("DebugFlagControl", "F2")
-    controls.bind("TauntFlagControl", "F3")
-    controls.bind("ThroeFlagControl", "Shift+F3")
-    controls.bind("ShowKDControl", "F4")
-    controls.bind("ShowKillsControl", "Shift+F4")
-    controls.bind("UserPanelControl", "F5")
-    controls.bind("JoinOtherTeamControl", "F6")
-    controls.bind("SortOrderControl", "F7")
-    controls.bind("LogLocationControl", "F8")
-    controls.bind("ResetPaddingControl", "Ctrl+F8")
-    controls.bind("LogLevelControl", "Shift+F8")
-    controls.bind("GridLayoutControl", "F9")
-    controls.bind("ClearChatsControl", "Shift+F9")
-    controls.bind("ShowDebugControl", "KP_INS")
-    controls.bind("SingleStepControl", "KP_DEL")
-    controls.bind("KickLastCheaterControl", "[", game_only=True)
-    controls.bind("KickLastRacistControl", "]", game_only=True)
-    controls.bind("KickLastSuspectControl", "\\", game_only=True)
-    controls.bind("KicksPopControl", "KP_HOME")
-    controls.bind("KicksClearControl", "KP_LEFTARROW")
-    controls.bind("KicksPopleftControl", "KP_END")
-    controls.bind("SpamsPopControl", "KP_PGUP")
-    controls.bind("SpamsClearControl", "KP_RIGHTARROW")
-    controls.bind("SpamsPopleftControl", "KP_PGDN")
-    # controls.bind("PullControl", "KP_UPARROW")
-    controls.bind("ClearQueuesControl", "KP_5")
-    controls.bind("PushControl", "KP_DOWNARROW")
 
     # def debug(self, text: str) -> None:
     #     """Override to silence."""
@@ -175,7 +139,7 @@ class CLI(BaseCLI):
         )
         self.add_default_to_help(arg)
 
-        self.controls.add_arguments_to(self.parser)
+        tf2mon.monitor.controls.add_arguments_to(self.parser)
 
         arg = self.parser.add_argument(
             "con_logfile",
@@ -386,7 +350,7 @@ class CLI(BaseCLI):
         self.parser.add_argument_group(
             "Function Keys",
             "These function keys are available in-game and in the monitor:\n\n"
-            + self.controls.fkey_help(),
+            + tf2mon.monitor.controls.fkey_help(),
         )
 
         self.parser.add_argument_group(
@@ -504,7 +468,6 @@ class CLI(BaseCLI):
         #     print(str(hackers))
         #     self.parser.exit()
 
-        tf2mon.monitor = Monitor(self)
         tf2mon.monitor.run()
 
 
@@ -512,4 +475,5 @@ def main(args: Optional[list[str]] = None) -> None:
     """Command line interface entry point (function)."""
 
     threading.current_thread().name = "MAIN"
+    tf2mon.monitor = Monitor()
     return CLI(args).main()
