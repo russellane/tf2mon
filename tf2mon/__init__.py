@@ -3,7 +3,7 @@
 APPNAME = "TF2MON"
 APPTAG = APPNAME + "-"
 # pylint: disable=invalid-name
-config: dict[str, ...] = None
+config = None  # dict
 monitor = None  # tf2mon.Monitor
 options = None  # argparse.Namespace
 ui = None  # tf2mon.UI

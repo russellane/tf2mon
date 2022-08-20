@@ -168,8 +168,7 @@ By default, `tf2mon` starts reading `con_logfile` from its end
             CTRL+F8 Reset logger `padding`.
            SHIFT+F8 Cycle logger `level`.
                  F9 Cycle grid layout.
-            CTRL+F9 Clear chat windows.
-           SHIFT+F9 Clear chat windows.
+           SHIFT+F9 Clear chat window(s).
              KP_INS Show debugging.
              KP_DEL Start single-stepping.
                   [ Kick last killer as `cheater`.

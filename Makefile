@@ -49,6 +49,10 @@ _bump_micro:
 upload:
 		twine upload --verbose -r pypi dist/*
 
+.PHONY:		mypy
+mypy:
+		mypy $(PROJECT)
+
 #-------------------------------------------------------------------------------
 
 # ./.tf2 is a symlink to some .../SteamLibrary/steamapps/common/Team Fortress 2/tf/

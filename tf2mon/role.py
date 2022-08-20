@@ -37,14 +37,14 @@ class Role:
         Also used as the formatted display value by scoreboard.
         """
 
-        crit = "+crit" if crit else ""
-        perk = "+" + perk if perk else ""
+        s_crit = "+crit" if crit else ""
+        s_perk = "+" + perk if perk else ""
 
         return " ".join(
             [
                 f"{self.name:8}",  # 8=len("engineer")
-                f"{crit:5}",  # 5=len("+crit")
+                f"{s_crit:5}",  # 5=len("+crit")
                 f"{weapon:26}",  # 26=len("tf_projectile_pipe_remote")
-                perk,  # 20=len("Infinite Double Jump")
+                s_perk,  # 20=len("Infinite Double Jump")
             ]
         ).rstrip()

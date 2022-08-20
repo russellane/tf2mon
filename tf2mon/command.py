@@ -244,7 +244,7 @@ class CommandManager:
             ]
         )
 
-        return "\n".join(lines)
+        return "\n" + "\n".join(lines)
 
     def register_curses_handlers(self):
         """Register curses key handlers."""
