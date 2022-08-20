@@ -24,8 +24,8 @@ from tf2mon.spammer import Spammer
 from tf2mon.steamplayer import SteamPlayer
 from tf2mon.steamweb import SteamWebAPI
 from tf2mon.ui import UI
-from tf2mon.user import Team
-from tf2mon.usermanager import User, UserManager
+from tf2mon.user import Team, User
+from tf2mon.users import Users
 
 
 class Monitor:
@@ -78,7 +78,7 @@ class Monitor:
     unknown_role: Role
     role_by_weapon: dict[str, str]
     _re_racist: type[re.Pattern]
-    users: UserManager
+    users: Users
     me: User
     my: User
     chats: list
@@ -186,8 +186,8 @@ class Monitor:
 
         logger.success("RESET GAME")
 
-        self.users = UserManager()
-        self.me = self.my = self.users.find_username(tf2mon.config.get("player_name"))
+        self.users = Users()
+        self.me = self.my = self.users[tf2mon.config.get("player_name")]
         self.me.assign_team(Team.BLU)
         self.my.display_level = "user"
         self.chats = []

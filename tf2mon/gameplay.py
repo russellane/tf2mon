@@ -140,7 +140,7 @@ class Gameplay:
 
         for name in username.split(", "):  # fix: names containing commas
 
-            user = tf2mon.monitor.users.find_username(name)
+            user = tf2mon.monitor.users[name]
 
             user.assign_teamno(int(s_teamno))
 
@@ -159,7 +159,7 @@ class Gameplay:
     def playerchat(self, _leader, _dead, teamflag, username, msg):
         """Handle message."""
 
-        user = tf2mon.monitor.users.find_username(username)
+        user = tf2mon.monitor.users[username]
         chat = Chat(user, teamflag, msg)
 
         user.chats.append(chat)
@@ -192,8 +192,8 @@ class Gameplay:
         # pylint: disable=too-many-branches
         # pylint: disable=too-many-statements
 
-        killer = tf2mon.monitor.users.find_username(s_killer)
-        victim = tf2mon.monitor.users.find_username(s_victim)
+        killer = tf2mon.monitor.users[s_killer]
+        victim = tf2mon.monitor.users[s_victim]
 
         killer.last_victim = victim
         victim.last_killer = killer
@@ -297,7 +297,7 @@ class Gameplay:
     def connected(self, _leader, username):
         """Handle message."""
 
-        logger.log("CONNECT", tf2mon.monitor.users.find_username(username))
+        logger.log("CONNECT", tf2mon.monitor.users[username])
 
         tf2mon.ui.notify_operator = True
 
@@ -316,7 +316,7 @@ class Gameplay:
     def perk(self, username, perk):
         """Handle message."""
 
-        user = tf2mon.monitor.users.find_username(username) if username else tf2mon.monitor.me
+        user = tf2mon.monitor.users[username] if username else tf2mon.monitor.me
 
         if perk:
             logger.log("PERK-ON", f"{user} {perk!r}")

@@ -7,19 +7,16 @@ from tf2mon.steamid import BOT_STEAMID, parse_steamid
 from tf2mon.user import Team, User, UserState
 
 
-class UserManager:
-    """Collection of `User` objects."""
+class Users:
+    """Collection of `User`s."""
 
-    def __init__(self):
-        """Initialize `User` manager."""
+    _users_by_username: dict[str, User] = {}
+    _users_by_userid: dict[int, User] = {}
+    _users_by_steamid: dict[int, User] = {}
+    _teams_by_steamid: dict[int, User] = {}
+    kicked_userids: dict[int, User] = {}
 
-        self._users_by_username = {}
-        self._users_by_userid = {}
-        self._users_by_steamid = {}
-        self._teams_by_steamid = {}
-        self.kicked_userids = {}
-
-    def find_username(self, username):
+    def __getitem__(self, username: str) -> User:
         """Return `User` with the matching `username` from pool.
 
         Create and add to pool, if not already there.
@@ -67,7 +64,7 @@ class UserManager:
                 user.userid = userid
 
         if not user:
-            user = self.find_username(username)
+            user = self[username]
 
         if not user.userid:
             user.userid = userid
