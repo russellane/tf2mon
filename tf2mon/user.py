@@ -112,6 +112,7 @@ class User:
 
         #
         self.steamplayer = None
+        self.age = 0
         self.player: Player = None
 
         # Database `Player`s are keyed by `steamid`. If `self.kick(attr)`
@@ -233,6 +234,7 @@ class User:
             return
 
         logger.log("SteamPlayer", f"{self} SteamPlayer={self.steamplayer}")
+        self.age = self.steamplayer.age
 
         # known hacker?
         self.player = Player.fetch_steamid(self.steamid.id)

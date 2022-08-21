@@ -223,6 +223,12 @@ By default, `tf2mon` starts reading `con_logfile` from its end
   `Triple-click` user to kick as racist.
   `F7` to change sort column.
 
+#### Log Files
+  `tf2mon` writes plaintext messages to `fileno(2)`, and
+  colorized messages to `fileno(3)`, when open to a regular file.
+  
+      $ tf2mon 2>x 3>y
+
 #### General options
     -h, --help          Show this help message and exit.
     -v, --verbose       `-v` for detailed output and `-vv` for more detailed.

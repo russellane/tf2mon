@@ -417,6 +417,18 @@ class CLI(BaseCLI):
             ),
         )
 
+        self.parser.add_argument_group(
+            "Log Files",
+            self.dedent(
+                """
+    `%(prog)s` writes plaintext messages to `fileno(2)`, and
+    colorized messages to `fileno(3)`, when open to a regular file.
+
+        $ %(prog)s 2>x 3>y
+                """
+            ),
+        )
+
     def main(self) -> None:
         """Command line interface entry point (method)."""
 

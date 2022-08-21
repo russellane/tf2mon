@@ -12,10 +12,13 @@ from tf2mon.texttable import TextColumn, TextTable
 class Scoreboard:
     """Two-Team Scoreboard."""
 
-    # pylint: disable=too-many-instance-attributes
-
-    _table_user = TextTable(
+    table = TextTable(
         [
+            TextColumn(1, "P"),
+            TextColumn(2, "CC"),
+            TextColumn(2, "SC"),
+            # TextColumn(4, "CI"),
+            TextColumn(-4, "AGE"),
             TextColumn(-10, "STEAMID"),
             TextColumn(1, "C"),
             TextColumn(-3, "K"),
@@ -26,17 +29,6 @@ class Scoreboard:
             TextColumn(-4, "UID"),
             TextColumn(-8, "CONN"),
             TextColumn(25, "USERNAME"),
-        ]
-    )
-
-    _table_steamplayer = TextTable(
-        [
-            TextColumn(-4, "AGE"),
-            TextColumn(1, "P"),
-            TextColumn(2, "CC"),
-            TextColumn(2, "SC"),
-            # TextColumn(4, "CI"),
-            TextColumn(0, "REALNAME"),
         ]
     )
 
@@ -55,21 +47,10 @@ class Scoreboard:
         self.win2 = win2
         self.color2 = color2
 
-        self._formatted_header = None
-        self._fmt_user = None
-        self._fmt_steamplayer = None
-
-        self._formatted_header = " ".join(
-            [
-                self._table_user.formatted_header,
-                self._table_steamplayer.formatted_header,
-            ]
-        )
-
         # calculate each column's x-ordinate for lookup by `heading`.
         self._col_x_width_by_heading = {}
         i = 0
-        for col in self._table_user.columns + self._table_steamplayer.columns:
+        for col in self.table.columns:
             self._col_x_width_by_heading[col.heading] = (i, col.width)
             i += col.width + 1
 
@@ -107,7 +88,7 @@ class Scoreboard:
         win.erase()
 
         # column headings
-        win.addnstr(0, 0, self._formatted_header, ncols, color)
+        win.addnstr(0, 0, self.table.formatted_header, ncols, color)
 
         # highlight heading of active sort column
         win.chgat(
@@ -120,7 +101,23 @@ class Scoreboard:
 
             if user.dirty:
                 user.dirty = False
-                user.last_scoreboard_line = self._table_user.format_detail(
+
+                names = [user.username]
+                _sp = user.steamplayer
+                if user.perk:
+                    names.append(" +" + user.perk)
+                elif _sp:
+                    if _sp.personaname and _sp.personaname != user.username:
+                        names.append(" +" + _sp.personaname)
+                    if _sp.realname:
+                        names.append(" +" + _sp.realname)
+
+                user.last_scoreboard_line = self.table.format_detail(
+                    (_sp and _sp.personastate) or "",
+                    (_sp and _sp.loccountrycode) or "",
+                    (_sp and _sp.locstatecode) or "",
+                    # (_sp and _sp.loccityid) or "",
+                    (_sp and _sp.age) or "",
                     user.steamid.id if user.steamid else 0,
                     user.role.display,
                     user.nkills,
@@ -130,24 +127,8 @@ class Scoreboard:
                     user.n_status_checks,
                     user.userid,
                     user.s_elapsed,
-                    user.username,
+                    " ".join(names),
                 )
-                if user.perk:
-                    user.last_scoreboard_line += " +" + user.perk
-                elif _sp := user.steamplayer:
-                    names = []
-                    if _sp.personaname and _sp.personaname != user.username:
-                        names.append(_sp.personaname)
-                    if _sp.realname:
-                        names.append(_sp.realname)
-                    user.last_scoreboard_line += " " + self._table_steamplayer.format_detail(
-                        _sp.age or "",
-                        _sp.personastate or "",
-                        _sp.loccountrycode or "",
-                        _sp.locstatecode or "",
-                        # _sp.loccityid or "",
-                        " ".join(names),
-                    )
 
             try:
                 win.addnstr(
