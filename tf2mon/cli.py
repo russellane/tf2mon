@@ -94,6 +94,30 @@ class CLI(BaseCLI):
     def add_arguments(self) -> None:
         """Add arguments to parser."""
 
+        self._add_base_args()
+        tf2mon.monitor.controls.add_arguments_to(self.parser)
+        self._add_debug_args()
+        self._add_database_args()
+        self._add_fkeys_args()
+        self._add_numpad_args()
+        self._add_duels_args()
+        self._add_operate()
+        self._add_terminal()
+        self._add_windows()
+        self._add_scoreboard()
+        self._add_logfiles()
+
+    def _add_base_args(self) -> None:
+
+        arg = self.parser.add_argument(
+            "--tf2-install-dir",
+            metavar="DIR",
+            default=Path(self.config["tf2_install_dir"]),
+            type=Path,
+            help="TF2 installation directory",
+        )
+        self.add_default_to_help(arg)
+
         rewind = self.parser.add_mutually_exclusive_group()
         arg = rewind.add_argument(
             "--rewind",
@@ -131,17 +155,6 @@ class CLI(BaseCLI):
         self.add_default_to_help(arg)
 
         arg = self.parser.add_argument(
-            "--tf2-install-dir",
-            metavar="DIR",
-            default=Path(self.config["tf2_install_dir"]),
-            type=Path,
-            help="TF2 installation directory",
-        )
-        self.add_default_to_help(arg)
-
-        tf2mon.monitor.controls.add_arguments_to(self.parser)
-
-        arg = self.parser.add_argument(
             "con_logfile",
             default=Path(self.config["con_logfile"]),
             nargs="?",
@@ -176,6 +189,8 @@ class CLI(BaseCLI):
             help="exclude lines that match patterns in `FILE`",
         )
         self.add_default_to_help(arg)
+
+    def _add_debug_args(self) -> None:
 
         group = self.parser.add_argument_group("Debugging options")
 
@@ -219,6 +234,8 @@ class CLI(BaseCLI):
             help="allow toggles when `--rewind`",
         )
         self.add_default_to_help(arg)
+
+    def _add_database_args(self) -> None:
 
         group = self.parser.add_argument_group("Database options")
 
@@ -275,6 +292,8 @@ class CLI(BaseCLI):
             ),
         )
 
+    def _add_numpad_args(self) -> None:
+
         self.parser.add_argument_group(
             "In-Game Controls, Numpad",
             self.dedent(
@@ -319,6 +338,8 @@ class CLI(BaseCLI):
             ),
         )
 
+    def _add_duels_args(self) -> None:
+
         self.parser.add_argument_group(
             "Duels",
             self.dedent(
@@ -347,11 +368,15 @@ class CLI(BaseCLI):
             ),
         )
 
+    def _add_fkeys_args(self) -> None:
+
         self.parser.add_argument_group(
             "Function Keys",
             "These function keys are available in-game and in the monitor:\n\n"
             + tf2mon.monitor.controls.fkey_help(),
         )
+
+    def _add_operate(self) -> None:
 
         self.parser.add_argument_group(
             "Where to Operate",
@@ -376,6 +401,8 @@ class CLI(BaseCLI):
             ),
         )
 
+    def _add_terminal(self) -> None:
+
         self.parser.add_argument_group(
             "Terminal Size",
             self.dedent(
@@ -392,6 +419,7 @@ class CLI(BaseCLI):
             ),
         )
 
+    def _add_windows(self) -> None:
         self.parser.add_argument_group(
             "Resizable Windows",
             self.dedent(
@@ -405,6 +433,8 @@ class CLI(BaseCLI):
             ),
         )
 
+    def _add_scoreboard(self) -> None:
+
         self.parser.add_argument_group(
             "Scoreboard",
             self.dedent(
@@ -417,6 +447,7 @@ class CLI(BaseCLI):
             ),
         )
 
+    def _add_logfiles(self) -> None:
         self.parser.add_argument_group(
             "Log Files",
             self.dedent(
