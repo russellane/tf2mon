@@ -1,6 +1,8 @@
 """Communication mechanism to "send" data to the game."""
 
 from collections import deque
+from pathlib import Path
+from typing import IO
 
 from loguru import logger
 
@@ -10,52 +12,47 @@ import tf2mon
 class MsgQueue:
     """Communication mechanism to "send" data to the game."""
 
-    def __init__(self, name):
-        """Create new `MsgQueue`.
-
-        Args:
-            name:   name of message queue.
-        """
+    def __init__(self, name: str):
+        """Create `MsgQueue` named `name`."""
 
         self.name = name
         self.msgs = deque()
 
-    def push(self, msg):
+    def push(self, msg) -> None:
         """Append message to end of queue."""
 
         self.msgs.append(msg)
         logger.opt(depth=1).log("PUSH", msg)
 
-    def pushleft(self, msg):
+    def pushleft(self, msg) -> None:
         """Append message to other end of queue."""
 
         self.msgs.insert(0, msg)
         logger.opt(depth=1).log("PUSHLEFT", msg)
 
-    def pop(self):
+    def pop(self) -> None:
         """Remove and return message from end of queue."""
-
-        self._pop("POP", self.msgs.pop() if self.msgs else None)
-
-    def popleft(self):
-        """Remove and return message from other end of queue."""
-
-        self._pop("POPLEFT", self.msgs.popleft() if self.msgs else None)
-
-    def _pop(self, action, msg):
 
         if not self.msgs:
             logger.log("EMPTY", f" {self.name} ".center(80, "-"))
         else:
-            logger.opt(depth=1).log(action, msg)
+            logger.opt(depth=1).log("POP", self.msgs.pop())
 
-    def clear(self):
+    def popleft(self) -> None:
+        """Remove and return message from other end of queue."""
+
+        if not self.msgs:
+            logger.log("EMPTY", f" {self.name} ".center(80, "-"))
+        else:
+            logger.opt(depth=1).log("POPLEFT", self.msgs.popleft())
+
+    def clear(self) -> None:
         """Remove all messages from the queue."""
 
         self.msgs.clear()
         logger.opt(depth=1).log("CLEAR", self.name)
 
-    def aliases(self):
+    def aliases(self) -> list[str]:
         """Return message queue function key aliases.
 
         Create and return definitions of the `_tf2mon` prefixed-
@@ -93,30 +90,30 @@ class MsgQueue:
 class MsgQueueManager:
     """Collection of `MsgQueue`s."""
 
-    def __init__(self, path):
+    _queues: list[MsgQueue] = []
+    _file: IO[str] = None
+
+    def __init__(self, path: Path):
         """Initialize collection of `MsgQueue`s."""
 
-        # list(MsgQueue)
-        self._queues = []
-        self._file = None
         if path and path.parent.is_dir():
             # pylint: disable=consider-using-with
             self._file = open(path, "w", encoding="utf-8")  # noqa
 
-    def addq(self, name):
+    def addq(self, name: str) -> None:
         """Create `MsgQueue` with `name`, add to collection and return it."""
 
         queue = MsgQueue(name)
         self._queues.append(queue)
         return queue
 
-    def clear(self):
+    def clear(self) -> None:
         """Clear all message queues."""
 
         for queue in self._queues:
             queue.clear()
 
-    def send(self):
+    def send(self) -> None:
         """Send data to tf2 by writing aliases to an `exec` script."""
 
         if not self._file:
