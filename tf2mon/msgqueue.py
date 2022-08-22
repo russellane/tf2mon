@@ -16,7 +16,7 @@ class MsgQueue:
         """Create `MsgQueue` named `name`."""
 
         self.name = name
-        self.msgs = deque()
+        self.msgs: deque = deque()
 
     def push(self, msg) -> None:
         """Append message to end of queue."""
@@ -91,7 +91,7 @@ class MsgQueueManager:
     """Collection of `MsgQueue`s."""
 
     _queues: list[MsgQueue] = []
-    _file: IO[str] = None
+    _file: IO[str] | None = None
 
     def __init__(self, path: Path):
         """Initialize collection of `MsgQueue`s."""
@@ -100,7 +100,7 @@ class MsgQueueManager:
             # pylint: disable=consider-using-with
             self._file = open(path, "w", encoding="utf-8")  # noqa
 
-    def addq(self, name: str) -> None:
+    def addq(self, name: str) -> MsgQueue:
         """Create `MsgQueue` with `name`, add to collection and return it."""
 
         queue = MsgQueue(name)

@@ -19,7 +19,7 @@ class Conlog:
 
     # pylint: disable=too-many-instance-attributes
 
-    _CMD = namedtuple("_cmd", ["lineno", "cmd"])
+    _CMD = namedtuple("_CMD", ["lineno", "cmd"])
 
     def __init__(
         self,
@@ -46,9 +46,9 @@ class Conlog:
             "|".join(exclude_file.read_text(encoding="utf-8").splitlines())
         )
 
-        self._buffer: str = None
+        self._buffer: str | None = None
         self._file = None
-        self._inject_cmds = []  # list(_CMD)
+        self._inject_cmds: list[self._CMD] = []
         self._is_inject_paused = False
         self._is_inject_sorted = False
 

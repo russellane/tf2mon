@@ -34,10 +34,10 @@ class Control:
 
     """
 
-    command: Command = None
+    command: Command | None = None
 
     # Optional; function key to operate control.
-    fkey: FKey = None
+    fkey: FKey | None = None
 
     #
     cli: BaseCLI = None

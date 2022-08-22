@@ -51,7 +51,7 @@ upload:
 
 .PHONY:		mypy
 mypy:
-		mypy $(PROJECT)
+		mypy --ignore-missing-imports $(PROJECT)
 
 #-------------------------------------------------------------------------------
 

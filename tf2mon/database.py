@@ -2,6 +2,7 @@
 
 import dataclasses
 import sqlite3
+from typing import Iterator
 
 from loguru import logger
 
@@ -28,10 +29,10 @@ def Database(path=None, tables=None) -> object:  # noqa invalid-name
 class DatabaseTable:
     """Base class for all database tables."""
 
-    __tablename__ = None
+    __tablename__: str | None = None
 
     @classmethod
-    def select_all(cls) -> list[object]:
+    def select_all(cls) -> Iterator[object]:
         """Yield all rows in table."""
 
         for row in Database().execute(f"select * from {cls.__tablename__}"):

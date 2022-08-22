@@ -45,9 +45,9 @@ class Command:
     """
 
     name: str
-    status: Callable[..., str] = None
-    handler: Callable[re.Match, None] = None
-    action: str = None
+    status: Callable[..., str] | None = None
+    handler: Callable[[re.Match], None] | None = None
+    action: str | None = None
 
     def __post_init__(self):
         """Init."""
@@ -83,12 +83,12 @@ class Key:
     """A physical key may perform `base`, `ctrl` and `shift` `Function`s."""
 
     name: str  # e.g., "A", "F1"
-    base: Function = field(default=None, init=False)
-    ctrl: Function = field(default=None, init=False)
-    shift: Function = field(default=None, init=False)
+    base: Function | None = field(default=None, init=False)
+    ctrl: Function | None = field(default=None, init=False)
+    shift: Function | None = field(default=None, init=False)
 
     @property
-    def functions(self) -> [Function]:
+    def functions(self) -> list[Function]:
         """Return list of `Function`s bound to this `Key`."""
         return [x for x in [self.base, self.ctrl, self.shift] if x is not None]
 

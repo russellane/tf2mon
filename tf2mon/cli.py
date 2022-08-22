@@ -1,9 +1,7 @@
 """Command line interface."""
 
-import contextlib
 import threading
 from pathlib import Path
-from typing import Optional
 
 import xdg
 from libcli import BaseCLI
@@ -14,7 +12,6 @@ import tf2mon.layouts
 from tf2mon._monitor import Monitor
 from tf2mon.conlog import Conlog
 from tf2mon.database import Database
-from tf2mon.hacker import HackerManager
 from tf2mon.logger import configure_logger
 from tf2mon.steamweb import SteamWebAPI
 
@@ -498,23 +495,10 @@ class CLI(BaseCLI):
                 print(api.fetch_steamid(steamid))
             self.parser.exit()
 
-        if self.options.print_hackers:
-            Database(self.options.database)
-            hackers = HackerManager(self.options.hackers)
-            with contextlib.suppress(BrokenPipeError):
-                hackers.print_report()
-            self.parser.exit()
-
-        # if self.options.merge_hackers:
-        #     hackers = HackerManager(self.options.hackers)
-        #     hackers.load(self.options.merge_hackers)
-        #     print(str(hackers))
-        #     self.parser.exit()
-
         tf2mon.monitor.run()
 
 
-def main(args: Optional[list[str]] = None) -> None:
+def main(args: list[str] | None = None) -> None:
     """Command line interface entry point (function)."""
 
     threading.current_thread().name = "MAIN"
