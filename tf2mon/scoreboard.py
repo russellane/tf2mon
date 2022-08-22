@@ -1,4 +1,4 @@
-"""Two-Team Scoreboard."""
+"""Scoreboard."""
 
 import curses
 
@@ -7,27 +7,28 @@ import libcurses
 import tf2mon
 from tf2mon.player import Player
 from tf2mon.texttable import TextColumn, TextTable
+from tf2mon.user import Team
 
 
 class Scoreboard:
-    """Two-Team Scoreboard."""
+    """Scoreboard."""
 
     table = TextTable(
         [
+            TextColumn(-4, "UID"),
             TextColumn(1, "P"),
             TextColumn(2, "CC"),
             TextColumn(2, "SC"),
             # TextColumn(4, "CI"),
             TextColumn(-4, "AGE"),
             TextColumn(-10, "STEAMID"),
-            TextColumn(1, "C"),
+            TextColumn(-8, "CONN"),
+            TextColumn(1, "S"),
+            TextColumn(-3, "SNI"),
             TextColumn(-3, "K"),
             TextColumn(-3, "D"),
             TextColumn(4.1, "KD"),
-            TextColumn(-3, "SNI"),
-            TextColumn(1, "S"),
-            TextColumn(-4, "UID"),
-            TextColumn(-8, "CONN"),
+            TextColumn(1, "C"),
             TextColumn(25, "USERNAME"),
         ]
     )
@@ -63,15 +64,19 @@ class Scoreboard:
 
         self._sort_col_x, self._sort_col_width = self._col_x_width_by_heading[sort_order]
 
-    def show_scores(self, team1, team2):
+    def refresh(self) -> None:
         """Display the scoreboards."""
 
         libcurses.clear_mouse_handlers()
 
+        users = list(tf2mon.monitor.users.sorted())
+        team1 = [x for x in users if x.team == Team.BLU]
+        team2 = [x for x in users if x.team == Team.RED]
+
         # Fill in whatever space is left on the scoreboards with users
         # whose team is unknown; doesn't matter which side they're
         # displayed on.
-        unassigned = [x for x in tf2mon.monitor.users.active_users() if not x.team]
+        unassigned = [x for x in users if not x.team]
 
         #
         nusers = self.win1.getmaxyx()[0] - 1
@@ -105,29 +110,29 @@ class Scoreboard:
                 names = [user.username]
                 _sp = user.steamplayer
                 if user.perk:
-                    names.append(" +" + user.perk)
+                    names.append(user.perk)
                 elif _sp:
                     if _sp.personaname and _sp.personaname != user.username:
-                        names.append(" +" + _sp.personaname)
+                        names.append(_sp.personaname)
                     if _sp.realname:
-                        names.append(" +" + _sp.realname)
+                        names.append(_sp.realname)
 
                 user.last_scoreboard_line = self.table.format_detail(
+                    user.userid,
                     (_sp and _sp.personastate) or "",
                     (_sp and _sp.loccountrycode) or "",
                     (_sp and _sp.locstatecode) or "",
                     # (_sp and _sp.loccityid) or "",
                     (_sp and _sp.age) or "",
                     user.steamid.id if user.steamid else 0,
-                    user.role.display,
+                    user.s_elapsed,
+                    user.n_status_checks,
+                    user.nsnipes,
                     user.nkills,
                     user.ndeaths,
                     user.kdratio,
-                    user.nsnipes,
-                    user.n_status_checks,
-                    user.userid,
-                    user.s_elapsed,
-                    " ".join(names),
+                    user.role.display,
+                    " +".join(names),
                 )
 
             try:

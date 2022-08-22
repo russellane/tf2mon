@@ -32,6 +32,7 @@ class User:
     """A user of the game."""
 
     # pylint: disable=too-many-instance-attributes
+    # pylint: disable=too-many-statements
 
     _re_cheater_chats = re.compile(
         "|".join(
@@ -277,17 +278,6 @@ class User:
     def kick(self, attr):
         """Kick this user."""
 
-        # kick, called from:
-        #   gameplay.playerchat
-        #   monitor.kick_my_last_killer
-        #   scoreboard._onmouse
-        #   user.__init__
-        #   tf2mon.usermanager.kick_userid
-
-        # if self.userid in tf2mon.monitor.users.kicked_userids:
-        #     logger.debug(f"already kicked userid {self.userid}")
-        #     return
-
         if not self.steamid:
             # postpone work until steamid available
             self.pending_attrs.append(attr)
@@ -333,7 +323,6 @@ class User:
 
         tf2mon.monitor.kicks.push(msg)
         tf2mon.monitor.kicks.push(cmd)
-        tf2mon.monitor.users.kicked_userids[self.userid] = True
 
     _re_cheater_names = re.compile(
         "|".join(

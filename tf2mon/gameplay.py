@@ -22,10 +22,11 @@ class Gameplay:
 
         self.regex_list = [
             # new server
-            Regex(
-                leader + "(Client reached server_spawn.$|Connected to [0-9])",
-                lambda m: tf2mon.monitor.reset_game(),
-            ),
+            # Regex(
+            #     leader
+            #     + "(Client reached server_spawn.$|Connected to [0-9]|Differing lobby received.)",  # noqa
+            #     lambda m: tf2mon.monitor.reset_game(),
+            # ),
             # capture/defend
             Regex(
                 leader
@@ -300,6 +301,8 @@ class Gameplay:
         logger.log("CONNECT", tf2mon.monitor.users[username])
 
         tf2mon.ui.notify_operator = True
+        if username == tf2mon.config.get("player_name"):
+            tf2mon.monitor.reset_game()
 
     def status(self, _leader, userid, username, steamid, elapsed, ping):
         """Handle message."""

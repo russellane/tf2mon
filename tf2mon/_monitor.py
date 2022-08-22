@@ -191,6 +191,7 @@ class Monitor:
         self.me.assign_team(Team.BLU)
         self.my.display_level = "user"
         self.chats = []
+        tf2mon.ui.refresh_chats()
         self.msgqueues.clear()
 
     def repl(self):
@@ -216,7 +217,7 @@ class Monitor:
     def breakpoint(self):
         """Drop into python debugger."""
 
-        if self.conlog.is_eof:  # don't do this when replaying logfile from start
+        if self.conlog.is_eof or self.admin.is_single_stepping:
             curses.reset_shell_mode()
             breakpoint()  # pylint: disable=forgotten-debug-statement
             curses.reset_prog_mode()
@@ -267,22 +268,3 @@ class Monitor:
             self.path_static_script.write_text(script, encoding="utf-8")
         else:
             logger.warning(f"Not writing `{self.path_static_script}`")
-
-    # --------------------------------------------------------------------------
-    # Numpad
-    #                      kicks     admin     spams
-    #                        |         |         |
-    #                        v         v         v
-    #                   +-----------------------------+
-    #        last/      |         |         |         |
-    #        latest --> |   pop   |  pull   |   pop   |
-    #                   |         |         |         |
-    #                   |---------+---------+---------|
-    #                   |         |         |         |
-    #                   |  clear  |  clear  |  clear  |
-    #                   |         |  both   |         |
-    #                   |---------+---------+---------|
-    #        first/     |         |         |         |
-    #        oldest --> | popleft |  push   | popleft |
-    #                   |         |         |         |
-    #                   +-----------------------------+

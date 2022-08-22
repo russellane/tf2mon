@@ -151,10 +151,7 @@ class UI:
         self.refresh_duels(tf2mon.monitor.me)
         self.refresh_user(tf2mon.monitor.me)
         # chatwin_blu and chatwin_red are rendered from gameplay/_playerchat
-        self.scoreboard.show_scores(
-            team1=list(tf2mon.monitor.users.active_team_users(Team.BLU)),
-            team2=list(tf2mon.monitor.users.active_team_users(Team.RED)),
-        )
+        self.scoreboard.refresh()
         self.show_status()
         self.grid.refresh()
 

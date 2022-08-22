@@ -1,5 +1,7 @@
 """Collection of `User` objects."""
 
+from typing import Iterator
+
 from loguru import logger
 
 import tf2mon
@@ -10,18 +12,16 @@ from tf2mon.user import Team, User, UserState
 class Users:
     """Collection of `User`s."""
 
-    _users_by_username: dict[str, User] = {}
-    _users_by_userid: dict[int, User] = {}
-    _users_by_steamid: dict[int, User] = {}
-    _teams_by_steamid: dict[int, User] = {}
-    kicked_userids: dict[int, User] = {}
+    def __init__(self):
+        """Initialize collection of `User`s."""
+
+        self._users_by_username: dict[str, User] = {}
+        self._users_by_userid: dict[int, User] = {}
+        self._users_by_steamid: dict[int, User] = {}
+        self._teams_by_steamid: dict[int, User] = {}
 
     def __getitem__(self, username: str) -> User:
-        """Return `User` with the matching `username` from pool.
-
-        Create and add to pool, if not already there.
-        User is always "found"; an object is always returned.
-        """
+        """Create user `username` if non-existent, and return user `username`."""
 
         username = username.replace(";", ".")
 
@@ -65,6 +65,8 @@ class Users:
 
         if not user:
             user = self[username]
+
+        user.dirty = True
 
         if not user.userid:
             user.userid = userid
@@ -137,20 +139,16 @@ class Users:
         #
         self._teams_by_steamid[steamid] = team
 
-    def active_users(self):
-        """Return list of active users."""
+    def active_users(self) -> Iterator[User]:
+        """Yield active users (unsorted)."""
 
         yield from [x for x in self._users_by_username.values() if x.state == UserState.ACTIVE]
 
-    def active_team_users(self, team):
-        """Return list of active users on `team`."""
+    def sorted(self) -> Iterator[User]:
+        """Yield active users in sort order."""
 
         yield from sorted(
-            [
-                x
-                for x in self._users_by_username.values()
-                if x.state == UserState.ACTIVE and x.team == team
-            ],
+            self.active_users(),
             key=tf2mon.monitor.controls("SortOrderControl").value,
         )
 

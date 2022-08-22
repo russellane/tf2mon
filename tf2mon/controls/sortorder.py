@@ -11,7 +11,7 @@ class SortOrderControl(CycleControl):
     """Cycle scoreboard Sort column."""
 
     name = "TOGGLE-SORT"
-    enum = Enum(f"_e_{name}", "AGE STEAMID K KD CONN USERNAME")
+    enum = Enum(f"_e_{name}", "AGE STEAMID CONN K KD USERNAME")
     toggle = Toggle(f"_t_{name}", enum)
     items = {
         enum.AGE: lambda user: (user.age, user.username_upper),

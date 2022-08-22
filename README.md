@@ -1,13 +1,13 @@
 ### tf2mon - Team Fortress 2 Console Monitor
 
 #### Usage
-    tf2mon [--rewind | --no-rewind] [--follow | --no-follow]
-           [--tf2-install-dir DIR] [--layout {DFLT,FULL,TALL,MRGD,WIDE}]
-           [--log-location {MOD,NAM,THM,THN,FILE,NUL}]
-           [--sort-order {STEAMID,K,KD,CONN,USERNAME}] [--list-con-logfile]
+    tf2mon [--tf2-install-dir DIR] [--rewind | --no-rewind]
+           [--follow | --no-follow] [--list-con-logfile]
            [--trunc-con-logfile] [--clean-con-logfile]
-           [--exclude-file FILE] [--single-step] [--break LINENO]
-           [--search PATTERN] [--inject-cmd LINENO:CMD]
+           [--exclude-file FILE] [--layout {DFLT,FULL,TALL,MRGD,WIDE}]
+           [--log-location {MOD,NAM,THM,THN,FILE,NUL}]
+           [--sort-order {AGE,STEAMID,CONN,K,KD,USERNAME}] [--single-step]
+           [--break LINENO] [--search PATTERN] [--inject-cmd LINENO:CMD]
            [--inject-file FILE] [--toggles] [--database FILE]
            [--hackers FILE] [--print-steamids STEAMID [STEAMID ...]]
            [--print-hackers] [-h] [-v] [-V] [--config FILE]
@@ -40,19 +40,12 @@ By default, `tf2mon` starts reading `con_logfile` from its end
                         (default: `console.log`).
 
 #### Options
+    --tf2-install-dir DIR
+                        TF2 installation directory (default: `~/tf2`).
     --rewind            Start from head of logfile (default: `False`).
     --no-rewind         Start from tail of logfile (default: `True`).
     --follow            Follow end of logfile forever (default: `True`).
     --no-follow         Exit at end of logfile (default: `False`).
-    --tf2-install-dir DIR
-                        TF2 installation directory (default: `~/tf2`).
-    --layout {DFLT,FULL,TALL,MRGD,WIDE}
-                        Choose display layout (fkey: `F9`) (default: `MRGD`).
-    --log-location {MOD,NAM,THM,THN,FILE,NUL}
-                        Choose format of logger location field (fkey: `F8`)
-                        (default: `NUL`).
-    --sort-order {STEAMID,K,KD,CONN,USERNAME}
-                        Choose sort order (fkey: `F7`) (default: `KD`).
     --list-con-logfile  Show path to logfile and exit.
     --trunc-con-logfile
                         Truncate logfile and exit.
@@ -62,6 +55,13 @@ By default, `tf2mon` starts reading `con_logfile` from its end
     --exclude-file FILE
                         Exclude lines that match patterns in `FILE` (default:
                         `~/dev/tf2mon/tf2mon/data/exclude.txt`).
+    --layout {DFLT,FULL,TALL,MRGD,WIDE}
+                        Choose display layout (fkey: `F9`) (default: `MRGD`).
+    --log-location {MOD,NAM,THM,THN,FILE,NUL}
+                        Choose format of logger location field (fkey: `F8`)
+                        (default: `NUL`).
+    --sort-order {AGE,STEAMID,CONN,K,KD,USERNAME}
+                        Choose sort order (fkey: `F7`) (default: `KD`).
 
 #### Debugging options
     --single-step       Single-step at startup.
@@ -90,6 +90,38 @@ By default, `tf2mon` starts reading `con_logfile` from its end
       tf2_install_dir = "/path/to/your/tf2/installation"
       webapi_key = "your-steamworks-webapi-key"
       player_name = "Your Name"
+
+#### Function Keys
+  These function keys are available in-game and in the monitor:
+  
+                 F1 Display Help.
+            CTRL+F1 Display Message of the Day.
+                 F2 Enable/disable debug (use `ECHO` or `SAY`).
+                 F3 Enable/disable `Taunt` messages.
+           SHIFT+F3 Enable/disable `Throe` messages.
+                 F4 Include `Kill/Death ratio` in `User.moniker`.
+           SHIFT+F4 Display kills in journal window.
+                 F5 Cycle contents of User Panel.
+                 F6 Join Other Team.
+                 F7 Cycle scoreboard Sort column.
+                 F8 Cycle logger `location` format.
+            CTRL+F8 Reset logger `padding`.
+           SHIFT+F8 Cycle logger `level`.
+                 F9 Cycle grid layout.
+           SHIFT+F9 Clear chat window(s).
+             KP_INS Show debugging.
+             KP_DEL Start single-stepping.
+                  [ Kick last killer as `cheater`.
+                  ] Kick last killer as `racist`.
+                  \ Mark last killer as `suspect`.
+            KP_HOME Pop last/latest kicks queue message.
+       KP_LEFTARROW Clear kicks queue.
+             KP_END Pop first/oldest kicks queue message.
+            KP_PGUP Pop last/latest spams queue message.
+      KP_RIGHTARROW Clear spams queue.
+            KP_PGDN Pop first/oldest spams queue message.
+               KP_5 Clear kicks and spams queues.
+       KP_DOWNARROW Push `steamids` from game to monitor.
 
 #### In-Game Controls, Numpad
   While playing TF2, use the `Numpad` to kick cheaters, and generate
@@ -150,38 +182,6 @@ By default, `tf2mon` starts reading `con_logfile` from its end
       │             K  1 pyro     +crit flamethrower                        │
       │             D  1 demo           player                              │
       └─────────────────────────────────────────────────────────────────────┘
-
-#### Function Keys
-  These function keys are available in-game and in the monitor:
-  
-                 F1 Display Help.
-            CTRL+F1 Display Message of the Day.
-                 F2 Enable/disable debug (use `ECHO` or `SAY`).
-                 F3 Enable/disable `Taunt` messages.
-           SHIFT+F3 Enable/disable `Throe` messages.
-                 F4 Include `Kill/Death ratio` in `User.moniker`.
-           SHIFT+F4 Display kills in journal window.
-                 F5 Cycle contents of User Panel.
-                 F6 Join Other Team.
-                 F7 Cycle scoreboard Sort column.
-                 F8 Cycle logger `location` format.
-            CTRL+F8 Reset logger `padding`.
-           SHIFT+F8 Cycle logger `level`.
-                 F9 Cycle grid layout.
-           SHIFT+F9 Clear chat window(s).
-             KP_INS Show debugging.
-             KP_DEL Start single-stepping.
-                  [ Kick last killer as `cheater`.
-                  ] Kick last killer as `racist`.
-                  \ Mark last killer as `suspect`.
-            KP_HOME Pop last/latest kicks queue message.
-       KP_LEFTARROW Clear kicks queue.
-             KP_END Pop first/oldest kicks queue message.
-            KP_PGUP Pop last/latest spams queue message.
-      KP_RIGHTARROW Clear spams queue.
-            KP_PGDN Pop first/oldest spams queue message.
-               KP_5 Clear kicks and spams queues.
-       KP_DOWNARROW Push `steamids` from game to monitor.
 
 #### Where to Operate
   `tf2mon` works by reading the `con_logfile` to which `TF2` logs
