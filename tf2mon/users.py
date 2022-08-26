@@ -5,29 +5,29 @@ from typing import Iterator
 from loguru import logger
 
 import tf2mon
-from tf2mon.steamid import BOT_STEAMID, parse_steamid
-from tf2mon.user import Team, User, UserState
+from tf2mon.user import User, UserState
 
 
 class Users:
     """Collection of `User`s."""
 
+    _max_status_checks = 2
+
     def __init__(self):
         """Initialize collection of `User`s."""
 
-        self._users_by_username: dict[str, User] = {}
-        self._users_by_userid: dict[int, User] = {}
-        self._users_by_steamid: dict[int, User] = {}
-        self._teams_by_steamid: dict[int, User] = {}
+        self.users_by_username: dict[str, User] = {}
+        self.users_by_steamid: dict[int, User] = {}
+        self.teams_by_steamid: dict[int, User] = {}
 
     def __getitem__(self, username: str) -> User:
         """Create user `username` if non-existent, and return user `username`."""
 
         username = username.replace(";", ".")
 
-        if not (user := self._users_by_username.get(username)):
+        if not (user := self.users_by_username.get(username)):
             user = User(username)
-            self._users_by_username[user.username] = user
+            self.users_by_username[user.username] = user
             logger.log("ADDUSER", user)
 
         # reset inactivity counter
@@ -37,130 +37,27 @@ class Users:
         user.n_status_checks = 0
         return user
 
-    def status(self, s_userid, username, s_steamid, s_elapsed: str, ping) -> None:
-        """Respond to `gameplay.status` event."""
-
-        # pylint: disable=too-many-arguments
-        # pylint: disable=too-many-branches
-        # pylint: disable=too-many-locals
-
-        tf2mon.ui.notify_operator = False
-
-        if not (steamid := parse_steamid(s_steamid)):
-            return  # invalid
-
-        userid = int(s_userid)
-        user = None
-
-        if steamid != BOT_STEAMID and (user := self._users_by_steamid.get(steamid)):
-            if user.username and user.username != username:
-                logger.warning(f"{steamid.id} change username `{user.username}` to `{username}`")
-                user.username = username
-                if user.player:
-                    user.player.track_appearance(username)
-
-            if user.userid and user.userid != userid:
-                logger.warning(f"{steamid.id} change userid `{user.userid}` to `{userid}`")
-                user.userid = userid
-
-        if not user:
-            user = self[username]
-
-        user.dirty = True
-
-        if not user.userid:
-            user.userid = userid
-            self._users_by_userid[userid] = user
-
-        if not user.steamid:
-            user.steamid = steamid
-            self._users_by_steamid[steamid] = user
-
-        #
-        mdy = s_elapsed.split(":")
-        if len(mdy) == 2:
-            _h, _m, _s = 0, int(mdy[0]), int(mdy[1])
-            user.elapsed = (_m * 60) + _s
-        elif len(mdy) == 3:
-            _h, _m, _s = int(mdy[0]), int(mdy[1]), int(mdy[2])
-            user.elapsed = (_h * 3600) + (_m * 60) + _s
-        else:
-            _h, _m, _s = 0, 0, 0
-            user.elapsed = 0
-
-        # hh:mm:ss
-        #     0:00
-        _ss = f"{_s:02}"
-        if not _h:
-            _mm = f"{_m:5}"
-            user.s_elapsed = _mm + ":" + _ss
-        else:
-            _hh = f"{_h:2}"
-            _mm = f"{_m:02}"
-            user.s_elapsed = _hh + ":" + _mm + ":" + _ss
-
-        #
-        user.ping = ping
-        logger.log("STATUS", user)
-
-        #
-        if not user.team and (team := self._teams_by_steamid.get(steamid)):
-            user.assign_team(team)
-
-        #
-        if not user.steamplayer:
-            user.vet()
-
-    def lobby(self, s_steamid, teamname):
-        """Respond to `gameplay.lobby` event."""
-
-        # this will not be called for games on local server with bots
-        # or community servers; only on valve matchmaking servers.
-
-        if not (steamid := parse_steamid(s_steamid)):
-            return  # invalid
-
-        if teamname == "TF_GC_TEAM_INVADERS":
-            team = Team.BLU
-        elif teamname == "TF_GC_TEAM_DEFENDERS":
-            team = Team.RED
-        else:
-            logger.critical(f"bad teamname {teamname!r} steamid {steamid}")
-            return
-
-        if old_team := self._teams_by_steamid.get(steamid):
-            # if we've seen this steamid before...
-            if old_team != team:
-                # ...and
-                logger.warning(f"{steamid.id} change team `{old_team}` to `{team}`")
-        else:
-            logger.log("ADDLOBBY", f"{team} {steamid.id}")
-
-        #
-        self._teams_by_steamid[steamid] = team
-
     def active_users(self) -> Iterator[User]:
         """Yield active users (unsorted)."""
 
-        yield from [x for x in self._users_by_username.values() if x.state == UserState.ACTIVE]
+        yield from [x for x in self.users_by_username.values() if x.state == UserState.ACTIVE]
 
     def sorted(self) -> Iterator[User]:
         """Yield active users in sort order."""
 
         yield from sorted(
             self.active_users(),
-            key=tf2mon.monitor.controls("SortOrderControl").value,
+            key=tf2mon.controls["SortOrderControl"].value,
         )
 
     def kick_userid(self, userid, attr):
         """Kick `userid` reason `attr`."""
 
-        if user := self._users_by_userid.get(userid):
-            user.kick(attr)
+        users = [x for x in self.users_by_username.values() if x.userid == userid]
+        if len(users) == 1:
+            users[0].kick(attr)
         else:
             logger.error(f"bad userid {userid!r}")
-
-    _max_status_checks = 2
 
     def check_status(self):
         """Delete users that appear to have left the game.
@@ -171,7 +68,7 @@ class Users:
         current. That's why `_max_status_checks` should be at least 2 or 3.
         """
 
-        for user in list(self._users_by_username.values()):
+        for user in list(self.users_by_username.values()):
             if user == tf2mon.monitor.me:
                 continue
             user.n_status_checks += 1

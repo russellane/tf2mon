@@ -1,11 +1,9 @@
 """Application controls."""
 
-import importlib
-import pkgutil
-
 from tf2mon.command import Command, CommandManager
 from tf2mon.control import Control
 from tf2mon.fkey import FKey
+from tf2mon.importer import Importer
 
 
 class Controls:
@@ -21,33 +19,16 @@ class Controls:
     def __init__(
         self,
         modname: str,
+        basename: str = None,
         prefix: str = None,
         suffix: str = None,
     ) -> None:
         """Add all `Control`s in module `modname`."""
 
-        modpath = importlib.import_module(modname, __name__).__path__
-        base_name = (prefix or "") + (suffix or "")
-
-        for modinfo in pkgutil.iter_modules(modpath):
-            module = importlib.import_module(f"{modname}.{modinfo.name}", __name__)
-
-            if not prefix and not suffix and hasattr(module, "Control"):
-                module.Control()
-                continue
-
-            for name in [x for x in dir(module) if x != base_name]:
-                if prefix and not name.startswith(prefix):
-                    continue
-                if suffix and not name.endswith(suffix):
-                    continue
-                if (klass := getattr(module, name, None)) is not None:
-                    self.add(klass())
-
-    def __call__(self, name: str) -> Control:
-        """Return the `Control` known as `name`."""
-
-        return self.items[name]
+        importer = Importer(modname, basename, prefix, suffix)
+        for klass in importer.classes.values():
+            control = klass()
+            self.items[control.__class__.__name__] = control
 
     def __getitem__(self, name: str) -> Control:
         """Return the `Control` known as `name`."""

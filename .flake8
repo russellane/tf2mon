@@ -9,8 +9,8 @@ ignore =
 per-file-ignores = 
     # don't check docstrings in tests
     tests/*:D,PLC
-    tf2mon/events/*:D,PLC
+    tf2mon/game/*:D,PLC
 
     # D102 Missing docstring in public method
     # PLC0116 Missing function or method docstring (missing-function-docstring)
-    tf2mon/controls/*:D102,PLC0116
+    tf2mon/_controls/*:D102,PLC0116

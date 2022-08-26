@@ -11,9 +11,9 @@ import libcurses
 from loguru import logger
 
 import tf2mon
+from tf2mon._controls import Controls
 from tf2mon.admin import Admin
 from tf2mon.conlog import Conlog
-from tf2mon.controls import Controls
 from tf2mon.database import Database
 from tf2mon.gameplay import Gameplay
 from tf2mon.msgqueue import MsgQueue, MsgQueueManager
@@ -34,7 +34,7 @@ class Monitor:
     # pylint: disable=too-many-instance-attributes
 
     # Initialize items needed to build the CLI parser now.
-    controls = Controls("tf2mon.controls", suffix="Control")
+    controls = Controls("tf2mon._controls", suffix="Control")
     controls.bind("HelpControl", "F1")
     controls.bind("MotdControl", "Ctrl+F1")
     controls.bind("DebugFlagControl", "F2")
@@ -239,8 +239,7 @@ class Monitor:
 
         # logger.success(pformat(self.__dict__))
         logger.success(pformat(self.users.__dict__))
-        # pylint: disable=protected-access
-        for user in self.users._users_by_username.values():
+        for user in self.users.users_by_username.values():
             logger.success(pformat(user.__dict__))
 
     @property

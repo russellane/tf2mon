@@ -65,7 +65,7 @@ class UI:
         Called at init, on KEY_RESIZE events, and when layout changes.
         """
 
-        klass = tf2mon.monitor.controls["GridLayoutControl"].value
+        klass = tf2mon.controls["GridLayoutControl"].value
         try:
             layout = klass(self.grid)
         except AssertionError:
@@ -200,7 +200,7 @@ class UI:
     def refresh_user(self, user):
         """Refresh user panel."""
 
-        ctrl = tf2mon.monitor.controls("UserPanelControl")
+        ctrl = tf2mon.controls["UserPanelControl"]
 
         if self.user_win:
             if ctrl.value == ctrl.enum.KICKS or (
@@ -345,7 +345,7 @@ class UI:
     def show_status(self):
         """Update status line."""
 
-        line = tf2mon.monitor.controls.get_status_line() + f" UID={tf2mon.monitor.my.userid}"
+        line = tf2mon.controls.get_status_line() + f" UID={tf2mon.monitor.my.userid}"
 
         try:
             self.status_win.addstr(

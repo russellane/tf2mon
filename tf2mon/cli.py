@@ -9,10 +9,10 @@ from loguru import logger
 
 import tf2mon
 import tf2mon.layouts
+from tf2mon._logger import configure_logger
 from tf2mon._monitor import Monitor
 from tf2mon.conlog import Conlog
 from tf2mon.database import Database
-from tf2mon.logger import configure_logger
 from tf2mon.steamweb import SteamWebAPI
 
 
@@ -92,7 +92,7 @@ class CLI(BaseCLI):
         """Add arguments to parser."""
 
         self._add_base_args()
-        tf2mon.monitor.controls.add_arguments_to(self.parser)
+        tf2mon.controls.add_arguments_to(self.parser)
         self._add_debug_args()
         self._add_database_args()
         self._add_fkeys_args()
@@ -370,7 +370,7 @@ class CLI(BaseCLI):
         self.parser.add_argument_group(
             "Function Keys",
             "These function keys are available in-game and in the monitor:\n\n"
-            + tf2mon.monitor.controls.fkey_help(),
+            + tf2mon.controls.fkey_help(),
         )
 
     def _add_operate(self) -> None:
@@ -503,4 +503,5 @@ def main(args: list[str] | None = None) -> None:
 
     threading.current_thread().name = "MAIN"
     tf2mon.monitor = Monitor()
+    tf2mon.controls = tf2mon.monitor.controls
     return CLI(args).main()

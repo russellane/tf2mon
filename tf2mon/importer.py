@@ -81,18 +81,12 @@ class Importer:
                     self.classes[name] = klass
 
     def __repr__(self) -> str:
-        """Docstring."""
+        """Represent."""
 
         classes = ", ".join(self.classes)
         return f"{self.__class__.__name__}({classes})"
 
+    def __getitem__(self, name: str):
+        """Return the class known as `name`."""
 
-#    def __call__(self, name: str) -> Control:
-#        """Return the `Control` known as `name`."""
-#
-#        return self.classes[name]
-#
-#    def __getitem__(self, name: str) -> Control:
-#        """Return the `Control` known as `name`."""
-#
-#        return self.classes[name]
+        return self.classes[name]
