@@ -9,7 +9,7 @@ from loguru import logger
 DATABASE = None
 
 
-def Database(path=None, tables=None) -> object:  # noqa invalid-name
+def Database(path=None, tables=None) -> sqlite3.dbapi2.Cursor:  # noqa invalid-name
     """Open and return new session with database."""
 
     global DATABASE  # pylint: disable=global-statement

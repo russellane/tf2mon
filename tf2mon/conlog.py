@@ -9,6 +9,8 @@ from loguru import logger
 
 import tf2mon
 
+_CMD = namedtuple("_CMD", ["lineno", "cmd"])
+
 
 class Conlog:
     """TF2 writes console output to the file named in its `con_logfile` variable.
@@ -19,12 +21,10 @@ class Conlog:
 
     # pylint: disable=too-many-instance-attributes
 
-    _CMD = namedtuple("_CMD", ["lineno", "cmd"])
-
     def __init__(
         self,
         path: Path | str,
-        exclude_file: Path | str = None,
+        exclude_file: Path = None,
         *,
         rewind: bool = True,
         follow: bool = False,
@@ -48,7 +48,7 @@ class Conlog:
 
         self._buffer: str | None = None
         self._file = None
-        self._inject_cmds: list[self._CMD] = []
+        self._inject_cmds: list[_CMD] = []
         self._is_inject_paused = False
         self._is_inject_sorted = False
 
@@ -73,7 +73,7 @@ class Conlog:
         if not cmd.startswith(tf2mon.APPTAG):
             cmd = tf2mon.APPTAG + cmd
 
-        self._inject_cmds.append(self._CMD(int(lineno) - 1, cmd))
+        self._inject_cmds.append(_CMD(int(lineno) - 1, cmd))
         self._is_inject_sorted = False
 
     def open(self):
