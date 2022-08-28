@@ -101,8 +101,8 @@ class CLI(BaseCLI):
         self._add_debug_args()
         self._add_database_args()
         self._add_fkeys_args()
-        self._add_numpad_args()
-        self._add_duels_args()
+        self._add_numpad()
+        self._add_duels()
         self._add_operate()
         self._add_terminal()
         self._add_windows()
@@ -287,7 +287,7 @@ class CLI(BaseCLI):
             ),
         )
 
-    def _add_numpad_args(self) -> None:
+    def _add_numpad(self) -> None:
 
         self.parser.add_argument_group(
             "In-Game Controls, Numpad",
@@ -333,7 +333,7 @@ class CLI(BaseCLI):
             ),
         )
 
-    def _add_duels_args(self) -> None:
+    def _add_duels(self) -> None:
 
         self.parser.add_argument_group(
             "Duels",

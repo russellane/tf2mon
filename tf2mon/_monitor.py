@@ -1,5 +1,7 @@
 """Team Fortress 2 Console Monitor."""
 
+from __future__ import annotations
+
 import csv
 import curses
 import re
