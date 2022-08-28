@@ -11,7 +11,6 @@ import libcurses
 from loguru import logger
 
 import tf2mon
-from tf2mon._controls import Controls
 from tf2mon.admin import Admin
 from tf2mon.conlog import Conlog
 from tf2mon.database import Database
@@ -32,37 +31,6 @@ class Monitor:
     """Team Fortress 2 Console Monitor."""
 
     # pylint: disable=too-many-instance-attributes
-
-    # Initialize items needed to build the CLI parser now.
-    controls = Controls("tf2mon._controls", suffix="Control")
-    controls.bind("HelpControl", "F1")
-    controls.bind("MotdControl", "Ctrl+F1")
-    controls.bind("DebugFlagControl", "F2")
-    controls.bind("TauntFlagControl", "F3")
-    controls.bind("ThroeFlagControl", "Shift+F3")
-    controls.bind("ShowKDControl", "F4")
-    controls.bind("ShowKillsControl", "Shift+F4")
-    controls.bind("UserPanelControl", "F5")
-    controls.bind("JoinOtherTeamControl", "F6")
-    controls.bind("SortOrderControl", "F7")
-    controls.bind("LogLocationControl", "F8")
-    controls.bind("ResetPaddingControl", "Ctrl+F8")
-    controls.bind("LogLevelControl", "Shift+F8")
-    controls.bind("GridLayoutControl", "F9")
-    controls.bind("ClearChatsControl", "Shift+F9")
-    controls.bind("ShowDebugControl", "KP_INS")
-    controls.bind("SingleStepControl", "KP_DEL")
-    controls.bind("KickLastCheaterControl", "[", game_only=True)
-    controls.bind("KickLastRacistControl", "]", game_only=True)
-    controls.bind("KickLastSuspectControl", "\\", game_only=True)
-    controls.bind("KicksPopControl", "KP_HOME")
-    controls.bind("KicksClearControl", "KP_LEFTARROW")
-    controls.bind("KicksPopleftControl", "KP_END")
-    controls.bind("SpamsPopControl", "KP_PGUP")
-    controls.bind("SpamsClearControl", "KP_RIGHTARROW")
-    controls.bind("SpamsPopleftControl", "KP_PGDN")
-    controls.bind("ClearQueuesControl", "KP_5")
-    controls.bind("PushControl", "KP_DOWNARROW")
 
     # Defer initializing these items until after parsing args.
     tf2_scripts_dir: Path
@@ -154,7 +122,7 @@ class Monitor:
 
         # function key handlers
         self.write_tf2_exec_script()
-        self.regex_list += self.controls.get_regex_list()
+        self.regex_list += tf2mon.controls.get_regex_list()
 
     def run(self):
         """Run the Monitor."""
@@ -165,7 +133,7 @@ class Monitor:
 
         self._init()
         tf2mon.ui = self.ui = UI(win)
-        self.controls.start()
+        tf2mon.controls.start()
         self.reset_game()
 
         # no need for threads if exiting at end of conlog
@@ -260,7 +228,7 @@ class Monitor:
 
         if self.tf2_scripts_dir.is_dir():
             logger.info(f"Writing `{self.path_static_script}`")
-            script = self.controls.commands.as_tf2_exec_script(
+            script = tf2mon.controls.commands.as_tf2_exec_script(
                 str(self.path_static_script.relative_to(self.tf2_scripts_dir.parent)),
                 str(self.path_dynamic_script.relative_to(self.tf2_scripts_dir.parent)),
             )

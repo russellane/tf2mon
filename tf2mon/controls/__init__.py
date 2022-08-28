@@ -6,7 +6,7 @@ from tf2mon.fkey import FKey
 from tf2mon.importer import Importer
 
 
-class Controls:
+class _Controls:
     """Collection of `Control`s."""
 
     items: dict[str, Control] = {}
@@ -80,3 +80,47 @@ class Controls:
 
         for control in [x for x in self.items.values() if hasattr(x, "start")]:
             control.start()
+
+
+# ------------------------------------------------------------------------------
+
+_CONTROLS = None
+
+
+def Controls() -> _Controls:  # noqa invalid-name
+    """Initialize and return controls."""
+
+    global _CONTROLS  # pylint: disable=global-statement
+    if not _CONTROLS:
+        # _CONTROLS = _Controls("tf2mon.controls", suffix="Control")
+        _CONTROLS = _Controls(__package__, suffix="Control")
+        _CONTROLS.bind("HelpControl", "F1")
+        _CONTROLS.bind("MotdControl", "Ctrl+F1")
+        _CONTROLS.bind("DebugFlagControl", "F2")
+        _CONTROLS.bind("TauntFlagControl", "F3")
+        _CONTROLS.bind("ThroeFlagControl", "Shift+F3")
+        _CONTROLS.bind("ShowKDControl", "F4")
+        _CONTROLS.bind("ShowKillsControl", "Shift+F4")
+        _CONTROLS.bind("UserPanelControl", "F5")
+        _CONTROLS.bind("JoinOtherTeamControl", "F6")
+        _CONTROLS.bind("SortOrderControl", "F7")
+        _CONTROLS.bind("LogLocationControl", "F8")
+        _CONTROLS.bind("ResetPaddingControl", "Ctrl+F8")
+        _CONTROLS.bind("LogLevelControl", "Shift+F8")
+        _CONTROLS.bind("GridLayoutControl", "F9")
+        _CONTROLS.bind("ClearChatsControl", "Shift+F9")
+        _CONTROLS.bind("ShowDebugControl", "KP_INS")
+        _CONTROLS.bind("SingleStepControl", "KP_DEL")
+        _CONTROLS.bind("KickLastCheaterControl", "[", game_only=True)
+        _CONTROLS.bind("KickLastRacistControl", "]", game_only=True)
+        _CONTROLS.bind("KickLastSuspectControl", "\\", game_only=True)
+        _CONTROLS.bind("KicksPopControl", "KP_HOME")
+        _CONTROLS.bind("KicksClearControl", "KP_LEFTARROW")
+        _CONTROLS.bind("KicksPopleftControl", "KP_END")
+        _CONTROLS.bind("SpamsPopControl", "KP_PGUP")
+        _CONTROLS.bind("SpamsClearControl", "KP_RIGHTARROW")
+        _CONTROLS.bind("SpamsPopleftControl", "KP_PGDN")
+        _CONTROLS.bind("ClearQueuesControl", "KP_5")
+        _CONTROLS.bind("PushControl", "KP_DOWNARROW")
+
+    return _CONTROLS

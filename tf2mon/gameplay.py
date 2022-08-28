@@ -6,7 +6,12 @@ from tf2mon.game.chat import GameChatEvent
 from tf2mon.game.connected import GameConnectedEvent
 from tf2mon.game.kill import GameKillEvent
 from tf2mon.game.lobby import GameLobbyEvent
-from tf2mon.game.perk import GamePerkEvent
+from tf2mon.game.perk import (
+    GamePerkChangeEvent,
+    GamePerkOff1Event,
+    GamePerkOff2Event,
+    GamePerkOnEvent,
+)
 from tf2mon.game.status import GameStatusEvent
 from tf2mon.regex import Regex
 
@@ -59,7 +64,10 @@ class Gameplay:
             GameConnectedEvent().regex,
             GameStatusEvent().regex,
             GameLobbyEvent().regex,
-            GamePerkEvent().regex,
+            GamePerkOnEvent().regex,
+            GamePerkOff1Event().regex,
+            GamePerkOff2Event().regex,
+            GamePerkChangeEvent().regex,
             #
             Regex(
                 leader + "Failed to find lobby shared object",

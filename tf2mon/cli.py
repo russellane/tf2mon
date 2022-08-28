@@ -12,6 +12,7 @@ import tf2mon.layouts
 from tf2mon._logger import configure_logger
 from tf2mon._monitor import Monitor
 from tf2mon.conlog import Conlog
+from tf2mon.controls import Controls
 from tf2mon.database import Database
 from tf2mon.steamweb import SteamWebAPI
 
@@ -45,9 +46,13 @@ class CLI(BaseCLI):
         "player_name": "Bad Dad",
     }
 
-    # def debug(self, text: str) -> None:
-    #     """Override to silence."""
-    # for --merge-hackers
+    def __init__(self, argv: list[str] = None) -> None:
+        """Build and parse command line."""
+
+        threading.current_thread().name = "MAIN"
+        tf2mon.monitor = Monitor()
+        tf2mon.controls = Controls()
+        super().__init__(argv)
 
     def init_logging(self, verbose: int) -> None:
         """Set logging levels based on `--verbose`."""
@@ -266,13 +271,6 @@ class CLI(BaseCLI):
             action="store_true",
             help="print hackers database and exit",
         )
-
-        # group.add_argument(
-        #     "--merge-hackers",
-        #     metavar="FILE",
-        #     type=Path,
-        #     help="merge `FILE` with `--hackers FILE` to `stdout` and exit",
-        # )
 
         self.parser.add_argument_group(
             "Configuration file",
@@ -501,7 +499,4 @@ class CLI(BaseCLI):
 def main(args: list[str] | None = None) -> None:
     """Command line interface entry point (function)."""
 
-    threading.current_thread().name = "MAIN"
-    tf2mon.monitor = Monitor()
-    tf2mon.controls = tf2mon.monitor.controls
     return CLI(args).main()
