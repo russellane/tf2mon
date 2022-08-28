@@ -54,6 +54,17 @@ class ShowKillsControl(BoolControl):
     toggle = Toggle("kills", [False, True])
 
 
+class ShowPerksControl(Control):
+    """Display perks in journal window."""
+
+    name = "SHOW-PERKS"
+
+    def handler(self, _match) -> None:
+        tf2mon.ui.show_journal("help", " Perks ".center(80, "-"))
+        for user in [x for x in tf2mon.monitor.users.active_users() if x.perk]:
+            tf2mon.ui.show_journal("help", f"{user!r:25} {user.perk}")
+
+
 class JoinOtherTeamControl(Control):
     """Join Other Team."""
 

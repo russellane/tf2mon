@@ -102,6 +102,7 @@ def Controls() -> _Controls:  # noqa invalid-name
         _CONTROLS.bind("ShowKDControl", "F4")
         _CONTROLS.bind("ShowKillsControl", "Shift+F4")
         _CONTROLS.bind("UserPanelControl", "F5")
+        _CONTROLS.bind("ShowPerksControl", "Shift+F5")
         _CONTROLS.bind("JoinOtherTeamControl", "F6")
         _CONTROLS.bind("SortOrderControl", "F7")
         _CONTROLS.bind("LogLocationControl", "F8")

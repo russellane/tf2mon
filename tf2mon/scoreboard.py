@@ -15,7 +15,7 @@ class Scoreboard:
 
     table = TextTable(
         [
-            TextColumn(-4, "UID"),
+            TextColumn(-5, "UID"),
             TextColumn(1, "P"),
             TextColumn(2, "CC"),
             TextColumn(2, "SC"),

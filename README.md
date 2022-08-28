@@ -102,6 +102,7 @@ By default, `tf2mon` starts reading `con_logfile` from its end
                  F4 Include `Kill/Death ratio` in `User.moniker`.
            SHIFT+F4 Display kills in journal window.
                  F5 Cycle contents of User Panel.
+           SHIFT+F5 Display perks in journal window.
                  F6 Join Other Team.
                  F7 Cycle scoreboard Sort column.
                  F8 Cycle logger `location` format.
