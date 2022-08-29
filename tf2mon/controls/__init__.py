@@ -43,6 +43,10 @@ class _Controls:
     def bind(self, name: str, keyspec: str = None, game_only: bool = False) -> None:
         """Bind the control known as `name` to `keyspec`."""
 
+        handler = "handler"
+        if "." in name:
+            name, handler = name.split(".", maxsplit=1)
+
         control = self.items[name]
         self.bindings.append(control)
         control.fkey = FKey(keyspec)
@@ -50,7 +54,7 @@ class _Controls:
         control.command = Command(
             control.name,
             getattr(control, "status", None),
-            getattr(control, "handler", None),
+            getattr(control, handler, None),
             getattr(control, "action", None),
         )
         self.commands.bind(control.command, keyspec, game_only)
@@ -115,12 +119,12 @@ def Controls() -> _Controls:  # noqa invalid-name
         _CONTROLS.bind("KickLastCheaterControl", "[", game_only=True)
         _CONTROLS.bind("KickLastRacistControl", "]", game_only=True)
         _CONTROLS.bind("KickLastSuspectControl", "\\", game_only=True)
-        _CONTROLS.bind("KicksPopControl", "KP_HOME")
-        _CONTROLS.bind("KicksClearControl", "KP_LEFTARROW")
-        _CONTROLS.bind("KicksPopleftControl", "KP_END")
-        _CONTROLS.bind("SpamsPopControl", "KP_PGUP")
-        _CONTROLS.bind("SpamsClearControl", "KP_RIGHTARROW")
-        _CONTROLS.bind("SpamsPopleftControl", "KP_PGDN")
+        _CONTROLS.bind("KicksControl.pop", "KP_HOME")
+        _CONTROLS.bind("KicksControl.clear", "KP_LEFTARROW")
+        _CONTROLS.bind("KicksControl.popleft", "KP_END")
+        _CONTROLS.bind("SpamsControl.pop", "KP_PGUP")
+        _CONTROLS.bind("SpamsControl.clear", "KP_RIGHTARROW")
+        _CONTROLS.bind("SpamsControl.popleft", "KP_PGDN")
         _CONTROLS.bind("ClearQueuesControl", "KP_5")
         _CONTROLS.bind("PushControl", "KP_DOWNARROW")
 

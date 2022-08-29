@@ -172,9 +172,11 @@ class UI:
         """Refresh kicks panel."""
 
         if self.kicks_win:
-            # ic(self.kicks_win.getbegyx())
-            # ic(self.kicks_win.getmaxyx())
-            self._show_lines("KICKS", reversed(tf2mon.monitor.kicks.msgs), self.kicks_win)
+            self._show_lines(
+                "KICKS",
+                reversed(tf2mon.controls["KicksControl"].msgs),
+                self.kicks_win,
+            )
 
         if self.user_win:
             self.refresh_user(tf2mon.monitor.me)
@@ -183,7 +185,11 @@ class UI:
         """Refresh spams panel."""
 
         if self.spams_win:
-            self._show_lines("SPAMS", reversed(tf2mon.monitor.spams.msgs), self.spams_win)
+            self._show_lines(
+                "SPAMS",
+                reversed(tf2mon.controls["SpamsControl"].msgs),
+                self.spams_win,
+            )
 
         if self.user_win:
             self.refresh_user(tf2mon.monitor.me)
@@ -200,28 +206,26 @@ class UI:
     def refresh_user(self, user):
         """Refresh user panel."""
 
-        ctrl = tf2mon.controls["UserPanelControl"]
+        panel = tf2mon.controls["UserPanelControl"]
+        kicks = tf2mon.controls["KicksControl"]
+        spams = tf2mon.controls["SpamsControl"]
 
         if self.user_win:
-            if ctrl.value == ctrl.enum.KICKS or (
-                ctrl.value == ctrl.enum.AUTO and tf2mon.monitor.kicks.msgs
+            if panel.value == panel.enum.KICKS or (
+                panel.value == panel.enum.AUTO and kicks.msgs
             ):
                 self._show_lines(
                     "KICKS",
-                    reversed(tf2mon.monitor.kicks.msgs)
-                    if tf2mon.monitor.kicks.msgs
-                    else ["No Kicks"],
+                    reversed(kicks.msgs) if kicks.msgs else ["No Kicks"],
                     self.user_win,
                 )
             #
-            elif ctrl.value == ctrl.enum.SPAMS or (
-                ctrl.value == ctrl.enum.AUTO and tf2mon.monitor.spams.msgs
+            elif panel.value == panel.enum.SPAMS or (
+                panel.value == panel.enum.AUTO and spams.msgs
             ):
                 self._show_lines(
                     "SPAMS",
-                    reversed(tf2mon.monitor.spams.msgs)
-                    if tf2mon.monitor.spams.msgs
-                    else ["No Spams"],
+                    reversed(spams.msgs) if spams.msgs else ["No Spams"],
                     self.user_win,
                 )
             #

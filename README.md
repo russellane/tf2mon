@@ -115,12 +115,12 @@ By default, `tf2mon` starts reading `con_logfile` from its end
                   [ Kick last killer as `cheater`.
                   ] Kick last killer as `racist`.
                   \ Mark last killer as `suspect`.
-            KP_HOME Pop last/latest kicks queue message.
-       KP_LEFTARROW Clear kicks queue.
-             KP_END Pop first/oldest kicks queue message.
-            KP_PGUP Pop last/latest spams queue message.
-      KP_RIGHTARROW Clear spams queue.
-            KP_PGDN Pop first/oldest spams queue message.
+             KP_END Kicks queue.
+             KP_END Kicks queue.
+             KP_END Kicks queue.
+            KP_PGDN Spams queue.
+            KP_PGDN Spams queue.
+            KP_PGDN Spams queue.
                KP_5 Clear kicks and spams queues.
        KP_DOWNARROW Push `steamids` from game to monitor.
 

@@ -17,11 +17,10 @@ from tf2mon.admin import Admin
 from tf2mon.conlog import Conlog
 from tf2mon.database import Database
 from tf2mon.gameplay import Gameplay
-from tf2mon.msgqueue import MsgQueue, MsgQueueManager
+from tf2mon.msgqueue import MsgQueueManager
 from tf2mon.player import Player
 from tf2mon.regex import Regex
 from tf2mon.role import Role
-from tf2mon.spammer import Spammer
 from tf2mon.steamplayer import SteamPlayer
 from tf2mon.steamweb import SteamWebAPI
 from tf2mon.ui import UI
@@ -39,8 +38,6 @@ class Monitor:
     path_static_script: Path
     path_dynamic_script: Path
     msgqueues: MsgQueueManager
-    kicks: MsgQueue
-    spams: MsgQueue
     conlog: Conlog
     steam_web_api: SteamWebAPI
     roles: dict[str, list[Role]]
@@ -52,7 +49,6 @@ class Monitor:
     me: User
     my: User
     chats: list
-    spammer: Spammer
     admin: Admin
     gameplay: Gameplay
     regex_list: list
@@ -72,8 +68,6 @@ class Monitor:
         # "Send" to TF2 through `msgqueues`.
         self.path_dynamic_script = self.tf2_scripts_dir / "tf2mon-pull.cfg"  # created often
         self.msgqueues = MsgQueueManager(self.path_dynamic_script)
-        self.kicks = self.msgqueues.addq("kicks")
-        self.spams = self.msgqueues.addq("spams")
 
         # "Receive" from TF2 through `conlog`.
         # Wait for con_logfile to exist, then open it.
@@ -109,7 +103,6 @@ class Monitor:
         )
 
         self.chats = []
-        self.spammer = Spammer()
         # this application's admin console
         self.admin = Admin()
         if tf2mon.options.breakpoint is not None:

@@ -321,8 +321,8 @@ class User:
         cmd = f"CALLVOTE KICK {self.userid}"
         msg += f", {cmd}"
 
-        tf2mon.monitor.kicks.push(msg)
-        tf2mon.monitor.kicks.push(cmd)
+        tf2mon.controls["KicksControl"].push(msg)
+        tf2mon.controls["KicksControl"].push(cmd)
 
     _re_cheater_names = re.compile(
         "|".join(

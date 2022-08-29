@@ -107,10 +107,10 @@ class GameKillEvent(GameEvent):
             )
 
         if killer == tf2mon.monitor.me:
-            tf2mon.monitor.spammer.taunt(victim, weapon, crit)
+            tf2mon.controls["SpamsControl"].taunt(victim, weapon, crit)
 
         if victim == tf2mon.monitor.me:
-            tf2mon.monitor.spammer.throe(killer, weapon, crit)
+            tf2mon.controls["SpamsControl"].throe(killer, weapon, crit)
 
         if not victim.team and killer.team:
             victim.assign_team(killer.opposing_team)

@@ -88,9 +88,9 @@ class ClearQueuesControl(Control):
     def handler(self, _match) -> None:
         """Handle event."""
 
-        tf2mon.monitor.kicks.clear()
+        tf2mon.controls["KicksControl"].clear()
         tf2mon.ui.refresh_kicks()
-        tf2mon.monitor.spams.clear()
+        tf2mon.controls["SpamsControl"].clear()
         tf2mon.ui.refresh_spams()
 
 

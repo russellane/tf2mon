@@ -2,36 +2,28 @@
 
 import tf2mon
 from tf2mon.control import Control
+from tf2mon.msgqueue import MsgQueue
+from tf2mon.spammer import Spammer
 
 
-class SpamsPopControl(Control):
-    """Pop last/latest spams queue message."""
+class SpamsControl(Control, MsgQueue, Spammer):
+    """Spams queue."""
 
-    name = "SPAMS-POP"
-    action = "tf2mon_spams_pop"
+    name = "spams"
 
-    def handler(self, _match) -> None:
-        tf2mon.monitor.spams.pop()
+    def __init__(self):
+        """Message queue control."""
+
+        super().__init__(self.name)
+
+    def pop(self, _match=None) -> None:
+        super().pop()
         tf2mon.ui.refresh_spams()
 
-
-class SpamsClearControl(Control):
-    """Clear spams queue."""
-
-    name = "SPAMS-CLEAR"
-    action = "tf2mon_spams_clear"
-
-    def handler(self, _match) -> None:
-        tf2mon.monitor.spams.clear()
+    def clear(self, _match=None) -> None:
+        super().clear()
         tf2mon.ui.refresh_spams()
 
-
-class SpamsPopleftControl(Control):
-    """Pop first/oldest spams queue message."""
-
-    name = "SPAMS-POPLEFT"
-    action = "tf2mon_spams_popleft"
-
-    def handler(self, _match) -> None:
-        tf2mon.monitor.spams.popleft()
+    def popleft(self, _match=None) -> None:
+        super().popleft()
         tf2mon.ui.refresh_spams()

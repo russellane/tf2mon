@@ -101,7 +101,7 @@ class Spammer:
             killed=self._killed.cycle,
             insult=self._insults.cycle,
         )
-        tf2mon.monitor.spams.push("say " + m + suffix)
+        tf2mon.controls["SpamsControl"].push("say " + m + suffix)
 
     def spam(self, spamno):
         """Respond to SPAM command."""
@@ -113,4 +113,4 @@ class Spammer:
             logger.critical(f"bad spamno {spamno!r}")
             return
 
-        tf2mon.monitor.spams.pushleft(msg)
+        tf2mon.controls["SpamsControl"].pushleft(msg)
