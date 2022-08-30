@@ -50,7 +50,6 @@ class Monitor:
     my: User
     chats: list
     admin: Admin
-    gameplay: Gameplay
     regex_list: list
     ui: UI
 
@@ -112,8 +111,7 @@ class Monitor:
         self.regex_list = self.admin.regex_list
 
         # gameplay handlers
-        self.gameplay = Gameplay()
-        self.regex_list += self.gameplay.regex_list
+        self.regex_list += Gameplay().regex_list
 
         # function key handlers
         self.write_tf2_exec_script()
