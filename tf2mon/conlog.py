@@ -2,8 +2,8 @@
 
 import re
 import time
+from argparse import Namespace
 from collections import namedtuple
-from pathlib import Path
 
 from loguru import logger
 
@@ -21,43 +21,33 @@ class Conlog:
 
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(
-        self,
-        path: Path | str,
-        exclude_file: Path = None,
-        *,
-        rewind: bool = True,
-        follow: bool = False,
-        inject_cmds=None,
-        inject_file=None,
-    ):
+    def __init__(self, options: Namespace):
         """Prepare to open and read the console logfile."""
 
-        self.path = path
-        self.rewind = rewind
-        self.follow = follow
-
+        self.path = options.con_logfile
+        self.rewind = options.rewind
+        self.follow = options.follow
         self.is_eof: bool = False
         self.last_line = None
         self.lineno: int = 0
 
-        logger.info(f"Reading `{exclude_file}`")
+        logger.info(f"Reading `{options.exclude_file}`")
         self.re_exclude = re.compile(
-            "|".join(exclude_file.read_text(encoding="utf-8").splitlines())
+            "|".join(options.exclude_file.read_text(encoding="utf-8").splitlines())
         )
 
-        self._buffer: str | None = None
+        self._buffer: str = None
         self._file = None
         self._inject_cmds: list[_CMD] = []
         self._is_inject_paused = False
         self._is_inject_sorted = False
 
-        if inject_cmds:
-            self._inject_cmd_list(inject_cmds)
+        if options.inject_cmds:
+            self._inject_cmd_list(options.inject_cmds)
 
-        if inject_file:
-            logger.info(f"Reading `{inject_file}`")
-            with open(inject_file, encoding="utf-8") as file:
+        if options.inject_file:
+            logger.info(f"Reading `{options.inject_file}`")
+            with open(options.inject_file, encoding="utf-8") as file:
                 self._inject_cmd_list(file)
 
     def _inject_cmd_list(self, cmds):

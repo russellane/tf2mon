@@ -70,14 +70,7 @@ class Monitor:
 
         # "Receive" from TF2 through `conlog`.
         # Wait for con_logfile to exist, then open it.
-        self.conlog = Conlog(
-            tf2mon.options.con_logfile,
-            exclude_file=tf2mon.options.exclude_file,
-            rewind=tf2mon.options.rewind,
-            follow=tf2mon.options.follow,
-            inject_cmds=tf2mon.options.inject_cmds,
-            inject_file=tf2mon.options.inject_file,
-        )
+        self.conlog = Conlog(tf2mon.options)
 
         #
         self.steam_web_api = SteamWebAPI(webapi_key=tf2mon.config.get("webapi_key"))

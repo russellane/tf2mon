@@ -477,12 +477,12 @@ class CLI(BaseCLI):
             self.parser.exit()
 
         if self.options.trunc_con_logfile:
-            Conlog(self.options.con_logfile).trunc()
+            Conlog(self.options).trunc()
             logger.info(f"con_logfile {str(self.options.con_logfile)!r} truncated; Exiting.")
             self.parser.exit()
 
         if self.options.clean_con_logfile:
-            Conlog(self.options.con_logfile, exclude_file=self.options.exclude_file).clean()
+            Conlog(self.options).clean()
             logger.info(f"con_logfile {str(self.options.con_logfile)!r} cleaned; Exiting.")
             self.parser.exit()
 
