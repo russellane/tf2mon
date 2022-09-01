@@ -41,17 +41,15 @@ class SteamWebAPI:
             # create a dummy steamid for this bot; (not a hacker, a real game bot)
             self._nbots += 1
             return SteamPlayer(
-                {
-                    "steamid": steamid,
-                    "personaname": None,
-                    "profileurl": "",
-                    "personastate": 0,
-                    "realname": "",
-                    "timecreated": now - (self._nbots * 86400),
-                    "loccountrycode": "US",
-                    "locstatecode": "IL",
-                    "loccityid": "CHGO",
-                }
+                steamid=steamid,
+                personaname=None,
+                profileurl="",
+                personastate=0,
+                realname="",
+                timecreated=now - (self._nbots * 86400),
+                loccountrycode="US",
+                locstatecode="IL",
+                loccityid="CHGO",
             )
 
         if not SteamID(steamid).is_valid():
