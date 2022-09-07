@@ -16,6 +16,8 @@ class _Users:
     users_by_username: dict[str, User] = {}
     users_by_steamid: dict[int, User] = {}
     teams_by_steamid: dict[int, Team] = {}
+    me: User = None
+    my: User = None
     _max_status_checks = 2
 
     def __getitem__(self, username: str) -> User:
@@ -63,6 +65,14 @@ class _Users:
         else:
             logger.error(f"bad userid {userid!r}")
 
+    def kick_my_last_killer(self, attr: str) -> None:
+        """Kick the last user who killed the operator."""
+
+        if self.my.last_killer:
+            self.my.last_killer.kick(attr)
+        else:
+            logger.warning("no last killer")
+
     def check_status(self) -> None:
         """Delete users that appear to have left the game.
 
@@ -73,7 +83,7 @@ class _Users:
         """
 
         for user in list(self.users_by_username.values()):
-            if user == tf2mon.monitor.me:
+            if user == self.me:
                 continue
             user.n_status_checks += 1
             if user.n_status_checks == self._max_status_checks:

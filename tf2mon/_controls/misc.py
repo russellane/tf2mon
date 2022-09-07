@@ -73,11 +73,11 @@ class JoinOtherTeamControl(Control):
 
     def handler(self, _match) -> None:
         if tf2mon.monitor.toggling_enabled:
-            tf2mon.monitor.me.assign_team(tf2mon.monitor.my.opposing_team)
+            Monitor.users.me.assign_team(Monitor.users.my.opposing_team)
             tf2mon.ui.update_display()
 
     def status(self) -> str:
-        return tf2mon.monitor.my.team.name  # if tf2mon.monitor.my.team else "blu"
+        return Monitor.users.my.team.name  # if Monitor.users.my.team else "blu"
 
 
 class ClearQueuesControl(Control):

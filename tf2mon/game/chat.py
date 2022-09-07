@@ -32,14 +32,13 @@ class GameChatEvent(GameEvent):
         # if one of us knows which team we're on and the other doesn't, we
         # can assign.
 
-        me = my = tf2mon.monitor.me
-        if chat.teamflag and user != me:
+        if chat.teamflag and user != Monitor.users.me:
             # we're on the same team
             if not user.team:
-                if my.team:
-                    user.assign_team(my.team)
-            elif not my.team:
-                me.assign_team(user.team)
+                if Monitor.users.my.team:
+                    user.assign_team(Monitor.users.my.team)
+            elif not Monitor.users.my.team:
+                Monitor.users.me.assign_team(user.team)
 
         # inspect msg
         if tf2mon.monitor.is_racist_text(chat.msg):

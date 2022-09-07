@@ -25,7 +25,7 @@ from tf2mon.role import Role
 from tf2mon.steamplayer import SteamPlayer
 from tf2mon.steamweb import SteamWebAPI
 from tf2mon.ui import UI
-from tf2mon.user import Team, User
+from tf2mon.user import Team
 
 
 class Monitor:
@@ -45,8 +45,6 @@ class Monitor:
     unknown_role: Role
     role_by_weapon: dict[str, str]
     _re_racist: type[re.Pattern]
-    me: User
-    my: User
     chats: list
     admin: Admin
     regex_list: list
@@ -141,9 +139,9 @@ class Monitor:
 
         logger.success("RESET GAME")
 
-        self.me = self.my = _Monitor.users[tf2mon.config.get("player_name")]
-        self.me.assign_team(Team.BLU)
-        self.my.display_level = "user"
+        _Monitor.users.me = _Monitor.users.my = _Monitor.users[tf2mon.config.get("player_name")]
+        _Monitor.users.me.assign_team(Team.BLU)
+        _Monitor.users.my.display_level = "user"
         self.chats = []
         tf2mon.ui.refresh_chats()
         self.msgqueues.clear()
@@ -175,14 +173,6 @@ class Monitor:
             curses.reset_shell_mode()
             breakpoint()  # pylint: disable=forgotten-debug-statement
             curses.reset_prog_mode()
-
-    def kick_my_last_killer(self, attr):
-        """Kick the last user who killed the operator."""
-
-        if self.my.last_killer:
-            self.my.last_killer.kick(attr)
-        else:
-            logger.warning("no last killer")
 
     def is_racist_text(self, text):
         """Return True if this user appears to be racist."""
