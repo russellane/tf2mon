@@ -2,12 +2,12 @@
 
 import re
 from enum import Enum
-from typing import NewType
+from typing import List, NewType
 
-from fuzzywuzzy import fuzz
 from loguru import logger
 
 import tf2mon
+from tf2mon.chat import Chat
 from tf2mon.player import Player
 
 UserKey = NewType("UserKey", str)
@@ -32,7 +32,6 @@ class User:
     """A user of the game."""
 
     # pylint: disable=too-many-instance-attributes
-    # pylint: disable=too-many-statements
 
     _re_cheater_chats = re.compile(
         "|".join(
@@ -51,7 +50,7 @@ class User:
         self.cheater_chat_seen = self._re_cheater_chats.search(chat.msg)
         return self.cheater_chat_seen
 
-    def __init__(self, username):
+    def __init__(self, username: str):
         """Create `User`."""
 
         self.username = username.replace(";", ".")
@@ -85,15 +84,15 @@ class User:
         self.role = tf2mon.monitor.unknown_role
         self.ncaptures = 0
         self.ndefenses = 0
-        self.chats = []
+        self.chats: List[Chat] = []
         self.display_level = None
         self.selected = False
         self.perk = None
 
         #
-        self.opponents: dict[User, User] = {}
-        self.victims: dict[User, User] = {}
-        self.killers: dict[User, User] = {}
+        self.opponents: dict[UserKey, User] = {}
+        self.victims: dict[UserKey, User] = {}
+        self.killers: dict[UserKey, User] = {}
 
         self.last_killer: User = None
         self.last_victim: User = None
@@ -109,7 +108,7 @@ class User:
         self.nkills_by_opponent_by_weapon: dict[UserKey, dict[WeaponState, int]] = {}
 
         # list of non-kill actions performed, like capture/defend.
-        self.actions = []
+        self.actions: List[str] = []
 
         #
         self.steamplayer = None
@@ -126,14 +125,8 @@ class User:
         # notify the operator asap to `TF2MON-PUSH` steamids to us.
         # Careful, this might be a legitimate name-change, not a cheating name-stealer.
 
-        self.cloner = None  # when this user is being cloned
-        self.clonee = None  # when this user is the name-stealing clone
-
-        if self._is_cheater_name(self.username):
-            self.kick(Player.CHEATER)
-
-        if tf2mon.monitor.is_racist_text(self.username):
-            self.kick(Player.RACIST)
+        self.cloner: User = None  # when this user is being cloned
+        self.clonee: User = None  # when this user is the name-stealing clone
 
         self.cheater_chat_seen = False
 
@@ -324,7 +317,7 @@ class User:
         tf2mon.controls["KicksControl"].push(msg)
         tf2mon.controls["KicksControl"].push(cmd)
 
-    _re_cheater_names = re.compile(
+    re_cheater_names = re.compile(
         "|".join(
             [
                 r"^(\(\d+\))?Sydney",
@@ -335,21 +328,3 @@ class User:
             ]
         )
     )
-
-    def _is_cheater_name(self, name):
-
-        if self._re_cheater_names.search(name):
-            return True
-
-        for user in [
-            x for x in tf2mon.monitor.users.active_users() if x.steamplayer and not x.player
-        ]:
-            ratio = fuzz.ratio(name, user.username)
-            if ratio > 80:
-                logger.log("FUZZ", f"ratio {ratio} {name!r} vs {user.username!r}")
-                # Careful, this might be a legitimate name-change, not a cheating name-stealer.
-                user.cloner = self  # point the original user to the clone
-                self.clonee = user  # point the clone to the original user
-                return True
-
-        return False

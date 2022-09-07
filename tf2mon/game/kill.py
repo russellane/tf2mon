@@ -1,6 +1,7 @@
 import re
 
 import tf2mon
+import tf2mon.monitor as Monitor
 from tf2mon.game import GameEvent
 from tf2mon.spammer import Spammer
 
@@ -17,8 +18,8 @@ class GameKillEvent(GameEvent):
 
         _leader, s_killer, s_victim, weapon, s_crit = match.groups()
 
-        killer = tf2mon.monitor.users[s_killer]
-        victim = tf2mon.monitor.users[s_victim]
+        killer = Monitor.users[s_killer]
+        victim = Monitor.users[s_victim]
 
         killer.last_victim = victim
         victim.last_killer = killer

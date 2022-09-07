@@ -1,6 +1,7 @@
 import re
 
 import tf2mon
+import tf2mon.monitor as Monitor
 from tf2mon.game import GameEvent
 from tf2mon.steamid import BOT_STEAMID, parse_steamid
 
@@ -30,9 +31,7 @@ class GameStatusEvent(GameEvent):
         userid = int(s_userid)
         user = None
 
-        if steamid != BOT_STEAMID and (
-            user := tf2mon.monitor.users.users_by_steamid.get(steamid)
-        ):
+        if steamid != BOT_STEAMID and (user := Monitor.users.users_by_steamid.get(steamid)):
             if user.username and user.username != username:
                 tf2mon.logger.warning(
                     f"{steamid.id} change username `{user.username}` to `{username}`"
@@ -48,7 +47,7 @@ class GameStatusEvent(GameEvent):
                 user.userid = userid
 
         if not user:
-            user = tf2mon.monitor.users[username]
+            user = Monitor.users[username]
 
         user.dirty = True
 
@@ -57,7 +56,7 @@ class GameStatusEvent(GameEvent):
 
         if not user.steamid:
             user.steamid = steamid
-            tf2mon.monitor.users.users_by_steamid[steamid] = user
+            Monitor.users.users_by_steamid[steamid] = user
 
         #
         mdy = s_elapsed.split(":")
@@ -87,7 +86,7 @@ class GameStatusEvent(GameEvent):
         tf2mon.logger.log("STATUS", user)
 
         #
-        if not user.team and (team := tf2mon.monitor.users.teams_by_steamid.get(steamid)):
+        if not user.team and (team := Monitor.users.teams_by_steamid.get(steamid)):
             user.assign_team(team)
 
         #

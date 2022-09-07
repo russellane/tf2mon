@@ -1,6 +1,7 @@
 """Gameplay patterns/handlers."""
 
 import tf2mon
+import tf2mon.monitor as Monitor
 from tf2mon.game.capture import GameCaptureEvent
 from tf2mon.game.chat import GameChatEvent
 from tf2mon.game.connected import GameConnectedEvent
@@ -84,6 +85,6 @@ class Gameplay:
             # hostname: Valve Matchmaking Server (Virginia iad-1/srcds148 #53)
             Regex(
                 "^hostname: (.*)",
-                lambda m: tf2mon.monitor.users.check_status(),
+                lambda m: Monitor.users.check_status(),
             ),
         ]

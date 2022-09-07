@@ -1,6 +1,7 @@
 import re
 
 import tf2mon
+import tf2mon.monitor as Monitor
 from tf2mon.game import GameEvent
 
 
@@ -12,7 +13,7 @@ class GameConnectedEvent(GameEvent):
 
         _leader, username = match.groups()
 
-        tf2mon.logger.log("CONNECT", tf2mon.monitor.users[username])
+        tf2mon.logger.log("CONNECT", Monitor.users[username])
 
         tf2mon.ui.notify_operator = True
         if username == tf2mon.config.get("player_name"):

@@ -1,6 +1,7 @@
 import re
 
 import tf2mon
+import tf2mon.monitor as Monitor
 from tf2mon.game import GameEvent
 
 
@@ -14,7 +15,7 @@ class GameCaptureEvent(GameEvent):
 
         for name in username.split(", "):  # fix: names containing commas
 
-            user = tf2mon.monitor.users[name]
+            user = Monitor.users[name]
 
             user.assign_teamno(int(s_teamno))
 

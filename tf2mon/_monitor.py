@@ -13,6 +13,7 @@ import libcurses
 from loguru import logger
 
 import tf2mon
+import tf2mon.monitor as _Monitor
 from tf2mon.admin import Admin
 from tf2mon.conlog import Conlog
 from tf2mon.database import Database
@@ -25,7 +26,6 @@ from tf2mon.steamplayer import SteamPlayer
 from tf2mon.steamweb import SteamWebAPI
 from tf2mon.ui import UI
 from tf2mon.user import Team, User
-from tf2mon.users import Users
 
 
 class Monitor:
@@ -45,7 +45,6 @@ class Monitor:
     unknown_role: Role
     role_by_weapon: dict[str, str]
     _re_racist: type[re.Pattern]
-    users: Users
     me: User
     my: User
     chats: list
@@ -142,8 +141,7 @@ class Monitor:
 
         logger.success("RESET GAME")
 
-        self.users = Users()
-        self.me = self.my = self.users[tf2mon.config.get("player_name")]
+        self.me = self.my = _Monitor.users[tf2mon.config.get("player_name")]
         self.me.assign_team(Team.BLU)
         self.my.display_level = "user"
         self.chats = []
@@ -194,8 +192,8 @@ class Monitor:
         """Dump stuff."""
 
         # logger.success(pformat(self.__dict__))
-        logger.success(pformat(self.users.__dict__))
-        for user in self.users.users_by_username.values():
+        logger.success(pformat(_Monitor.users.__dict__))
+        for user in _Monitor.users.users_by_username.values():
             logger.success(pformat(user.__dict__))
 
     @property

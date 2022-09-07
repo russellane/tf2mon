@@ -5,6 +5,7 @@ import curses
 import libcurses
 
 import tf2mon
+import tf2mon.monitor as Monitor
 from tf2mon.player import Player
 from tf2mon.texttable import TextColumn, TextTable
 from tf2mon.user import Team
@@ -69,7 +70,7 @@ class Scoreboard:
 
         libcurses.clear_mouse_handlers()
 
-        users = list(tf2mon.monitor.users.sorted())
+        users = list(Monitor.users.sorted())
         team1 = [x for x in users if x.team == Team.BLU]
         team2 = [x for x in users if x.team == Team.RED]
 
@@ -158,7 +159,7 @@ class Scoreboard:
         if mouse.button != 1:
             return False  # not handled
 
-        for active_user in tf2mon.monitor.users.active_users():
+        for active_user in Monitor.users.active_users():
             active_user.selected = False
         user.selected = True
         tf2mon.ui.update_display()

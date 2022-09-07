@@ -1,6 +1,7 @@
 import re
 
 import tf2mon
+import tf2mon.monitor as Monitor
 from tf2mon.chat import Chat
 from tf2mon.game import GameEvent
 from tf2mon.player import Player
@@ -20,7 +21,7 @@ class GameChatEvent(GameEvent):
 
         _leader, _dead, teamflag, username, msg = match.groups()
 
-        user = tf2mon.monitor.users[username]
+        user = Monitor.users[username]
         chat = Chat(user, teamflag, msg)
 
         user.chats.append(chat)

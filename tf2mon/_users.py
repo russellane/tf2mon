@@ -2,23 +2,21 @@
 
 from typing import Iterator
 
+from fuzzywuzzy import fuzz
 from loguru import logger
 
 import tf2mon
-from tf2mon.user import User, UserState
+from tf2mon.player import Player
+from tf2mon.user import Team, User, UserState
 
 
-class Users:
+class _Users:
     """Collection of `User`s."""
 
+    users_by_username: dict[str, User] = {}
+    users_by_steamid: dict[int, User] = {}
+    teams_by_steamid: dict[int, Team] = {}
     _max_status_checks = 2
-
-    def __init__(self):
-        """Initialize collection of `User`s."""
-
-        self.users_by_username: dict[str, User] = {}
-        self.users_by_steamid: dict[int, User] = {}
-        self.teams_by_steamid: dict[int, User] = {}
 
     def __getitem__(self, username: str) -> User:
         """Create user `username` if non-existent, and return user `username`."""
@@ -29,6 +27,12 @@ class Users:
             user = User(username)
             self.users_by_username[user.username] = user
             logger.log("ADDUSER", user)
+
+            if self._is_cheater_name(user):
+                user.kick(Player.CHEATER)
+
+            if tf2mon.monitor.is_racist_text(username):
+                user.kick(Player.RACIST)
 
         # reset inactivity counter
         if user.state == UserState.INACTIVE:
@@ -50,7 +54,7 @@ class Users:
             key=tf2mon.controls["SortOrderControl"].value,
         )
 
-    def kick_userid(self, userid, attr):
+    def kick_userid(self, userid: int, attr: str) -> None:
         """Kick `userid` reason `attr`."""
 
         users = [x for x in self.users_by_username.values() if x.userid == userid]
@@ -59,7 +63,7 @@ class Users:
         else:
             logger.error(f"bad userid {userid!r}")
 
-    def check_status(self):
+    def check_status(self) -> None:
         """Delete users that appear to have left the game.
 
         We are called in response to TF2MON-PUSH; which may have came long
@@ -76,8 +80,30 @@ class Users:
                 logger.log("INACTIVE", user)
                 user.state = UserState.INACTIVE
 
-    def switch_teams(self):
+    def switch_teams(self) -> None:
         """Switch teams."""
 
         for user in self.active_users():
             user.assign_team(user.opposing_team)
+
+    def _is_cheater_name(self, user: User) -> bool:
+
+        if User.re_cheater_names.search(user.username):
+            return True
+
+        for _user in [x for x in self.active_users() if x.steamplayer and not x.player]:
+            ratio = fuzz.ratio(user.username, _user.username)
+            if ratio > 80:
+                logger.log("FUZZ", f"ratio {ratio} `{user.username}` vs `{_user.username}`")
+                # Careful, this might be a legitimate name-change, not a cheating name-stealer.
+                _user.cloner = user  # point the original user to the clone
+                user.clonee = _user  # point the clone to the original user
+                return True
+
+        return False
+
+
+Users: _Users = None
+
+if not Users:
+    Users = _Users()

@@ -3,6 +3,7 @@
 from loguru import logger
 
 import tf2mon
+import tf2mon.monitor as Monitor
 from tf2mon.control import BoolControl, Control
 from tf2mon.toggle import Toggle
 
@@ -61,7 +62,7 @@ class ShowPerksControl(Control):
 
     def handler(self, _match) -> None:
         tf2mon.ui.show_journal("help", " Perks ".center(80, "-"))
-        for user in [x for x in tf2mon.monitor.users.active_users() if x.perk]:
+        for user in [x for x in Monitor.users.active_users() if x.perk]:
             tf2mon.ui.show_journal("help", f"{user!r:25} {user.perk}")
 
 

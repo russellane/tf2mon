@@ -1,6 +1,7 @@
 import re
 
 import tf2mon
+import tf2mon.monitor as Monitor
 from tf2mon.game import GameEvent
 from tf2mon.steamid import parse_steamid
 from tf2mon.user import Team
@@ -31,7 +32,7 @@ class GameLobbyEvent(GameEvent):
             tf2mon.logger.critical(f"bad teamname {teamname!r} steamid {steamid}")
             return
 
-        if old_team := tf2mon.monitor.users.teams_by_steamid.get(steamid):
+        if old_team := Monitor.users.teams_by_steamid.get(steamid):
             # if we've seen this steamid before...
             if old_team != team:
                 # ...and
@@ -40,4 +41,4 @@ class GameLobbyEvent(GameEvent):
             tf2mon.logger.log("ADDLOBBY", f"{team} {steamid.id}")
 
         #
-        tf2mon.monitor.users.teams_by_steamid[steamid] = team
+        Monitor.users.teams_by_steamid[steamid] = team
