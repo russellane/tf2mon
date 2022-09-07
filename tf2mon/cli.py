@@ -9,10 +9,10 @@ from loguru import logger
 
 import tf2mon
 import tf2mon.layouts
+from tf2mon._controls import Controls
 from tf2mon._logger import configure_logger
 from tf2mon._monitor import Monitor
 from tf2mon.conlog import Conlog
-from tf2mon.controls import Controls
 from tf2mon.database import Database
 from tf2mon.steamweb import SteamWebAPI
 

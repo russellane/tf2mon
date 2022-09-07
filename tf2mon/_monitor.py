@@ -67,6 +67,8 @@ class Monitor:
         # "Send" to TF2 through `msgqueues`.
         self.path_dynamic_script = self.tf2_scripts_dir / "tf2mon-pull.cfg"  # created often
         self.msgqueues = MsgQueueManager(self.path_dynamic_script)
+        self.msgqueues.append(tf2mon.controls["KicksControl"])
+        self.msgqueues.append(tf2mon.controls["SpamsControl"])
 
         # "Receive" from TF2 through `conlog`.
         # Wait for con_logfile to exist, then open it.

@@ -2,11 +2,13 @@ import re
 
 import tf2mon
 from tf2mon.game import GameEvent
+from tf2mon.spammer import Spammer
 
 
 class GameKillEvent(GameEvent):
 
     pattern = r"(?P<killer>.*) killed (?P<victim>.*) with (?P<weapon>.*)\.(?P<crit> \(crit\))?$"
+    spammer = Spammer()
 
     def handler(self, match: re.Match) -> None:
 
@@ -107,10 +109,10 @@ class GameKillEvent(GameEvent):
             )
 
         if killer == tf2mon.monitor.me:
-            tf2mon.controls["SpamsControl"].taunt(victim, weapon, crit)
-
-        if victim == tf2mon.monitor.me:
-            tf2mon.controls["SpamsControl"].throe(killer, weapon, crit)
+            if tf2mon.controls["TauntFlagControl"].value:
+                self.spammer.taunt(victim, weapon, crit)
+        elif victim == tf2mon.monitor.me and tf2mon.controls["ThroeFlagControl"].value:
+            self.spammer.throe(killer, weapon, crit)
 
         if not victim.team and killer.team:
             victim.assign_team(killer.opposing_team)

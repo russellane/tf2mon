@@ -35,11 +35,6 @@ class _Controls:
 
         return self.items[name]
 
-    def add(self, control: Control) -> None:
-        """Add `control`, known as its class name, to collection."""
-
-        self.items[control.__class__.__name__] = control
-
     def bind(self, name: str, keyspec: str = None, game_only: bool = False) -> None:
         """Bind the control known as `name` to `keyspec`."""
 

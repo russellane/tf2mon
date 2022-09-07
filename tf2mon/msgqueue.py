@@ -2,11 +2,12 @@
 
 from collections import deque
 from pathlib import Path
-from typing import IO
+from typing import IO, Callable
 
 from loguru import logger
 
 import tf2mon
+from tf2mon.control import Control
 
 
 class MsgQueue:
@@ -88,30 +89,29 @@ class MsgQueue:
 
 
 class MsgQueueManager:
-    """Collection of `MsgQueue`s."""
+    """Collection of `MsgQueue` `Control`s."""
 
-    _queues: list[MsgQueue] = []
-    _file: IO[str] | None = None
+    _controls: list[Control] = []
+    _file: IO[str] = None
 
     def __init__(self, path: Path):
-        """Initialize collection of `MsgQueue`s."""
+        """Initialize collection of `MsgQueue` `Control`s."""
 
         if path and path.parent.is_dir():
             # pylint: disable=consider-using-with
             self._file = open(path, "w", encoding="utf-8")  # noqa
 
-    def addq(self, name: str) -> MsgQueue:
-        """Create `MsgQueue` with `name`, add to collection and return it."""
+    # append: Callable[[Control], None] = _controls.append
 
-        queue = MsgQueue(name)
-        self._queues.append(queue)
-        return queue
+    def append(self, control: Callable[[Control], None]) -> None:
+        """Add `control` to the collection."""
+        self._controls.append(control)
 
     def clear(self) -> None:
         """Clear all message queues."""
 
-        for queue in self._queues:
-            queue.clear()
+        for control in self._controls:
+            control.clear()
 
     def send(self) -> None:
         """Send data to tf2 by writing aliases to an `exec` script."""
@@ -121,6 +121,6 @@ class MsgQueueManager:
 
         self._file.seek(0)
         self._file.truncate()
-        for queue in self._queues:
-            print("\n".join(queue.aliases()), file=self._file)
+        for control in self._controls:
+            print("\n".join(control.aliases()), file=self._file)
         self._file.flush()

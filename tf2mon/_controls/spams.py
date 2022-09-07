@@ -3,10 +3,9 @@
 import tf2mon
 from tf2mon.control import Control
 from tf2mon.msgqueue import MsgQueue
-from tf2mon.spammer import Spammer
 
 
-class SpamsControl(Control, MsgQueue, Spammer):
+class SpamsControl(Control, MsgQueue):
     """Spams queue control."""
 
     name = "spams"
