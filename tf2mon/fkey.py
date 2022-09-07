@@ -75,7 +75,7 @@ class FKey:
             else:
                 raise ValueError("keyspec", self.keyspec)
 
-        self.key: int | None = None  # ord("B"), curses.KEY_LEFT, curses.KEY_F1
+        self.key: int = None  # ord("B"), curses.KEY_LEFT, curses.KEY_F1
         if eff:
             self.key = curses.KEY_F0
             try:

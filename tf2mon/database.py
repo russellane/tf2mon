@@ -29,7 +29,7 @@ def Database(path=None, tables=None) -> sqlite3.dbapi2.Cursor:  # noqa invalid-n
 class DatabaseTable:
     """Base class for all database tables."""
 
-    __tablename__: str | None = None
+    __tablename__: str = None
 
     @classmethod
     def select_all(cls) -> Iterator[object]:

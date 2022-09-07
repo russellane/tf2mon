@@ -496,7 +496,7 @@ class CLI(BaseCLI):
         tf2mon.monitor.run()
 
 
-def main(args: list[str] | None = None) -> None:
+def main(args: list[str] = None) -> None:
     """Command line interface entry point (function)."""
 
     return CLI(args).main()

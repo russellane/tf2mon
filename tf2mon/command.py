@@ -45,9 +45,9 @@ class Command:
     """
 
     name: str
-    status: Callable[..., str] | None = None
-    handler: Callable[[re.Match], None] | None = None
-    action: str | None = None
+    status: Callable[..., str] = None
+    handler: Callable[[re.Match], None] = None
+    action: str = None
 
     def __post_init__(self):
         """Init."""
@@ -83,9 +83,9 @@ class Key:
     """A physical key may perform `base`, `ctrl` and `shift` `Function`s."""
 
     name: str  # e.g., "A", "F1"
-    base: Function | None = field(default=None, init=False)
-    ctrl: Function | None = field(default=None, init=False)
-    shift: Function | None = field(default=None, init=False)
+    base: Function = field(default=None, init=False)
+    ctrl: Function = field(default=None, init=False)
+    shift: Function = field(default=None, init=False)
 
     @property
     def functions(self) -> list[Function]:

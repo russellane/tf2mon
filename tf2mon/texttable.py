@@ -9,8 +9,8 @@ class TextColumn:
 
     width: int | float
     heading: str
-    fmt_heading: str | None = field(default=None, init=False)
-    fmt_detail: str | None = field(default=None, init=False)
+    fmt_heading: str = field(default=None, init=False)
+    fmt_detail: str = field(default=None, init=False)
 
     def __post_init__(self):
         """Init table column."""
@@ -50,9 +50,9 @@ class TextColumn:
 class TextTable:
     """Table formatter."""
 
-    columns: list[TextColumn] | None = None
-    _formatted_header: str | None = field(default=None, init=False)
-    _fmt_detail: str | None = field(default=None, init=False)
+    columns: list[TextColumn] = None
+    _formatted_header: str = field(default=None, init=False)
+    _fmt_detail: str = field(default=None, init=False)
 
     @property
     def formatted_header(self) -> str:
