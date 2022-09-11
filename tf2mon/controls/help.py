@@ -1,6 +1,7 @@
 """Miscelleneous controls."""
 
 import textwrap
+from pathlib import Path
 
 import tf2mon
 import tf2mon.monitor as Monitor
@@ -43,11 +44,14 @@ class MotdControl(Control):
     """Display Message of the Day."""
 
     name = "MOTD"
+    _path: Path = None
+
+    def start(self) -> None:
+        self._path = tf2mon.options.tf2_install_dir / "cfg" / "motd.txt"
 
     def handler(self, _match) -> None:
-        motd = Monitor.tf2_scripts_dir.parent / "motd.txt"
-        Monitor.ui.show_journal("help", f" {motd} ".center(80, "-"))
+        Monitor.ui.show_journal("help", f" {self._path} ".center(80, "-"))
 
-        with open(motd, encoding="utf-8") as file:
+        with open(self._path, encoding="utf-8") as file:
             for line in file:
                 Monitor.ui.show_journal("help", line.strip())

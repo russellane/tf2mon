@@ -2,7 +2,6 @@
 
 import curses
 from argparse import Namespace
-from pathlib import Path
 from pprint import pformat
 
 from loguru import logger
@@ -18,7 +17,6 @@ chats: list = []
 conlog: Conlog = None
 is_single_stepping: bool = None
 options: Namespace = None
-tf2_scripts_dir: Path = None
 ui: UI = None
 
 

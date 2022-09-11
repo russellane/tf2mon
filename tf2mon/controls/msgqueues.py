@@ -1,27 +1,49 @@
 """Message queues control."""
 
-from pathlib import Path
 from typing import IO, Callable
 
+from loguru import logger
+
+import tf2mon
 from tf2mon.control import Control
 
 
 class MsgQueuesControl(Control):
     """Message queues control."""
 
-    path: Path = None
     _controls: list[Control] = []
     _file: IO[str] = None
 
-    def open(self, path: Path) -> None:
+    def start(self) -> None:
+        """Complete initialization; post CLI, options now available."""
 
-        self.path = path
+        self._controls.append(tf2mon.KicksControl)
+        self._controls.append(tf2mon.SpamsControl)
 
-        if path and path.parent.is_dir():
-            # pylint: disable=consider-using-with
-            self._file = open(path, "w", encoding="utf-8")  # noqa
+        # Location of TF2 `exec` scripts.
+        _scripts = tf2mon.options.tf2_install_dir / "cfg" / "user"
 
-    # append: Callable[[Control], None] = _controls.append
+        # MsgQueue aliases; written often; left open.
+        _dynamic_path = _scripts / "tf2mon-pull.cfg"
+
+        # Static aliases and key bindings; written once (now).
+        _static_path = _scripts / "tf2mon.cfg"
+
+        if not _scripts.is_dir():
+            logger.warning(f"Can't find scripts dir `{_scripts}`")
+            logger.warning(f"Not opening `{_dynamic_path}`")
+            logger.warning(f"Not writing `{_static_path}`")
+            return
+
+        logger.info(f"Writing `{_static_path}`")
+        script = tf2mon.controls.commands.as_tf2_exec_script(
+            str(_static_path.relative_to(_scripts.parent)),
+            str(_dynamic_path.relative_to(_scripts.parent)),
+        )
+        _static_path.write_text(script, encoding="utf-8")
+
+        # pylint: disable=consider-using-with
+        self._file = open(_dynamic_path, "w", encoding="utf-8")  # noqa
 
     def append(self, control: Callable[[Control], None]) -> None:
         """Add `control` to the collection."""

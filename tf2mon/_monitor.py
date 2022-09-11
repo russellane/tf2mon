@@ -27,8 +27,6 @@ class Monitor:
     """Team Fortress 2 Console Monitor."""
 
     # Defer initializing until after parsing args.
-    path_static_script: Path
-    path_dynamic_script: Path
     regex_list: list
     ui: UI
 
@@ -40,22 +38,6 @@ class Monitor:
     def _run(self, win: curses.window) -> None:
         """Complete initialization; post CLI, options now available."""
 
-        # Location of TF2 `exec` scripts.
-        _Monitor.tf2_scripts_dir = Path(tf2mon.options.tf2_install_dir, "cfg", "user")
-        if not _Monitor.tf2_scripts_dir.is_dir():
-            logger.warning(f"Missing TF2 scripts dir `{_Monitor.tf2_scripts_dir}`")
-
-        # Monitor aliases and key bindings.
-        self.path_static_script = _Monitor.tf2_scripts_dir / "tf2mon.cfg"  # written once
-
-        # "Send" to TF2 through `msgqueues`.
-        self.path_dynamic_script = _Monitor.tf2_scripts_dir / "tf2mon-pull.cfg"  # written often
-
-        tf2mon.MsgQueuesControl.open(self.path_dynamic_script)
-        tf2mon.MsgQueuesControl.append(tf2mon.KicksControl)
-        tf2mon.MsgQueuesControl.append(tf2mon.SpamsControl)
-
-        # "Receive" from TF2 through `conlog`.
         # Wait for con_logfile to exist, then open it.
         _Monitor.conlog = Conlog(tf2mon.options)
 
@@ -75,7 +57,6 @@ class Monitor:
         self.regex_list += Gameplay().regex_list
 
         # function key handlers
-        self.write_tf2_exec_script()
         self.regex_list += tf2mon.controls.get_regex_list()
 
         #
@@ -117,16 +98,3 @@ class Monitor:
             regex.handler(regex.re_match_obj)
             tf2mon.MsgQueuesControl.send()
             _Monitor.ui.update_display()
-
-    def write_tf2_exec_script(self):
-        """Write tf2 exec script."""
-
-        if _Monitor.tf2_scripts_dir.is_dir():
-            logger.info(f"Writing `{self.path_static_script}`")
-            script = tf2mon.controls.commands.as_tf2_exec_script(
-                str(self.path_static_script.relative_to(_Monitor.tf2_scripts_dir.parent)),
-                str(self.path_dynamic_script.relative_to(_Monitor.tf2_scripts_dir.parent)),
-            )
-            self.path_static_script.write_text(script, encoding="utf-8")
-        else:
-            logger.warning(f"Not writing `{self.path_static_script}`")
