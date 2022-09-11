@@ -16,7 +16,7 @@ class HelpControl(Control):
     def handler(self, _match) -> None:
 
         Monitor.ui.show_journal("help", " Function Keys ".center(80, "-"))
-        for line in tf2mon.controls.fkey_help().splitlines():
+        for line in tf2mon.controller.fkey_help().splitlines():
             Monitor.ui.show_journal("help", line)
 
         Monitor.ui.show_journal("help", " Admin Commands ".center(80, "-"))

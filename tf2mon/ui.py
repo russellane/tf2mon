@@ -323,7 +323,7 @@ class UI:
     def show_status(self):
         """Update status line."""
 
-        line = tf2mon.controls.get_status_line() + f" UID={Monitor.users.my.userid}"
+        line = tf2mon.controller.get_status_line() + f" UID={Monitor.users.my.userid}"
 
         try:
             self.layout.status_win.addstr(

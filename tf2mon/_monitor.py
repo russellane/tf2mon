@@ -57,12 +57,12 @@ class Monitor:
         self.regex_list += Gameplay().regex_list
 
         # function key handlers
-        self.regex_list += tf2mon.controls.get_regex_list()
+        self.regex_list += tf2mon.controller.get_regex_list()
 
         #
         _Monitor.ui = UI(win)
         _Monitor.options = tf2mon.options
-        tf2mon.controls.start()
+        tf2mon.controller.start()
         _Monitor.users.me = _Monitor.users.my = _Monitor.users[tf2mon.config.get("player_name")]
         _Monitor.reset_game()
 

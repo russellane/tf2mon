@@ -1,6 +1,6 @@
 """Message queues control."""
 
-from typing import IO, Callable
+from typing import IO
 
 from loguru import logger
 
@@ -36,7 +36,7 @@ class MsgQueuesControl(Control):
             return
 
         logger.info(f"Writing `{_static_path}`")
-        script = tf2mon.controls.commands.as_tf2_exec_script(
+        script = tf2mon.controller.commands.as_tf2_exec_script(
             str(_static_path.relative_to(_scripts.parent)),
             str(_dynamic_path.relative_to(_scripts.parent)),
         )
@@ -44,10 +44,6 @@ class MsgQueuesControl(Control):
 
         # pylint: disable=consider-using-with
         self._file = open(_dynamic_path, "w", encoding="utf-8")  # noqa
-
-    def append(self, control: Callable[[Control], None]) -> None:
-        """Add `control` to the collection."""
-        self._controls.append(control)
 
     def clear(self) -> None:
         """Clear all message queues."""
