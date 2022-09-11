@@ -23,7 +23,7 @@ class GameStatusEvent(GameEvent):
 
         _leader, s_userid, username, s_steamid, s_elapsed, ping = match.groups()
 
-        tf2mon.ui.notify_operator = False
+        Monitor.ui.notify_operator = False
 
         if not (steamid := parse_steamid(s_steamid)):
             return  # invalid

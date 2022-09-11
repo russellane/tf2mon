@@ -9,7 +9,6 @@ from loguru import logger
 
 import tf2mon
 import tf2mon.layouts
-from tf2mon._controls import Controls
 from tf2mon._logger import configure_logger
 from tf2mon._monitor import Monitor
 from tf2mon.conlog import Conlog
@@ -51,7 +50,6 @@ class CLI(BaseCLI):
 
         threading.current_thread().name = "MAIN"
         tf2mon.monitor = Monitor()
-        tf2mon.controls = Controls()
         super().__init__(argv)
 
     def init_logging(self, verbose: int) -> None:
@@ -460,6 +458,7 @@ class CLI(BaseCLI):
 
         tf2mon.config = self.config
         tf2mon.options = self.options
+        tf2mon.steam_web_api = SteamWebAPI(self.config.get("webapi_key"))
 
         if self.options.con_logfile == self.config["con_logfile"]:
             # Not given on command line; prefix with effective parent.
@@ -488,9 +487,8 @@ class CLI(BaseCLI):
 
         if self.options.print_steamids:
             Database(self.options.database)
-            api = SteamWebAPI(webapi_key=self.config.get("webapi_key"))
             for steamid in self.options.print_steamids:
-                print(api.fetch_steamid(steamid))
+                print(tf2mon.steam_web_api.fetch_steamid(steamid))
             self.parser.exit()
 
         tf2mon.monitor.run()

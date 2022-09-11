@@ -15,6 +15,6 @@ class GameConnectedEvent(GameEvent):
 
         tf2mon.logger.log("CONNECT", Monitor.users[username])
 
-        tf2mon.ui.notify_operator = True
+        Monitor.ui.notify_operator = True
         if username == tf2mon.config.get("player_name"):
-            tf2mon.monitor.reset_game()
+            Monitor.reset_game()

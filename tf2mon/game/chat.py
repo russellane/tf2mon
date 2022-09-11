@@ -1,10 +1,10 @@
 import re
 
-import tf2mon
 import tf2mon.monitor as Monitor
 from tf2mon.chat import Chat
 from tf2mon.game import GameEvent
 from tf2mon.player import Player
+from tf2mon.racist import is_racist_text
 
 
 class GameChatEvent(GameEvent):
@@ -25,8 +25,8 @@ class GameChatEvent(GameEvent):
         chat = Chat(user, teamflag, msg)
 
         user.chats.append(chat)
-        tf2mon.monitor.chats.append(chat)
-        tf2mon.ui.show_chat(chat)
+        Monitor.chats.append(chat)
+        Monitor.ui.show_chat(chat)
 
         # if this is a team chat, then we know we're on the same team, and
         # if one of us knows which team we're on and the other doesn't, we
@@ -41,7 +41,7 @@ class GameChatEvent(GameEvent):
                 Monitor.users.me.assign_team(user.team)
 
         # inspect msg
-        if tf2mon.monitor.is_racist_text(chat.msg):
+        if is_racist_text(chat.msg):
             user.kick(Player.RACIST)
 
         elif user.is_cheater_chat(chat):

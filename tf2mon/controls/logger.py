@@ -5,6 +5,7 @@ from enum import Enum
 from loguru import logger
 
 import tf2mon
+import tf2mon.monitor as Monitor
 from tf2mon.control import Control, CycleControl
 from tf2mon.toggle import Toggle
 
@@ -13,8 +14,8 @@ class LogLevelControl(CycleControl):
     """Cycle logger `level`."""
 
     name = "TOGGLE-LOG-LEVEL"
-    enum = Enum(f"_e_{name}", "INFO DEBUG TRACE")
-    toggle = Toggle(f"_t_{name}", enum)
+    enum = Enum("_e_loglvl", "INFO DEBUG TRACE")
+    toggle = Toggle("_t_loglvl", enum)
     items = {
         enum.INFO: "INFO",  # ""
         enum.DEBUG: "DEBUG",  # "-v"
@@ -24,20 +25,20 @@ class LogLevelControl(CycleControl):
     def start(self) -> None:
         """Set logging level based on `--verbose`."""
 
-        tf2mon.ui.logsink.set_verbose(tf2mon.options.verbose)
-        self.toggle.start(self.enum.__dict__[tf2mon.ui.logsink.level])
+        Monitor.ui.logsink.set_verbose(tf2mon.options.verbose)
+        self.toggle.start(self.enum.__dict__[Monitor.ui.logsink.level])
 
     def handler(self, _match) -> None:
-        tf2mon.ui.logsink.set_level(self.items[self.toggle.cycle])
-        tf2mon.ui.show_status()
+        Monitor.ui.logsink.set_level(self.items[self.toggle.cycle])
+        Monitor.ui.show_status()
 
 
 class LogLocationControl(CycleControl):
     """Cycle logger `location` format."""
 
     name = "TOGGLE-LOG-LOCATION"
-    enum = Enum(f"_e_{name}", "MOD NAM THM THN FILE NUL")
-    toggle = Toggle(f"_t_{name}", enum)
+    enum = Enum("_e_logloc", "MOD NAM THM THN FILE NUL")
+    toggle = Toggle("_t_logloc", enum)
     items = {
         enum.MOD: "{module}.{function}:{line}",
         enum.NAM: "{name}.{function}:{line}",
@@ -49,11 +50,11 @@ class LogLocationControl(CycleControl):
 
     def start(self) -> None:
         self.toggle.start(self.enum.__dict__[tf2mon.options.log_location])
-        tf2mon.ui.logsink.set_location(self.items[self.toggle.value])
+        Monitor.ui.logsink.set_location(self.items[self.toggle.value])
 
     def handler(self, _match) -> None:
-        tf2mon.ui.logsink.set_location(self.items[self.toggle.cycle])
-        tf2mon.ui.show_status()
+        Monitor.ui.logsink.set_location(self.items[self.toggle.cycle])
+        Monitor.ui.show_status()
 
     def status(self) -> str:
         return self.toggle.value.name
@@ -75,5 +76,5 @@ class ResetPaddingControl(Control):
     name = "RESET-PADDING"
 
     def handler(self, _match) -> None:
-        tf2mon.ui.logsink.reset_padding()
+        Monitor.ui.logsink.reset_padding()
         logger.info("padding reset")

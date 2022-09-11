@@ -13,4 +13,4 @@ per-file-ignores =
 
     # D102 Missing docstring in public method
     # PLC0116 Missing function or method docstring (missing-function-docstring)
-    tf2mon/_controls/*:D102,PLC0116
+    tf2mon/controls/*:D102,PLC0116

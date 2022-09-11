@@ -14,8 +14,8 @@ from typing import Callable
 
 from libcurses import register_fkey
 
-from tf2mon import APPNAME, APPTAG
 from tf2mon.fkey import FKey
+from tf2mon.pkg import APPNAME, APPTAG
 from tf2mon.regex import Regex
 
 

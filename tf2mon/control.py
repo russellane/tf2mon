@@ -1,12 +1,14 @@
 """Application control."""
 
 import argparse
+from typing import Callable
 
 from libcli import BaseCLI
 
-import tf2mon
+import tf2mon.monitor as Monitor
 from tf2mon.command import Command
 from tf2mon.fkey import FKey
+from tf2mon.toggle import Toggle
 
 
 class Control:
@@ -62,14 +64,14 @@ class Control:
 class BoolControl(Control):
     """Bool control."""
 
-    toggle = None
+    toggle: Toggle = None
 
     def handler(self, _match) -> None:
         """Handle event."""
 
-        if tf2mon.monitor.toggling_enabled:
+        if Monitor.toggling_enabled():
             _ = self.toggle.toggle
-            tf2mon.ui.show_status()
+            Monitor.ui.show_status()
 
     def status(self) -> str:
         """Return value formatted for display."""
@@ -86,8 +88,8 @@ class BoolControl(Control):
 class CycleControl(Control):
     """Cycle control."""
 
-    toggle = None
-    items = {}
+    toggle: Toggle = None
+    items: dict = {}
 
     def status(self) -> str:
         """Return value formatted for display."""
@@ -95,7 +97,7 @@ class CycleControl(Control):
         return self.toggle.value.name
 
     @property
-    def value(self) -> callable:
+    def value(self) -> Callable:
         """Return value."""
 
         return self.items[self.toggle.value]

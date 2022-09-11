@@ -4,7 +4,6 @@ import curses
 
 import libcurses
 
-import tf2mon
 import tf2mon.monitor as Monitor
 from tf2mon.player import Player
 from tf2mon.texttable import TextColumn, TextTable
@@ -29,7 +28,7 @@ class Scoreboard:
             TextColumn(-3, "K"),
             TextColumn(-3, "D"),
             TextColumn(4.1, "KD"),
-            TextColumn(1, "C"),
+            TextColumn(8, "CLASS"),
             TextColumn(25, "USERNAME"),
         ]
     )
@@ -78,17 +77,14 @@ class Scoreboard:
         # whose team is unknown; doesn't matter which side they're
         # displayed on.
         unassigned = [x for x in users if not x.team]
-
-        #
         nusers = self.win1.getmaxyx()[0] - 1
         while len(team1) < nusers and len(unassigned) > 0:
             team1.append(unassigned.pop(0))
-        self._show_team_scores(self.win1, self.color1, team1)
 
-        #
-        self._show_team_scores(self.win2, self.color2, team2 + unassigned)
+        self._refresh_team(self.win1, self.color1, team1)
+        self._refresh_team(self.win2, self.color2, team2 + unassigned)
 
-    def _show_team_scores(self, win, color, team):
+    def _refresh_team(self, win, color, team):
 
         ncols = win.getmaxyx()[1]
         win.erase()
@@ -132,7 +128,7 @@ class Scoreboard:
                     user.nkills,
                     user.ndeaths,
                     user.kdratio,
-                    user.role.display,
+                    user.role.name,
                     " +".join(names),
                 )
 
@@ -142,7 +138,7 @@ class Scoreboard:
                     0,
                     user.last_scoreboard_line,
                     ncols,
-                    tf2mon.ui.user_color(user, color),
+                    Monitor.ui.user_color(user, color),
                 )
             except curses.error:
                 break
@@ -162,7 +158,7 @@ class Scoreboard:
         for active_user in Monitor.users.active_users():
             active_user.selected = False
         user.selected = True
-        tf2mon.ui.update_display()
+        Monitor.ui.update_display()
 
         if mouse.nclicks == 2:
             user.kick(Player.CHEATER)

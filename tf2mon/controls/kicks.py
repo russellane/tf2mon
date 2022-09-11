@@ -1,6 +1,7 @@
 """Kicks queue control."""
 
 import tf2mon
+import tf2mon.monitor as Monitor
 from tf2mon.control import Control
 from tf2mon.msgqueue import MsgQueue
 
@@ -16,34 +17,34 @@ class KicksControl(Control, MsgQueue):
         super().__init__(self.name)
 
 
-class KicksPopControl(Control):
+class KicksPopControl(KicksControl):
     """Pop last/latest kicks queue message."""
 
     name = "KICKS-POP"
     action = "tf2mon_kicks_pop"
 
     def handler(self, _match) -> None:
-        tf2mon.controls["KicksControl"].pop()
-        tf2mon.ui.refresh_kicks()
+        tf2mon.KicksControl.pop()
+        Monitor.ui.refresh_kicks()
 
 
-class KicksClearControl(Control):
+class KicksClearControl(KicksControl):
     """Clear kicks queue."""
 
     name = "KICKS-CLEAR"
     action = "tf2mon_kicks_clear"
 
     def handler(self, _match) -> None:
-        tf2mon.controls["KicksControl"].clear()
-        tf2mon.ui.refresh_kicks()
+        tf2mon.KicksControl.clear()
+        Monitor.ui.refresh_kicks()
 
 
-class KicksPopleftControl(Control):
+class KicksPopleftControl(KicksControl):
     """Pop first/oldest kicks queue message."""
 
     name = "KICKS-POPLEFT"
     action = "tf2mon_kicks_popleft"
 
     def handler(self, _match) -> None:
-        tf2mon.controls["KicksControl"].popleft()
-        tf2mon.ui.refresh_kicks()
+        tf2mon.KicksControl.popleft()
+        Monitor.ui.refresh_kicks()

@@ -7,8 +7,12 @@ from typing import List, NewType
 from loguru import logger
 
 import tf2mon
+import tf2mon.monitor as Monitor
 from tf2mon.chat import Chat
 from tf2mon.player import Player
+from tf2mon.racist import clean_username
+from tf2mon.role import Role
+from tf2mon.steamplayer import SteamPlayer
 
 UserKey = NewType("UserKey", str)
 WeaponState = NewType("WeaponState", str)
@@ -54,13 +58,7 @@ class User:
         """Create `User`."""
 
         self.username = username.replace(";", ".")
-
-        if m := tf2mon.monitor._re_racist.search(self.username):
-            self._clean_username = (
-                m.string[: m.start()] + str("n" * (m.end() - m.start())) + m.string[m.end() :]
-            )
-        else:
-            self._clean_username = self.username
+        self._clean_username = clean_username(self.username)
 
         # too strict?
         if "\u0e31" in self.username:
@@ -81,7 +79,7 @@ class User:
         self.state = UserState.ACTIVE
         self.n_status_checks = 0
         self.nsnipes = 0
-        self.role = tf2mon.monitor.unknown_role
+        self.role = Role.unknown
         self.ncaptures = 0
         self.ndefenses = 0
         self.chats: List[Chat] = []
@@ -111,7 +109,7 @@ class User:
         self.actions: List[str] = []
 
         #
-        self.steamplayer = None
+        self.steamplayer: SteamPlayer = None
         self.age = 0
         self.player: Player = None
 
@@ -152,7 +150,7 @@ class User:
     def moniker(self):
         """Return name, optionally including his kill/death ratio."""
 
-        if not tf2mon.controls["ShowKDControl"].value:
+        if not tf2mon.ShowKDControl.value:
             return self._clean_username
 
         # pylint: disable=consider-using-f-string
@@ -221,7 +219,7 @@ class User:
         assert self.steamid
         self.dirty = True
 
-        self.steamplayer = tf2mon.monitor.steam_web_api.fetch_steamid(self.steamid.id)
+        self.steamplayer = tf2mon.steam_web_api.fetch_steamid(self.steamid.id)
         if self.steamplayer.is_gamebot:
             self.steamplayer.personaname = self.username
             self.pending_attrs = []
@@ -236,7 +234,7 @@ class User:
             # logger.log("Player", self.player.astuple())
             self.player.setattrs(self.pending_attrs)
             self.player.track_appearance(self.username)
-            tf2mon.ui.show_player_intel(self.player)
+            Monitor.ui.show_player_intel(self.player)
             # bobo1
             self.display_level = self.player.display_level
             # logger.log(self.display_level, f"{self._clean_username!r} is here")
@@ -276,8 +274,8 @@ class User:
             self.pending_attrs.append(attr)
             self.display_level = attr.upper()
             logger.log(self.display_level, f"{self} needs steamid, Press KP_DOWNARROW to PUSH")
-            tf2mon.ui.notify_operator = True
-            tf2mon.ui.sound_alarm = True
+            Monitor.ui.notify_operator = True
+            Monitor.ui.sound_alarm = True
             return
 
         if self.player:
@@ -314,8 +312,8 @@ class User:
         cmd = f"CALLVOTE KICK {self.userid}"
         msg += f", {cmd}"
 
-        tf2mon.controls["KicksControl"].push(msg)
-        tf2mon.controls["KicksControl"].push(cmd)
+        tf2mon.KicksControl.push(msg)
+        tf2mon.KicksControl.push(cmd)
 
     re_cheater_names = re.compile(
         "|".join(

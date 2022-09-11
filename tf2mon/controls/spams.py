@@ -1,6 +1,7 @@
 """Spams queue control."""
 
 import tf2mon
+import tf2mon.monitor as Monitor
 from tf2mon.control import Control
 from tf2mon.msgqueue import MsgQueue
 
@@ -23,8 +24,8 @@ class SpamsPopControl(SpamsControl):
     action = "tf2mon_spams_pop"
 
     def handler(self, _match) -> None:
-        tf2mon.controls["SpamsControl"].pop()
-        tf2mon.ui.refresh_spams()
+        tf2mon.SpamsControl.pop()
+        Monitor.ui.refresh_spams()
 
 
 class SpamsClearControl(SpamsControl):
@@ -34,8 +35,8 @@ class SpamsClearControl(SpamsControl):
     action = "tf2mon_spams_clear"
 
     def handler(self, _match) -> None:
-        tf2mon.controls["SpamsControl"].clear()
-        tf2mon.ui.refresh_spams()
+        tf2mon.SpamsControl.clear()
+        Monitor.ui.refresh_spams()
 
 
 class SpamsPopleftControl(SpamsControl):
@@ -45,5 +46,5 @@ class SpamsPopleftControl(SpamsControl):
     action = "tf2mon_spams_popleft"
 
     def handler(self, _match) -> None:
-        tf2mon.controls["SpamsControl"].popleft()
-        tf2mon.ui.refresh_spams()
+        tf2mon.SpamsControl.popleft()
+        Monitor.ui.refresh_spams()

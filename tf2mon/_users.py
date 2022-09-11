@@ -7,6 +7,7 @@ from loguru import logger
 
 import tf2mon
 from tf2mon.player import Player
+from tf2mon.racist import is_racist_text
 from tf2mon.user import Team, User, UserState
 
 
@@ -33,7 +34,7 @@ class _Users:
             if self._is_cheater_name(user):
                 user.kick(Player.CHEATER)
 
-            if tf2mon.monitor.is_racist_text(username):
+            if is_racist_text(username):
                 user.kick(Player.RACIST)
 
         # reset inactivity counter
@@ -53,7 +54,7 @@ class _Users:
 
         yield from sorted(
             self.active_users(),
-            key=tf2mon.controls["SortOrderControl"].value,
+            key=tf2mon.SortOrderControl.value,
         )
 
     def kick_userid(self, userid: int, attr: str) -> None:

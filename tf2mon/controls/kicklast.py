@@ -1,6 +1,5 @@
 """Kick last killer."""
 
-import tf2mon
 import tf2mon.monitor as Monitor
 from tf2mon.control import Control
 from tf2mon.player import Player
@@ -9,8 +8,8 @@ from tf2mon.player import Player
 class KickLastControl(Control):
     """Kick last killer."""
 
-    name = None
-    attr = None
+    name: str = None
+    attr: str = None
 
     def handler(self, _match) -> None:
         Monitor.users.kick_my_last_killer(self.attr)

@@ -2,7 +2,7 @@
 
 from enum import Enum
 
-import tf2mon
+import tf2mon.monitor as Monitor
 from tf2mon.control import Control
 from tf2mon.toggle import Toggle
 
@@ -11,13 +11,13 @@ class UserPanelControl(Control):
     """Cycle contents of User Panel."""
 
     name = "TOGGLE-USER-PANEL"
-    enum = Enum(f"_e_{name}", "AUTO DUELS KICKS SPAMS")
-    toggle = Toggle(f"_t_{name}", enum)
+    enum = Enum("_e_user_panel", "AUTO DUELS KICKS SPAMS")
+    toggle = Toggle("_t_user_panel", enum)
 
     def handler(self, _match) -> None:
-        if tf2mon.monitor.toggling_enabled:
+        if Monitor.toggling_enabled():
             _ = self.toggle.toggle
-            tf2mon.ui.update_display()
+            Monitor.ui.update_display()
 
     def status(self) -> str:
         return self.toggle.value.name

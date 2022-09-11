@@ -21,10 +21,10 @@ class ShowDebugControl(Control):
     name = "SHOW-DEBUG"
 
     def handler(self, _match) -> None:
-        tf2mon.ui.show_journal("help", " Grid ".center(80, "-"))
-        tf2mon.ui.show_journal("help", str(tf2mon.ui.grid))
-        for box in tf2mon.ui.grid.boxes:
-            tf2mon.ui.show_journal("help", tf2mon.ui.grid.winyx(box))
+        Monitor.ui.show_journal("help", " Grid ".center(80, "-"))
+        Monitor.ui.show_journal("help", str(Monitor.ui.grid))
+        for box in Monitor.ui.grid.boxes:
+            Monitor.ui.show_journal("help", Monitor.ui.grid.winyx(box))
 
 
 class TauntFlagControl(BoolControl):
@@ -61,9 +61,9 @@ class ShowPerksControl(Control):
     name = "SHOW-PERKS"
 
     def handler(self, _match) -> None:
-        tf2mon.ui.show_journal("help", " Perks ".center(80, "-"))
+        Monitor.ui.show_journal("help", " Perks ".center(80, "-"))
         for user in [x for x in Monitor.users.active_users() if x.perk]:
-            tf2mon.ui.show_journal("help", f"{user!r:25} {user.perk}")
+            Monitor.ui.show_journal("help", f"{user!r:25} {user.perk}")
 
 
 class JoinOtherTeamControl(Control):
@@ -72,9 +72,9 @@ class JoinOtherTeamControl(Control):
     name = "SWITCH-MY-TEAM"
 
     def handler(self, _match) -> None:
-        if tf2mon.monitor.toggling_enabled:
+        if Monitor.toggling_enabled():
             Monitor.users.me.assign_team(Monitor.users.my.opposing_team)
-            tf2mon.ui.update_display()
+            Monitor.ui.update_display()
 
     def status(self) -> str:
         return Monitor.users.my.team.name  # if Monitor.users.my.team else "blu"
@@ -89,10 +89,10 @@ class ClearQueuesControl(Control):
     def handler(self, _match) -> None:
         """Handle event."""
 
-        tf2mon.controls["KicksControl"].clear()
-        tf2mon.ui.refresh_kicks()
-        tf2mon.controls["SpamsControl"].clear()
-        tf2mon.ui.refresh_spams()
+        tf2mon.KicksControl.clear()
+        Monitor.ui.refresh_kicks()
+        tf2mon.SpamsControl.clear()
+        Monitor.ui.refresh_spams()
 
 
 class PushControl(Control):
@@ -108,5 +108,5 @@ class SingleStepControl(Control):
     name = "SINGLE-STEP"
 
     def handler(self, _match) -> None:
-        tf2mon.monitor.admin.start_single_stepping()
+        Monitor.admin.start_single_stepping()
         logger.info("single-step")

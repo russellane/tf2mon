@@ -4,9 +4,10 @@
     tf2mon [--tf2-install-dir DIR] [--rewind | --no-rewind]
            [--follow | --no-follow] [--list-con-logfile]
            [--trunc-con-logfile] [--clean-con-logfile]
-           [--exclude-file FILE] [--layout {DFLT,FULL,TALL,MRGD,WIDE}]
+           [--exclude-file FILE]
+           [--sort-order {AGE,STEAMID,CONN,K,KD,USERNAME}]
            [--log-location {MOD,NAM,THM,THN,FILE,NUL}]
-           [--sort-order {AGE,STEAMID,CONN,K,KD,USERNAME}] [--single-step]
+           [--layout {DFLT,FULL,TALL,MRGD,WIDE}] [--single-step]
            [--break LINENO] [--search PATTERN] [--inject-cmd LINENO:CMD]
            [--inject-file FILE] [--toggles] [--database FILE]
            [--hackers FILE] [--print-steamids STEAMID [STEAMID ...]]
@@ -55,13 +56,13 @@ By default, `tf2mon` starts reading `con_logfile` from its end
     --exclude-file FILE
                         Exclude lines that match patterns in `FILE` (default:
                         `~/dev/tf2mon/tf2mon/data/exclude.txt`).
-    --layout {DFLT,FULL,TALL,MRGD,WIDE}
-                        Choose display layout (fkey: `F9`) (default: `MRGD`).
+    --sort-order {AGE,STEAMID,CONN,K,KD,USERNAME}
+                        Choose sort order (fkey: `F7`) (default: `KD`).
     --log-location {MOD,NAM,THM,THN,FILE,NUL}
                         Choose format of logger location field (fkey: `F8`)
                         (default: `NUL`).
-    --sort-order {AGE,STEAMID,CONN,K,KD,USERNAME}
-                        Choose sort order (fkey: `F7`) (default: `KD`).
+    --layout {DFLT,FULL,TALL,MRGD,WIDE}
+                        Choose display layout (fkey: `F9`) (default: `MRGD`).
 
 #### Debugging options
     --single-step       Single-step at startup.

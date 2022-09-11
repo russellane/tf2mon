@@ -3,6 +3,7 @@
 from loguru import logger
 
 import tf2mon
+import tf2mon.monitor as Monitor
 from tf2mon.toggle import Cycle
 
 
@@ -94,12 +95,12 @@ class Spammer:
 
         m = messages.cycle.format(
             user=user.moniker,
-            duel=tf2mon.monitor.my.duel_as_str(user),
+            duel=Monitor.users.my.duel_as_str(user),
             weapon=weapon,
             killed=self._killed.cycle,
             insult=self._insults.cycle,
         )
-        tf2mon.controls["SpamsControl"].push("say " + m + suffix)
+        tf2mon.SpamsControl.push("say " + m + suffix)
 
     def spam(self, spamno):
         """Respond to SPAM command."""
@@ -111,4 +112,4 @@ class Spammer:
             logger.critical(f"bad spamno {spamno!r}")
             return
 
-        tf2mon.controls["SpamsControl"].pushleft(msg)
+        tf2mon.SpamsControl.pushleft(msg)

@@ -39,7 +39,7 @@ class GamePerkOff2Event(GameEvent):
 
     def handler(self, match: re.Match) -> None:
 
-        user = tf2mon.monitor.me
+        user = Monitor.users.me
         user.perk = None
         user.dirty = True
         tf2mon.logger.log("PERK-OFF", f"{user} {user.perk!r}")

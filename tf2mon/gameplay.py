@@ -80,7 +80,7 @@ class Gameplay:
             #
             Regex(
                 leader + r"You have switched to team (?P<teamname>\w+) and will",
-                lambda m: tf2mon.monitor.me.assign_team(m.group("teamname")),
+                lambda m: Monitor.users.me.assign_team(m.group("teamname")),
             ),
             # hostname: Valve Matchmaking Server (Virginia iad-1/srcds148 #53)
             Regex(

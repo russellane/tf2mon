@@ -3,6 +3,7 @@ import re
 import tf2mon
 import tf2mon.monitor as Monitor
 from tf2mon.game import GameEvent
+from tf2mon.role import Role, get_role_weapon_state
 from tf2mon.spammer import Spammer
 
 
@@ -68,17 +69,19 @@ class GameKillEvent(GameEvent):
 
         # subtotal opponents by weapon_state -----------------------------------
 
-        if role := tf2mon.monitor.role_by_weapon.get(weapon):
+        crit = bool(s_crit)
+        role, weapon_state = get_role_weapon_state(killer.role, weapon, crit, killer.perk)
+        if role:
             killer.role = role
-            if killer.role == tf2mon.monitor.sniper_role:
+            if killer.role == Role.sniper:
                 killer.nsnipes += 1
         else:
             role = killer.role
             if weapon not in ("player", "world"):
                 tf2mon.logger.error(f"cannot map {weapon} for {killer} {role}")
 
-        crit = bool(s_crit)
-        weapon_state = role.get_weapon_state(weapon, crit, killer.perk)
+        if not role and weapon not in ("player", "world"):
+            tf2mon.logger.error(f"cannot map {weapon} for {killer} {role}")
 
         if victim.key not in killer.nkills_by_opponent_by_weapon:
             # contains a hash of counts by weapon_state
@@ -100,19 +103,19 @@ class GameKillEvent(GameEvent):
             weapon_state,
         )
 
-        if tf2mon.controls["ShowKillsControl"].value:
+        if tf2mon.ShowKillsControl.value:
             level = "KILL"
             if killer.team:
                 level += killer.team.name
-            tf2mon.ui.show_journal(
+            Monitor.ui.show_journal(
                 level,
                 f"         {killer.moniker!r:25} killed {victim.moniker!r:25} {weapon_state!r}",
             )
 
-        if killer == tf2mon.monitor.me:
-            if tf2mon.controls["TauntFlagControl"].value:
+        if killer == Monitor.users.me:
+            if tf2mon.TauntFlagControl.value:
                 self.spammer.taunt(victim, weapon, crit)
-        elif victim == tf2mon.monitor.me and tf2mon.controls["ThroeFlagControl"].value:
+        elif victim == Monitor.users.me and tf2mon.ThroeFlagControl.value:
             self.spammer.throe(killer, weapon, crit)
 
         if not victim.team and killer.team:

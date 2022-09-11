@@ -18,7 +18,7 @@ class Admin:
         """Initialize Admin Console."""
 
         self._single_step_event = threading.Event()
-        self.is_single_stepping = tf2mon.options.single_step
+        Monitor.is_single_stepping = tf2mon.options.single_step
         self._single_step_re = None
 
         if pattern := tf2mon.options.search:
@@ -26,7 +26,7 @@ class Admin:
                 pattern = pattern[1:]
             self.set_single_step_pattern(pattern)
 
-        if self.is_single_stepping:
+        if Monitor.is_single_stepping:
             self.start_single_stepping()
         else:
             self._stop_single_stepping()
@@ -47,7 +47,7 @@ class Admin:
             # stop single-stepping until eof, then single-step again
             Regex("^(r|run|g|go)$", lambda m: self.set_single_step_lineno(0)),
             # dump internals
-            Regex("^dump$", lambda m: tf2mon.monitor.dump()),
+            Regex("^dump$", lambda m: Monitor.dump()),
             # pause when logfile reaches `lineno`.
             Regex(
                 R"^(b|break|breakpoint)[= ](?P<lineno>\d+)$",
@@ -73,7 +73,7 @@ class Admin:
                 lambda m: Monitor.users.kick_userid(int(m.group("userid")), Player.SUSPECT),
             ),
             # drop to python debugger
-            Regex("^PDB$", lambda m: tf2mon.monitor.breakpoint()),
+            Regex("^PDB$", lambda m: Monitor.debugger()),
             # deprecated, legacy, support old conlogs.
             Regex(
                 "^(TOGGLE-SCOREBOARD|TOGGLE-QUEUES|CHATS-POP|CHATS-POPLEFT|CHATS-CLEAR)$",
@@ -89,20 +89,20 @@ class Admin:
     def start_single_stepping(self):
         """Begin prompting operator before processing each line from con_logfile."""
 
-        self.is_single_stepping = True
+        Monitor.is_single_stepping = True
         self._single_step_event.clear()
 
     def _stop_single_stepping(self):
         """End prompting operator before processing each line from con_logfile."""
 
-        self.is_single_stepping = False
+        Monitor.is_single_stepping = False
         self._single_step_event.set()
 
     def set_single_step_lineno(self, lineno=0):
         """Begin single-stepping at `lineno` if given else at eof."""
 
         if lineno:
-            tf2mon.monitor.conlog.inject_cmd(lineno, "SINGLE-STEP")
+            Monitor.conlog.inject_cmd(lineno, "SINGLE-STEP")
         else:
             # stop single-stepping until eof, then single-step again
             self._stop_single_stepping()
@@ -148,41 +148,41 @@ class Admin:
         # start single stepping if pattern match
         if (
             self._single_step_re
-            and not self.is_single_stepping
+            and not Monitor.is_single_stepping
             and self._single_step_re.search(line)
         ):
             flags = "i" if (self._single_step_re.flags & re.IGNORECASE) else ""
             logger.log("ADMIN", f"break search /{self._single_step_re.pattern}/{flags}")
             self.start_single_stepping()
 
-        level = "nextline" if self.is_single_stepping else "logline"
+        level = "nextline" if Monitor.is_single_stepping else "logline"
         logger.log(level, "-" * 80)
-        logger.log(level, tf2mon.monitor.conlog.last_line)
+        logger.log(level, Monitor.conlog.last_line)
 
         # check gate
         self._single_step_event.wait()
-        if self.is_single_stepping:
+        if Monitor.is_single_stepping:
             self._single_step_event.clear()
 
     def repl(self):
         """Admin console read-evaluate-process-loop."""
 
-        while not tf2mon.monitor.conlog.is_eof or tf2mon.options.follow:
+        while not Monitor.conlog.is_eof or tf2mon.options.follow:
 
-            tf2mon.ui.update_display()
+            Monitor.ui.update_display()
 
             prompt = tf2mon.APPNAME
-            if self.is_single_stepping:
+            if Monitor.is_single_stepping:
                 prompt += " (single-stepping)"
             prompt += ": "
 
-            if (line := tf2mon.ui.getline(prompt)) is None:
+            if (line := Monitor.ui.getline(prompt)) is None:
                 logger.log("console", "quit eof")
                 return
 
             if line == "":  # enter
-                if tf2mon.monitor.conlog.is_eof:
-                    logger.log("console", f"lineno={tf2mon.monitor.conlog.lineno} <EOF>")
+                if Monitor.conlog.is_eof:
+                    logger.log("console", f"lineno={Monitor.conlog.lineno} <EOF>")
                 # else:
                 #     logger.trace("step...")
                 self._single_step_event.set()

@@ -3,6 +3,7 @@
 import textwrap
 
 import tf2mon
+import tf2mon.monitor as Monitor
 from tf2mon.control import Control
 
 
@@ -13,11 +14,11 @@ class HelpControl(Control):
 
     def handler(self, _match) -> None:
 
-        tf2mon.ui.show_journal("help", " Function Keys ".center(80, "-"))
+        Monitor.ui.show_journal("help", " Function Keys ".center(80, "-"))
         for line in tf2mon.controls.fkey_help().splitlines():
-            tf2mon.ui.show_journal("help", line)
+            Monitor.ui.show_journal("help", line)
 
-        tf2mon.ui.show_journal("help", " Admin Commands ".center(80, "-"))
+        Monitor.ui.show_journal("help", " Admin Commands ".center(80, "-"))
         for line in (
             textwrap.dedent(
                 """
@@ -32,7 +33,7 @@ class HelpControl(Control):
             .strip()
             .splitlines()
         ):
-            tf2mon.ui.show_journal("help", line)
+            Monitor.ui.show_journal("help", line)
 
     def status(self) -> str:
         return self.name
@@ -44,9 +45,9 @@ class MotdControl(Control):
     name = "MOTD"
 
     def handler(self, _match) -> None:
-        motd = tf2mon.monitor.tf2_scripts_dir.parent / "motd.txt"
-        tf2mon.ui.show_journal("help", f" {motd} ".center(80, "-"))
+        motd = Monitor.tf2_scripts_dir.parent / "motd.txt"
+        Monitor.ui.show_journal("help", f" {motd} ".center(80, "-"))
 
         with open(motd, encoding="utf-8") as file:
             for line in file:
-                tf2mon.ui.show_journal("help", line.strip())
+                Monitor.ui.show_journal("help", line.strip())

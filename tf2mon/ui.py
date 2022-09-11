@@ -9,6 +9,7 @@ import libcurses
 from loguru import logger
 
 import tf2mon
+import tf2mon.monitor as Monitor
 from tf2mon.baselayout import BaseLayout
 from tf2mon.scoreboard import Scoreboard
 from tf2mon.user import Team, UserState
@@ -54,7 +55,7 @@ class UI:
         Called at init, on KEY_RESIZE events, and when layout changes.
         """
 
-        klass = tf2mon.controls["GridLayoutControl"].value
+        klass = tf2mon.GridLayoutControl.value
         try:
             self.layout = klass(self.grid)
         except AssertionError:
@@ -121,8 +122,8 @@ class UI:
 
         self.refresh_kicks()
         self.refresh_spams()
-        self.refresh_duels(tf2mon.monitor.me)
-        self.refresh_user(tf2mon.monitor.me)
+        self.refresh_duels(Monitor.users.me)
+        self.refresh_user(Monitor.users.me)
         # chatwin_blu and chatwin_red are rendered from gameplay/_playerchat
         self.scoreboard.refresh()
         self.show_status()
@@ -138,7 +139,7 @@ class UI:
             if win:
                 win.erase()
 
-        for chat in tf2mon.monitor.chats:
+        for chat in Monitor.chats:
             self.show_chat(chat)
 
     def refresh_kicks(self):
@@ -147,12 +148,12 @@ class UI:
         if self.layout.kicks_win:
             self._show_lines(
                 "KICKS",
-                reversed(tf2mon.controls["KicksControl"].msgs),
+                reversed(tf2mon.KicksControl.msgs),
                 self.layout.kicks_win,
             )
 
         if self.layout.user_win:
-            self.refresh_user(tf2mon.monitor.me)
+            self.refresh_user(Monitor.users.me)
 
     def refresh_spams(self):
         """Refresh spams panel."""
@@ -160,12 +161,12 @@ class UI:
         if self.layout.spams_win:
             self._show_lines(
                 "SPAMS",
-                reversed(tf2mon.controls["SpamsControl"].msgs),
+                reversed(tf2mon.SpamsControl.msgs),
                 self.layout.spams_win,
             )
 
         if self.layout.user_win:
-            self.refresh_user(tf2mon.monitor.me)
+            self.refresh_user(Monitor.users.me)
 
     def refresh_duels(self, user):
         """Refresh duels panel."""
@@ -174,14 +175,14 @@ class UI:
             self._show_lines("user", self._format_duels(user), self.layout.duels_win)
 
         if self.layout.user_win:
-            self.refresh_user(tf2mon.monitor.me)
+            self.refresh_user(Monitor.users.me)
 
     def refresh_user(self, user):
         """Refresh user panel."""
 
-        panel = tf2mon.controls["UserPanelControl"]
-        kicks = tf2mon.controls["KicksControl"]
-        spams = tf2mon.controls["SpamsControl"]
+        panel = tf2mon.UserPanelControl
+        kicks = tf2mon.KicksControl
+        spams = tf2mon.SpamsControl
 
         if self.layout.user_win:
             if panel.value == panel.enum.KICKS or (
@@ -213,10 +214,10 @@ class UI:
         if user.display_level:
             color = self.colormap[user.display_level]
 
-        if user == tf2mon.monitor.my.last_killer:
+        if user == Monitor.users.my.last_killer:
             color |= curses.A_BOLD | curses.A_ITALIC
 
-        if user == tf2mon.monitor.my.last_victim:
+        if user == Monitor.users.my.last_victim:
             color |= curses.A_BOLD
 
         if user.selected:
@@ -322,7 +323,7 @@ class UI:
     def show_status(self):
         """Update status line."""
 
-        line = tf2mon.controls.get_status_line() + f" UID={tf2mon.monitor.my.userid}"
+        line = tf2mon.controls.get_status_line() + f" UID={Monitor.users.my.userid}"
 
         try:
             self.layout.status_win.addstr(
