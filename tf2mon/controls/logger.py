@@ -2,7 +2,7 @@
 
 from enum import Enum
 
-from loguru import logger
+from loguru import logger as _logger
 
 import tf2mon
 import tf2mon.monitor as Monitor
@@ -77,4 +77,4 @@ class ResetPaddingControl(Control):
 
     def handler(self, _match) -> None:
         Monitor.ui.logsink.reset_padding()
-        logger.info("padding reset")
+        _logger.info("padding reset")

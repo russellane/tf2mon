@@ -42,6 +42,7 @@ class MsgQueuesControl(Control):
         )
         _static_path.write_text(script, encoding="utf-8")
 
+        logger.info(f"Opening `{_dynamic_path}`")
         # pylint: disable=consider-using-with
         self._file = open(_dynamic_path, "w", encoding="utf-8")  # noqa
 

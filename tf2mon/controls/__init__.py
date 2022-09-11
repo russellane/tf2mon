@@ -1,26 +1,33 @@
-"""Application controls."""
+"""Collection of `Control`s."""
+
+from loguru import logger
 
 from tf2mon.command import Command, CommandManager
 from tf2mon.control import Control
 from tf2mon.fkey import FKey
 
 
-class Controls:
+class Controller:
     """Collection of `Control`s."""
 
     controls: list[Control] = []
-    bindings: list[Control] = []
+    debug = False
 
     commands = CommandManager()
     get_regex_list = commands.get_regex_list
     get_status_line = commands.get_status_line
 
-    def bind(self, control: Control, keyspec: str = None, game_only: bool = False) -> None:
-        """Bind `control` to `keyspec`."""
+    def add(self, control: Control, keyspec: str = None, game_only: bool = False) -> None:
+        """Add control to collection; optionally bind to `keyspec`."""
 
+        if keyspec is not None:
+            control.fkey = FKey(keyspec)
+        if self.debug:
+            logger.debug(control)
         self.controls.append(control)
-        self.bindings.append(control)
-        control.fkey = FKey(keyspec)
+
+        if keyspec is None:
+            return
 
         control.command = Command(
             control.name,
@@ -43,7 +50,7 @@ class Controls:
         """Return help for function keys."""
 
         lines = []
-        for control in self.bindings:
+        for control in [x for x in self.controls if x.fkey]:
             # 17 == indent 4 + len("KP_RIGHTARROW")
             lines.append(f"{control.fkey.keyspec:>17} {control.__doc__}")
         return "\n".join(lines)
@@ -54,4 +61,6 @@ class Controls:
         self.commands.register_curses_handlers()
 
         for control in [x for x in self.controls if hasattr(x, "start")]:
+            if self.debug:
+                logger.debug(control)
             control.start()
