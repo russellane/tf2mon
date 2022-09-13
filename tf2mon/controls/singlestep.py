@@ -75,40 +75,6 @@ class SingleStepControl(Control):
             self.pattern = re.compile(pattern, flags)
             logger.log("ADMIN", f"set search={self.pattern}")
 
-    def step(self, line: str) -> None:
-        """Involve operator if `line` requires single-step attention.
-
-        Called by the game thread (not the admin thread) for each line read
-        from conlog, to wait for the operator (when necessary) before
-        processing the line.
-
-        If there's an active single-step pattern and last `line` read from
-        con_logfile matches pattern, or if we are single-stepping, then
-        wait for admin thread to release the lock.
-
-        Args:
-            line: last string read from con_logfile.
-
-        Returns:
-            immediately if gate is clear, else waits for it.
-        """
-
-        # start single stepping if pattern match
-        if not self.is_stepping and self.pattern and self.pattern.search(line):
-            pattern = self.pattern.pattern
-            flags = "i" if (self.pattern.flags & re.IGNORECASE) else ""
-            logger.log("ADMIN", f"break search /{pattern}/{flags}")
-            self.start_single_stepping()
-
-        level = "nextline" if self.is_stepping else "logline"
-        logger.log(level, "-" * 80)
-        logger.log(level, tf2mon.conlog.last_line)
-
-        # check gate
-        self.wait()
-        if self.is_stepping:
-            self.clear()
-
 
 class SingleStepStartControl(Control):
     """Start single-stepping."""

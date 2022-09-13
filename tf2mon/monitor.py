@@ -1,6 +1,7 @@
 """Team Fortress 2 Console Monitor."""
 
 import curses
+import re
 import threading
 from pathlib import Path
 
@@ -36,23 +37,12 @@ class Monitor:
     def _run(self, win: curses.window) -> None:
         """Complete initialization; post CLI, options now available."""
 
-        # Wait for con_logfile to exist, then open it.
         tf2mon.conlog = Conlog(tf2mon.options)
-
-        #
         load_weapons_data(Path(__file__).parent / "data" / "weapons.csv")
         load_racist_data(Path(__file__).parent / "data" / "racist.txt")
-
-        # admin command handlers
         self._regex_list += self._admin.regex_list
-
-        # gameplay handlers
         self._regex_list += self._gameplay.regex_list
-
-        # function key handlers
         self._regex_list += tf2mon.controller.get_regex_list()
-
-        #
         tf2mon.ui = UI(win)
         Users.me = Users.my = Users[tf2mon.config.get("player_name")]
         tf2mon.controller.start()
@@ -67,15 +57,15 @@ class Monitor:
         thread = threading.Thread(name="GAME", target=self.game, daemon=True)
         thread.start()
 
-        # main thread reads from keyboard/mouse, and writes to display
-        # threading.current_thread().name = "MAIN"
+        # Read from keyboard/mouse, write to display.
         self.admin()
 
     def game(self):
-        """Read the console log file and play game."""
+        """Read console log file and play game."""
 
         Database(tf2mon.options.database, [Player, SteamPlayer])
-        tf2mon.conlog.open()
+        tf2mon.conlog.open()  # waits until it exists; then opens and returns.
+        stepper = tf2mon.SingleStepControl
 
         while (line := tf2mon.conlog.readline()) is not None:
             if not line:
@@ -86,7 +76,22 @@ class Monitor:
                 logger.log("ignore", tf2mon.conlog.last_line)
                 continue
 
-            tf2mon.SingleStepControl.step(line)
+            # start single stepping if pattern match
+            if not stepper.is_stepping and stepper.pattern and stepper.pattern.search(line):
+                pattern = stepper.pattern.pattern
+                flags = "i" if (stepper.pattern.flags & re.IGNORECASE) else ""
+                logger.log("ADMIN", f"break search /{pattern}/{flags}")
+                stepper.start_single_stepping()
+
+            level = "nextline" if stepper.is_stepping else "logline"
+            logger.log(level, "-" * 80)
+            logger.log(level, tf2mon.conlog.last_line)
+
+            # check gate
+            stepper.wait()
+            if stepper.is_stepping:
+                stepper.clear()
+
             regex.handler(regex.re_match_obj)
             tf2mon.MsgQueuesControl.send()
             tf2mon.ui.update_display()
