@@ -14,7 +14,7 @@ class GamePerkOnEvent(GameEvent):
 
     def handler(self, match: re.Match) -> None:
 
-        _leader, username, perk = match.groups()
+        username, perk = match.groups()
         user = Users[username]
         user.perk = perk
         user.dirty = True
@@ -27,7 +27,7 @@ class GamePerkOff1Event(GameEvent):
 
     def handler(self, match: re.Match) -> None:
 
-        _leader, username = match.groups()
+        (username,) = match.groups()
         user = Users[username]
         user.perk = None
         user.dirty = True
@@ -52,6 +52,6 @@ class GamePerkChangeEvent(GameEvent):
 
     def handler(self, match: re.Match) -> None:
 
-        _leader, username = match.groups()
+        (username,) = match.groups()
         user = Users[username]
         logger.debug(f"{user} changed class")

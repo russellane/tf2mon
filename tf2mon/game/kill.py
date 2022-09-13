@@ -19,7 +19,7 @@ class GameKillEvent(GameEvent):
         # pylint: disable=too-many-branches
         # pylint: disable=too-many-statements
 
-        _leader, s_killer, s_victim, weapon, s_crit = match.groups()
+        s_killer, s_victim, weapon, s_crit = match.groups()
 
         killer = Users[s_killer]
         victim = Users[s_victim]

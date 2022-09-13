@@ -20,7 +20,7 @@ class GameChatEvent(GameEvent):
 
     def handler(self, match: re.Match) -> None:
 
-        _leader, _dead, teamflag, username, msg = match.groups()
+        _dead, teamflag, username, msg = match.groups()
 
         user = Users[username]
         chat = Chat(user, teamflag, msg)

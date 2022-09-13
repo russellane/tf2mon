@@ -23,7 +23,7 @@ class GameStatusEvent(GameEvent):
         # pylint: disable=too-many-branches
         # pylint: disable=too-many-locals
 
-        _leader, s_userid, username, s_steamid, s_elapsed, ping = match.groups()
+        s_userid, username, s_steamid, s_elapsed, ping = match.groups()
 
         tf2mon.ui.notify_operator = False
 

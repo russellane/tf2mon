@@ -31,6 +31,9 @@ class Conlog:
         self.last_line = None
         self.lineno: int = 0
 
+        # strip optional timestamp; value not used.
+        self._re_timestamp = re.compile(r"^\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}: ")
+
         logger.info(f"Reading `{options.exclude_file}`")
         self.re_exclude = re.compile(
             "|".join(options.exclude_file.read_text(encoding="utf-8").splitlines())
@@ -130,6 +133,9 @@ class Conlog:
                     cmd, self._buffer = line.split(sep=" ", maxsplit=1)
                     self.last_line = f"{self.lineno}: {cmd}"
                     return cmd
+
+                if match := self._re_timestamp.search(line):
+                    line = line[match.end() :]
 
                 if self.re_exclude.search(line):
                     logger.log("exclude", f"{self.lineno}: {line}")

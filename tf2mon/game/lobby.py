@@ -20,7 +20,7 @@ class GameLobbyEvent(GameEvent):
         # this will not be called for games on local server with bots
         # or community servers; only on valve matchmaking servers.
 
-        _leader, s_steamid, teamname = match.groups()
+        s_steamid, teamname = match.groups()
 
         if not (steamid := parse_steamid(s_steamid)):
             return  # invalid

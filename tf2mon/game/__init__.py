@@ -1,5 +1,4 @@
 import re
-from typing import ClassVar
 
 from tf2mon.regex import Regex
 
@@ -7,15 +6,11 @@ from tf2mon.regex import Regex
 class GameEvent:
     """Base class of all game events."""
 
-    leader: ClassVar[
-        str
-    ] = r"^(\d{2}/\d{2}/\d{4} - \d{2}:\d{2}:\d{2}: )?"  # anchor to head; optional timestamp
-
     pattern: str
 
     @property
     def regex(self) -> Regex:
-        return Regex(self.leader + self.pattern, self.handler)
+        return Regex(self.pattern, self.handler)
 
     def handler(self, match: re.Match) -> None:
         raise NotImplementedError

@@ -13,7 +13,7 @@ class GameConnectedEvent(GameEvent):
 
     def handler(self, match: re.Match) -> None:
 
-        _leader, username = match.groups()
+        (username,) = match.groups()
 
         logger.log("CONNECT", Users[username])
 

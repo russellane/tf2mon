@@ -12,7 +12,7 @@ class GameCaptureEvent(GameEvent):
 
     def handler(self, match: re.Match) -> None:
 
-        _leader, username, action, capture_pt, s_teamno = match.groups()
+        username, action, capture_pt, s_teamno = match.groups()
 
         for name in username.split(", "):  # fix: names containing commas
 
