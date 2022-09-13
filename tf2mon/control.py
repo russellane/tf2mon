@@ -60,6 +60,22 @@ class Control:
         else:
             arg.help += text
 
+    def toggling_enabled(self) -> bool:
+        """Return True if toggling is enabled.
+
+        Don't allow toggling when replaying a game (`--rewind`),
+        unless `--toggles` is also given... or if single-stepping
+
+        This is checked by keys that alter the behavior of gameplay;
+        it is not checked by keys that only alter the display.
+        """
+
+        return (
+            tf2mon.conlog.is_eof
+            or tf2mon.options.toggles
+            or tf2mon.SingleStepControl.is_stepping
+        )
+
 
 class BoolControl(Control):
     """Bool control."""
@@ -69,7 +85,7 @@ class BoolControl(Control):
     def handler(self, _match) -> None:
         """Handle event."""
 
-        if tf2mon.toggling_enabled():
+        if self.toggling_enabled():
             _ = self.toggle.toggle
             tf2mon.ui.show_status()
 

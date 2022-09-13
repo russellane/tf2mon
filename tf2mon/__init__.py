@@ -143,19 +143,6 @@ def reset_game() -> None:
     MsgQueuesControl.clear()
 
 
-def toggling_enabled() -> bool:
-    """Return True if toggling is enabled.
-
-    Don't allow toggling when replaying a game (`--rewind`),
-    unless `--toggles` is also given... or if single-stepping
-
-    This is checked by keys that alter the behavior of gameplay;
-    it is not checked by keys that only alter the display.
-    """
-
-    return conlog.is_eof or options.toggles or SingleStepControl.is_stepping
-
-
 def debugger() -> None:
     """Drop into python debugger."""
 
