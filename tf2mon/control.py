@@ -5,7 +5,7 @@ from typing import Callable
 
 from libcli import BaseCLI
 
-import tf2mon.monitor as Monitor
+import tf2mon
 from tf2mon.command import Command
 from tf2mon.fkey import FKey
 from tf2mon.toggle import Toggle
@@ -69,9 +69,9 @@ class BoolControl(Control):
     def handler(self, _match) -> None:
         """Handle event."""
 
-        if Monitor.toggling_enabled():
+        if tf2mon.toggling_enabled():
             _ = self.toggle.toggle
-            Monitor.ui.show_status()
+            tf2mon.ui.show_status()
 
     def status(self) -> str:
         """Return value formatted for display."""

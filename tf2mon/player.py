@@ -214,14 +214,11 @@ class Player(DatabaseTable):
             # or self.pazer
         )
 
+    @staticmethod
+    def new_player(steamid: int, attrs: list[str], name: str) -> "Player":
+        """Create, insert and return new `Player`."""
 
-# DEFCON6 = [
-#     HackerAttr.BOT,
-#     HackerAttr.FRIENDS,
-#     HackerAttr.TACOBOT,
-#     HackerAttr.PAZER,
-# ]
-# BANNED = [
-#     HackerAttr.CHEATER,
-#     HackerAttr.RACIST,
-# ] + DEFCON6
+        player = Player(steamid)
+        player.setattrs(attrs)
+        player.track_appearance(name)
+        return player

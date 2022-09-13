@@ -1,4 +1,3 @@
-# import tf2mon.logger
 import logging
 from pathlib import Path
 

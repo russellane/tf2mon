@@ -1,8 +1,9 @@
 import re
 
-import tf2mon
-import tf2mon.monitor as Monitor
+from loguru import logger
+
 from tf2mon.game import GameEvent
+from tf2mon.users import Users
 
 
 class GameCaptureEvent(GameEvent):
@@ -15,7 +16,7 @@ class GameCaptureEvent(GameEvent):
 
         for name in username.split(", "):  # fix: names containing commas
 
-            user = Monitor.users[name]
+            user = Users[name]
 
             user.assign_teamno(int(s_teamno))
 
@@ -28,5 +29,5 @@ class GameCaptureEvent(GameEvent):
             user.dirty = True
             level += user.team.name
 
-            tf2mon.logger.log(level, f"{user} {capture_pt!r}")
+            logger.log(level, f"{user} {capture_pt!r}")
             user.actions.append(f"{level} {capture_pt!r}")

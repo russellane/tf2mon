@@ -1,17 +1,25 @@
 """Team Fortress 2 Console Monitor."""
 
+import curses
 from argparse import Namespace
+from pprint import pformat
 
-from loguru import logger  # noqa
+from loguru import logger
 
-from tf2mon.controls import Controller
-from tf2mon.pkg import APPNAME, APPTAG  # noqa
+from tf2mon.conlog import Conlog
+from tf2mon.controller import Controller
 from tf2mon.steamweb import SteamWebAPI
+from tf2mon.ui import UI
+from tf2mon.user import Team
+from tf2mon.users import Users
 
 config: dict = {}
+conlog: Conlog = None
 options: Namespace = None
 steam_web_api: SteamWebAPI = None
+ui: UI = None
 
+from tf2mon.controls.chats import ChatsControl as _ChatsControl  # noqa
 from tf2mon.controls.chats import ClearChatsControl as _ClearChatsControl  # noqa
 from tf2mon.controls.gridlayout import GridLayoutControl as _GridLayoutControl  # noqa
 from tf2mon.controls.help import HelpControl as _HelpControl  # noqa
@@ -34,10 +42,11 @@ from tf2mon.controls.misc import ShowDebugControl as _ShowDebugControl  # noqa
 from tf2mon.controls.misc import ShowKDControl as _ShowKDControl  # noqa
 from tf2mon.controls.misc import ShowKillsControl as _ShowKillsControl  # noqa
 from tf2mon.controls.misc import ShowPerksControl as _ShowPerksControl  # noqa
-from tf2mon.controls.misc import SingleStepControl as _SingleStepControl  # noqa
 from tf2mon.controls.misc import TauntFlagControl as _TauntFlagControl  # noqa
 from tf2mon.controls.misc import ThroeFlagControl as _ThroeFlagControl  # noqa
 from tf2mon.controls.msgqueues import MsgQueuesControl as _MsgQueuesControl  # noqa
+from tf2mon.controls.singlestep import SingleStepControl as _SingleStepControl  # noqa
+from tf2mon.controls.singlestep import SingleStepStartControl as _SingleStepStartControl  # noqa
 from tf2mon.controls.sortorder import SortOrderControl as _SortOrderControl  # noqa
 from tf2mon.controls.spams import SpamsClearControl as _SpamsClearControl  # noqa
 from tf2mon.controls.spams import SpamsControl as _SpamsControl  # noqa
@@ -61,6 +70,7 @@ KicksPopleftControl = _KicksPopleftControl()
 LogLevelControl = _LogLevelControl()
 LogLocationControl = _LogLocationControl()
 MotdControl = _MotdControl()
+ChatsControl = _ChatsControl()
 MsgQueuesControl = _MsgQueuesControl()
 PushControl = _PushControl()
 ResetPaddingControl = _ResetPaddingControl()
@@ -69,6 +79,7 @@ ShowKDControl = _ShowKDControl()
 ShowKillsControl = _ShowKillsControl()
 ShowPerksControl = _ShowPerksControl()
 SingleStepControl = _SingleStepControl()
+SingleStepStartControl = _SingleStepStartControl()
 SortOrderControl = _SortOrderControl()
 SpamsClearControl = _SpamsClearControl()
 SpamsControl = _SpamsControl()
@@ -99,7 +110,7 @@ controller.add(LogLevelControl, "Shift+F8")
 controller.add(GridLayoutControl, "F9")
 controller.add(ClearChatsControl, "Shift+F9")
 controller.add(ShowDebugControl, "KP_INS")
-controller.add(SingleStepControl, "KP_DEL")
+controller.add(SingleStepStartControl, "KP_DEL")
 controller.add(KickLastCheaterControl, "[", game_only=True)
 controller.add(KickLastRacistControl, "]", game_only=True)
 controller.add(KickLastSuspectControl, "\\", game_only=True)
@@ -113,6 +124,50 @@ controller.add(ClearQueuesControl, "KP_5")
 controller.add(PushControl, "KP_DOWNARROW")
 
 # controls without key bindings
+controller.add(ChatsControl)
 controller.add(KicksControl)
 controller.add(SpamsControl)
 controller.add(MsgQueuesControl)
+controller.add(SingleStepControl)
+
+
+def reset_game() -> None:
+    """Start new game."""
+
+    logger.success("RESET GAME")
+
+    Users.me.assign_team(Team.BLU)
+    Users.my.display_level = "user"
+    ChatsControl.clear()
+    ui.refresh_chats()
+    MsgQueuesControl.clear()
+
+
+def toggling_enabled() -> bool:
+    """Return True if toggling is enabled.
+
+    Don't allow toggling when replaying a game (`--rewind`),
+    unless `--toggles` is also given... or if single-stepping
+
+    This is checked by keys that alter the behavior of gameplay;
+    it is not checked by keys that only alter the display.
+    """
+
+    return conlog.is_eof or options.toggles or SingleStepControl.is_stepping
+
+
+def debugger() -> None:
+    """Drop into python debugger."""
+
+    if conlog.is_eof or SingleStepControl.is_stepping:
+        curses.reset_shell_mode()
+        breakpoint()  # pylint: disable=forgotten-debug-statement
+        curses.reset_prog_mode()
+
+
+def dump() -> None:
+    """Dump stuff."""
+
+    logger.success(pformat(Users.__dict__))
+    for user in Users.users_by_username.values():
+        logger.success(pformat(user.__dict__))

@@ -3,8 +3,9 @@
 from loguru import logger
 
 import tf2mon
-import tf2mon.monitor as Monitor
+from tf2mon.pkg import APPNAME
 from tf2mon.toggle import Cycle
+from tf2mon.users import Users
 
 
 class Spammer:
@@ -95,7 +96,7 @@ class Spammer:
 
         m = messages.cycle.format(
             user=user.moniker,
-            duel=Monitor.users.my.duel_as_str(user),
+            duel=Users.my.duel_as_str(user),
             weapon=weapon,
             killed=self._killed.cycle,
             insult=self._insults.cycle,
@@ -106,7 +107,7 @@ class Spammer:
         """Respond to SPAM command."""
 
         if spamno == 1:
-            msg = str("say Real-time stats brought to you by " f"{tf2mon.APPNAME} bot detector")
+            msg = str("say Real-time stats brought to you by " f"{APPNAME} bot detector")
 
         else:
             logger.critical(f"bad spamno {spamno!r}")

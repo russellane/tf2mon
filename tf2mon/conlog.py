@@ -7,7 +7,7 @@ from collections import namedtuple
 
 from loguru import logger
 
-import tf2mon
+from tf2mon.pkg import APPTAG
 
 _CMD = namedtuple("_CMD", ["lineno", "cmd"])
 
@@ -60,8 +60,8 @@ class Conlog:
     def inject_cmd(self, lineno, cmd):
         """Inject command into logfile before `lineno`."""
 
-        if not cmd.startswith(tf2mon.APPTAG):
-            cmd = tf2mon.APPTAG + cmd
+        if not cmd.startswith(APPTAG):
+            cmd = APPTAG + cmd
 
         self._inject_cmds.append(_CMD(int(lineno) - 1, cmd))
         self._is_inject_sorted = False
@@ -125,7 +125,7 @@ class Conlog:
                 self.lineno += 1
 
                 line = line.strip()
-                if line.startswith(tf2mon.APPTAG) and " " in line:
+                if line.startswith(APPTAG) and " " in line:
                     # sometimes newlines get dropped and lines are combined
                     cmd, self._buffer = line.split(sep=" ", maxsplit=1)
                     self.last_line = f"{self.lineno}: {cmd}"

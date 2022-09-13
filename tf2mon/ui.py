@@ -9,10 +9,10 @@ import libcurses
 from loguru import logger
 
 import tf2mon
-import tf2mon.monitor as Monitor
 from tf2mon.baselayout import BaseLayout
 from tf2mon.scoreboard import Scoreboard
 from tf2mon.user import Team, UserState
+from tf2mon.users import Users
 
 # from playsound import playsound
 
@@ -122,8 +122,8 @@ class UI:
 
         self.refresh_kicks()
         self.refresh_spams()
-        self.refresh_duels(Monitor.users.me)
-        self.refresh_user(Monitor.users.me)
+        self.refresh_duels(Users.me)
+        self.refresh_user(Users.me)
         # chatwin_blu and chatwin_red are rendered from gameplay/_playerchat
         self.scoreboard.refresh()
         self.show_status()
@@ -139,7 +139,7 @@ class UI:
             if win:
                 win.erase()
 
-        for chat in Monitor.chats:
+        for chat in tf2mon.ChatsControl.value:
             self.show_chat(chat)
 
     def refresh_kicks(self):
@@ -153,7 +153,7 @@ class UI:
             )
 
         if self.layout.user_win:
-            self.refresh_user(Monitor.users.me)
+            self.refresh_user(Users.me)
 
     def refresh_spams(self):
         """Refresh spams panel."""
@@ -166,7 +166,7 @@ class UI:
             )
 
         if self.layout.user_win:
-            self.refresh_user(Monitor.users.me)
+            self.refresh_user(Users.me)
 
     def refresh_duels(self, user):
         """Refresh duels panel."""
@@ -175,7 +175,7 @@ class UI:
             self._show_lines("user", self._format_duels(user), self.layout.duels_win)
 
         if self.layout.user_win:
-            self.refresh_user(Monitor.users.me)
+            self.refresh_user(Users.me)
 
     def refresh_user(self, user):
         """Refresh user panel."""
@@ -214,10 +214,10 @@ class UI:
         if user.display_level:
             color = self.colormap[user.display_level]
 
-        if user == Monitor.users.my.last_killer:
+        if user == Users.my.last_killer:
             color |= curses.A_BOLD | curses.A_ITALIC
 
-        if user == Monitor.users.my.last_victim:
+        if user == Users.my.last_victim:
             color |= curses.A_BOLD
 
         if user.selected:
@@ -323,7 +323,7 @@ class UI:
     def show_status(self):
         """Update status line."""
 
-        line = tf2mon.controller.get_status_line() + f" UID={Monitor.users.my.userid}"
+        line = tf2mon.controller.get_status_line() + f" UID={Users.my.userid}"
 
         try:
             self.layout.status_win.addstr(

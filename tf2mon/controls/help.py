@@ -4,7 +4,6 @@ import textwrap
 from pathlib import Path
 
 import tf2mon
-import tf2mon.monitor as Monitor
 from tf2mon.control import Control
 
 
@@ -15,11 +14,11 @@ class HelpControl(Control):
 
     def handler(self, _match) -> None:
 
-        Monitor.ui.show_journal("help", " Function Keys ".center(80, "-"))
+        tf2mon.ui.show_journal("help", " Function Keys ".center(80, "-"))
         for line in tf2mon.controller.fkey_help().splitlines():
-            Monitor.ui.show_journal("help", line)
+            tf2mon.ui.show_journal("help", line)
 
-        Monitor.ui.show_journal("help", " Admin Commands ".center(80, "-"))
+        tf2mon.ui.show_journal("help", " Admin Commands ".center(80, "-"))
         for line in (
             textwrap.dedent(
                 """
@@ -34,7 +33,7 @@ class HelpControl(Control):
             .strip()
             .splitlines()
         ):
-            Monitor.ui.show_journal("help", line)
+            tf2mon.ui.show_journal("help", line)
 
     def status(self) -> str:
         return self.name
@@ -50,8 +49,8 @@ class MotdControl(Control):
         self._path = tf2mon.options.tf2_install_dir / "cfg" / "motd.txt"
 
     def handler(self, _match) -> None:
-        Monitor.ui.show_journal("help", f" {self._path} ".center(80, "-"))
+        tf2mon.ui.show_journal("help", f" {self._path} ".center(80, "-"))
 
         with open(self._path, encoding="utf-8") as file:
             for line in file:
-                Monitor.ui.show_journal("help", line.strip())
+                tf2mon.ui.show_journal("help", line.strip())

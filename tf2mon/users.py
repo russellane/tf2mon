@@ -1,5 +1,6 @@
 """Collection of `User` objects."""
 
+import re
 from typing import Iterator
 
 from fuzzywuzzy import fuzz
@@ -97,9 +98,21 @@ class _Users:
         for user in self.active_users():
             user.assign_team(user.opposing_team)
 
+    re_cheater_names = re.compile(
+        "|".join(
+            [
+                r"^(\(\d+\))?Sydney",
+                r"Swonk Bot",
+                r"spoooky braaaap",
+                r"Bot Removal Service",
+                r"^\[g0tb0t\]Church-of-myg0t",
+            ]
+        )
+    )
+
     def _is_cheater_name(self, user: User) -> bool:
 
-        if User.re_cheater_names.search(user.username):
+        if self.re_cheater_names.search(user.username):
             return True
 
         for _user in [x for x in self.active_users() if x.steamplayer and not x.player]:

@@ -9,8 +9,8 @@ from loguru import logger
 
 import tf2mon
 import tf2mon.layouts
+import tf2mon.monitor
 from tf2mon._logger import configure_logger
-from tf2mon._monitor import Monitor
 from tf2mon.conlog import Conlog
 from tf2mon.database import Database
 from tf2mon.steamweb import SteamWebAPI
@@ -49,7 +49,7 @@ class CLI(BaseCLI):
         """Build and parse command line."""
 
         threading.current_thread().name = "MAIN"
-        tf2mon.monitor = Monitor()
+        tf2mon.monitor.Monitor = tf2mon.monitor._Monitor()
         super().__init__(argv)
 
     def init_logging(self, verbose: int) -> None:
@@ -491,7 +491,7 @@ class CLI(BaseCLI):
                 print(tf2mon.steam_web_api.fetch_steamid(steamid))
             self.parser.exit()
 
-        tf2mon.monitor.run()
+        tf2mon.monitor.Monitor.run()
 
 
 def main(args: list[str] = None) -> None:

@@ -5,7 +5,6 @@ from enum import Enum
 from loguru import logger as _logger
 
 import tf2mon
-import tf2mon.monitor as Monitor
 from tf2mon.control import Control, CycleControl
 from tf2mon.toggle import Toggle
 
@@ -25,12 +24,12 @@ class LogLevelControl(CycleControl):
     def start(self) -> None:
         """Set logging level based on `--verbose`."""
 
-        Monitor.ui.logsink.set_verbose(tf2mon.options.verbose)
-        self.toggle.start(self.enum.__dict__[Monitor.ui.logsink.level])
+        tf2mon.ui.logsink.set_verbose(tf2mon.options.verbose)
+        self.toggle.start(self.enum.__dict__[tf2mon.ui.logsink.level])
 
     def handler(self, _match) -> None:
-        Monitor.ui.logsink.set_level(self.items[self.toggle.cycle])
-        Monitor.ui.show_status()
+        tf2mon.ui.logsink.set_level(self.items[self.toggle.cycle])
+        tf2mon.ui.show_status()
 
 
 class LogLocationControl(CycleControl):
@@ -50,11 +49,11 @@ class LogLocationControl(CycleControl):
 
     def start(self) -> None:
         self.toggle.start(self.enum.__dict__[tf2mon.options.log_location])
-        Monitor.ui.logsink.set_location(self.items[self.toggle.value])
+        tf2mon.ui.logsink.set_location(self.items[self.toggle.value])
 
     def handler(self, _match) -> None:
-        Monitor.ui.logsink.set_location(self.items[self.toggle.cycle])
-        Monitor.ui.show_status()
+        tf2mon.ui.logsink.set_location(self.items[self.toggle.cycle])
+        tf2mon.ui.show_status()
 
     def status(self) -> str:
         return self.toggle.value.name
@@ -76,5 +75,5 @@ class ResetPaddingControl(Control):
     name = "RESET-PADDING"
 
     def handler(self, _match) -> None:
-        Monitor.ui.logsink.reset_padding()
+        tf2mon.ui.logsink.reset_padding()
         _logger.info("padding reset")

@@ -5,6 +5,7 @@ from collections import deque
 from loguru import logger
 
 import tf2mon
+from tf2mon.pkg import APPTAG
 
 
 class MsgQueue:
@@ -72,7 +73,7 @@ class MsgQueue:
 
         if self.msgs:
             last, first = self.msgs[-1], self.msgs[0]
-            last_ack = f" ; echo {tf2mon.APPTAG}{self.name.upper()}-POP"
+            last_ack = f" ; echo {APPTAG}{self.name.upper()}-POP"
             first_ack = last_ack + "LEFT"
         else:
             _echo = "say" if tf2mon.DebugFlagControl.value else "echo"

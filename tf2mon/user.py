@@ -7,7 +7,6 @@ from typing import List, NewType
 from loguru import logger
 
 import tf2mon
-import tf2mon.monitor as Monitor
 from tf2mon.chat import Chat
 from tf2mon.player import Player
 from tf2mon.racist import clean_username
@@ -213,7 +212,7 @@ class User:
             if not self.team:
                 self.assign_team(opponent.opposing_team)
 
-    def vet(self):
+    def vet(self) -> None:
         """Vet this player, whose `steamid` has just been obtained."""
 
         assert self.steamid
@@ -234,7 +233,7 @@ class User:
             # logger.log("Player", self.player.astuple())
             self.player.setattrs(self.pending_attrs)
             self.player.track_appearance(self.username)
-            Monitor.ui.show_player_intel(self.player)
+            tf2mon.ui.show_player_intel(self.player)
             # bobo1
             self.display_level = self.player.display_level
             # logger.log(self.display_level, f"{self._clean_username!r} is here")
@@ -248,7 +247,7 @@ class User:
         # Have we tried to kick them, but had to spool the work because
         # `steamid` wasn't available yet?
         if self.pending_attrs:
-            self.player = self._new_player(self.steamid.id, self.pending_attrs, self.username)
+            self.player = Player.new_player(self.steamid.id, self.pending_attrs, self.username)
             # bobo1
             self.display_level = self.player.display_level
             logger.log(self.display_level, f"{self} created {self.player}")
@@ -256,15 +255,6 @@ class User:
             self.pending_attrs = None
             if self.player.is_banned:
                 self.do_kick()
-
-    @staticmethod
-    def _new_player(steamid: int, attrs: list[str], name: str) -> Player:
-        """Create, insert and return new `Player`."""
-
-        player = Player(steamid)
-        player.setattrs(attrs)
-        player.track_appearance(name)
-        return player
 
     def kick(self, attr):
         """Kick this user."""
@@ -274,8 +264,8 @@ class User:
             self.pending_attrs.append(attr)
             self.display_level = attr.upper()
             logger.log(self.display_level, f"{self} needs steamid, Press KP_DOWNARROW to PUSH")
-            Monitor.ui.notify_operator = True
-            Monitor.ui.sound_alarm = True
+            tf2mon.notify_operator = True
+            tf2mon.sound_alarm = True
             return
 
         if self.player:
@@ -286,7 +276,7 @@ class User:
             else:
                 logger.info(f"{self} player {self.player} already {attr}")
         else:
-            self.player = self._new_player(
+            self.player = Player.new_player(
                 self.steamid.id, [attr] + self.pending_attrs, self.username
             )
             self.display_level = self.player.display_level
@@ -314,15 +304,3 @@ class User:
 
         tf2mon.KicksControl.push(msg)
         tf2mon.KicksControl.push(cmd)
-
-    re_cheater_names = re.compile(
-        "|".join(
-            [
-                r"^(\(\d+\))?Sydney",
-                r"Swonk Bot",
-                r"spoooky braaaap",
-                r"Bot Removal Service",
-                r"^\[g0tb0t\]Church-of-myg0t",
-            ]
-        )
-    )

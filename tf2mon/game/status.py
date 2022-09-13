@@ -1,9 +1,11 @@
 import re
 
+from loguru import logger
+
 import tf2mon
-import tf2mon.monitor as Monitor
 from tf2mon.game import GameEvent
 from tf2mon.steamid import BOT_STEAMID, parse_steamid
+from tf2mon.users import Users
 
 
 class GameStatusEvent(GameEvent):
@@ -23,7 +25,7 @@ class GameStatusEvent(GameEvent):
 
         _leader, s_userid, username, s_steamid, s_elapsed, ping = match.groups()
 
-        Monitor.ui.notify_operator = False
+        tf2mon.ui.notify_operator = False
 
         if not (steamid := parse_steamid(s_steamid)):
             return  # invalid
@@ -31,23 +33,19 @@ class GameStatusEvent(GameEvent):
         userid = int(s_userid)
         user = None
 
-        if steamid != BOT_STEAMID and (user := Monitor.users.users_by_steamid.get(steamid)):
+        if steamid != BOT_STEAMID and (user := Users.users_by_steamid.get(steamid)):
             if user.username and user.username != username:
-                tf2mon.logger.warning(
-                    f"{steamid.id} change username `{user.username}` to `{username}`"
-                )
+                logger.warning(f"{steamid.id} change username `{user.username}` to `{username}`")
                 user.username = username
                 if user.player:
                     user.player.track_appearance(username)
 
             if user.userid and user.userid != userid:
-                tf2mon.logger.warning(
-                    f"{steamid.id} change userid `{user.userid}` to `{userid}`"
-                )
+                logger.warning(f"{steamid.id} change userid `{user.userid}` to `{userid}`")
                 user.userid = userid
 
         if not user:
-            user = Monitor.users[username]
+            user = Users[username]
 
         user.dirty = True
 
@@ -56,7 +54,7 @@ class GameStatusEvent(GameEvent):
 
         if not user.steamid:
             user.steamid = steamid
-            Monitor.users.users_by_steamid[steamid] = user
+            Users.users_by_steamid[steamid] = user
 
         #
         mdy = s_elapsed.split(":")
@@ -83,10 +81,10 @@ class GameStatusEvent(GameEvent):
 
         #
         user.ping = ping
-        tf2mon.logger.log("STATUS", user)
+        logger.log("STATUS", user)
 
         #
-        if not user.team and (team := Monitor.users.teams_by_steamid.get(steamid)):
+        if not user.team and (team := Users.teams_by_steamid.get(steamid)):
             user.assign_team(team)
 
         #

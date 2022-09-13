@@ -1,8 +1,10 @@
 import re
 
+from loguru import logger
+
 import tf2mon
-import tf2mon.monitor as Monitor
 from tf2mon.game import GameEvent
+from tf2mon.users import Users
 
 
 class GameConnectedEvent(GameEvent):
@@ -13,8 +15,8 @@ class GameConnectedEvent(GameEvent):
 
         _leader, username = match.groups()
 
-        tf2mon.logger.log("CONNECT", Monitor.users[username])
+        logger.log("CONNECT", Users[username])
 
-        Monitor.ui.notify_operator = True
+        tf2mon.ui.notify_operator = True
         if username == tf2mon.config.get("player_name"):
-            Monitor.reset_game()
+            tf2mon.reset_game()

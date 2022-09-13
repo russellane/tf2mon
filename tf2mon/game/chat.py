@@ -1,10 +1,11 @@
 import re
 
-import tf2mon.monitor as Monitor
+import tf2mon
 from tf2mon.chat import Chat
 from tf2mon.game import GameEvent
 from tf2mon.player import Player
 from tf2mon.racist import is_racist_text
+from tf2mon.users import Users
 
 
 class GameChatEvent(GameEvent):
@@ -21,24 +22,24 @@ class GameChatEvent(GameEvent):
 
         _leader, _dead, teamflag, username, msg = match.groups()
 
-        user = Monitor.users[username]
+        user = Users[username]
         chat = Chat(user, teamflag, msg)
 
         user.chats.append(chat)
-        Monitor.chats.append(chat)
-        Monitor.ui.show_chat(chat)
+        tf2mon.ChatsControl.append(chat)
+        tf2mon.ui.show_chat(chat)
 
         # if this is a team chat, then we know we're on the same team, and
         # if one of us knows which team we're on and the other doesn't, we
         # can assign.
 
-        if chat.teamflag and user != Monitor.users.me:
+        if chat.teamflag and user != Users.me:
             # we're on the same team
             if not user.team:
-                if Monitor.users.my.team:
-                    user.assign_team(Monitor.users.my.team)
-            elif not Monitor.users.my.team:
-                Monitor.users.me.assign_team(user.team)
+                if Users.my.team:
+                    user.assign_team(Users.my.team)
+            elif not Users.my.team:
+                Users.me.assign_team(user.team)
 
         # inspect msg
         if is_racist_text(chat.msg):

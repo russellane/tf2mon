@@ -1,11 +1,9 @@
 """Miscelleneous controls."""
 
-from loguru import logger
-
 import tf2mon
-import tf2mon.monitor as Monitor
 from tf2mon.control import BoolControl, Control
 from tf2mon.toggle import Toggle
+from tf2mon.users import Users
 
 
 class DebugFlagControl(BoolControl):
@@ -21,10 +19,10 @@ class ShowDebugControl(Control):
     name = "SHOW-DEBUG"
 
     def handler(self, _match) -> None:
-        Monitor.ui.show_journal("help", " Grid ".center(80, "-"))
-        Monitor.ui.show_journal("help", str(Monitor.ui.grid))
-        for box in Monitor.ui.grid.boxes:
-            Monitor.ui.show_journal("help", Monitor.ui.grid.winyx(box))
+        tf2mon.ui.show_journal("help", " Grid ".center(80, "-"))
+        tf2mon.ui.show_journal("help", str(tf2mon.ui.grid))
+        for box in tf2mon.ui.grid.boxes:
+            tf2mon.ui.show_journal("help", tf2mon.ui.grid.winyx(box))
 
 
 class TauntFlagControl(BoolControl):
@@ -61,9 +59,9 @@ class ShowPerksControl(Control):
     name = "SHOW-PERKS"
 
     def handler(self, _match) -> None:
-        Monitor.ui.show_journal("help", " Perks ".center(80, "-"))
-        for user in [x for x in Monitor.users.active_users() if x.perk]:
-            Monitor.ui.show_journal("help", f"{user!r:25} {user.perk}")
+        tf2mon.ui.show_journal("help", " Perks ".center(80, "-"))
+        for user in [x for x in Users.active_users() if x.perk]:
+            tf2mon.ui.show_journal("help", f"{user!r:25} {user.perk}")
 
 
 class JoinOtherTeamControl(Control):
@@ -72,12 +70,12 @@ class JoinOtherTeamControl(Control):
     name = "SWITCH-MY-TEAM"
 
     def handler(self, _match) -> None:
-        if Monitor.toggling_enabled():
-            Monitor.users.me.assign_team(Monitor.users.my.opposing_team)
-            Monitor.ui.update_display()
+        if tf2mon.toggling_enabled():
+            Users.me.assign_team(Users.my.opposing_team)
+            tf2mon.ui.update_display()
 
     def status(self) -> str:
-        return Monitor.users.my.team.name  # if Monitor.users.my.team else "blu"
+        return Users.my.team.name  # if Users.my.team else "blu"
 
 
 class ClearQueuesControl(Control):
@@ -90,9 +88,9 @@ class ClearQueuesControl(Control):
         """Handle event."""
 
         tf2mon.KicksControl.clear()
-        Monitor.ui.refresh_kicks()
+        tf2mon.ui.refresh_kicks()
         tf2mon.SpamsControl.clear()
-        Monitor.ui.refresh_spams()
+        tf2mon.ui.refresh_spams()
 
 
 class PushControl(Control):
@@ -100,13 +98,3 @@ class PushControl(Control):
 
     name = "PUSH"
     action = "tf2mon_push"
-
-
-class SingleStepControl(Control):
-    """Start single-stepping."""
-
-    name = "SINGLE-STEP"
-
-    def handler(self, _match) -> None:
-        Monitor.admin.start_single_stepping()
-        logger.info("single-step")

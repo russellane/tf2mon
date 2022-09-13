@@ -4,10 +4,11 @@ import curses
 
 import libcurses
 
-import tf2mon.monitor as Monitor
+import tf2mon
 from tf2mon.player import Player
 from tf2mon.texttable import TextColumn, TextTable
 from tf2mon.user import Team
+from tf2mon.users import Users
 
 
 class Scoreboard:
@@ -69,7 +70,7 @@ class Scoreboard:
 
         libcurses.clear_mouse_handlers()
 
-        users = list(Monitor.users.sorted())
+        users = list(Users.sorted())
         team1 = [x for x in users if x.team == Team.BLU]
         team2 = [x for x in users if x.team == Team.RED]
 
@@ -138,7 +139,7 @@ class Scoreboard:
                     0,
                     user.last_scoreboard_line,
                     ncols,
-                    Monitor.ui.user_color(user, color),
+                    tf2mon.ui.user_color(user, color),
                 )
             except curses.error:
                 break
@@ -155,10 +156,10 @@ class Scoreboard:
         if mouse.button != 1:
             return False  # not handled
 
-        for active_user in Monitor.users.active_users():
+        for active_user in Users.active_users():
             active_user.selected = False
         user.selected = True
-        Monitor.ui.update_display()
+        tf2mon.ui.update_display()
 
         if mouse.nclicks == 2:
             user.kick(Player.CHEATER)

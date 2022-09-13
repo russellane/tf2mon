@@ -1,8 +1,9 @@
 import re
 
-import tf2mon
-import tf2mon.monitor as Monitor
+from loguru import logger
+
 from tf2mon.game import GameEvent
+from tf2mon.users import Users
 
 
 class GamePerkOnEvent(GameEvent):
@@ -14,10 +15,10 @@ class GamePerkOnEvent(GameEvent):
     def handler(self, match: re.Match) -> None:
 
         _leader, username, perk = match.groups()
-        user = Monitor.users[username]
+        user = Users[username]
         user.perk = perk
         user.dirty = True
-        tf2mon.logger.log("PERK-ON", f"{user} {perk!r}")
+        logger.log("PERK-ON", f"{user} {perk!r}")
 
 
 class GamePerkOff1Event(GameEvent):
@@ -27,10 +28,10 @@ class GamePerkOff1Event(GameEvent):
     def handler(self, match: re.Match) -> None:
 
         _leader, username = match.groups()
-        user = Monitor.users[username]
+        user = Users[username]
         user.perk = None
         user.dirty = True
-        tf2mon.logger.log("PERK-OFF", f"{user} {user.perk!r}")
+        logger.log("PERK-OFF", f"{user} {user.perk!r}")
 
 
 class GamePerkOff2Event(GameEvent):
@@ -39,10 +40,10 @@ class GamePerkOff2Event(GameEvent):
 
     def handler(self, match: re.Match) -> None:
 
-        user = Monitor.users.me
+        user = Users.me
         user.perk = None
         user.dirty = True
-        tf2mon.logger.log("PERK-OFF", f"{user} {user.perk!r}")
+        logger.log("PERK-OFF", f"{user} {user.perk!r}")
 
 
 class GamePerkChangeEvent(GameEvent):
@@ -52,5 +53,5 @@ class GamePerkChangeEvent(GameEvent):
     def handler(self, match: re.Match) -> None:
 
         _leader, username = match.groups()
-        user = Monitor.users[username]
-        tf2mon.logger.debug(f"{user} changed class")
+        user = Users[username]
+        logger.debug(f"{user} changed class")
