@@ -242,14 +242,26 @@ class UI:
         if not win:
             return  # not showing chats
 
-        color = self.colormap[chat.user.team.name if chat.user.team else "user"]
+        user = chat.user
+        color = self.colormap[user.team.name if user.team else "user"]
         if chat.teamflag:
             color |= curses.A_UNDERLINE
+        user_color = self.user_color(user, color)
 
+        leader = f"{chat.seqno}: {chat.user.username:20.20}: "
         if sum(win.getyx()):
             win.addch("\n")
-        line = f"{chat.seqno}: {chat.user.username:20.20}: {chat.msg}"
-        win.addstr(line, self.user_color(chat.user, color))
+        win.addstr(leader + chat.msg, user_color)
+
+        indent = " " * 15
+        if opponent := user.last_victim:
+            line = f"[last-Victim] {user.duel_as_str(opponent, True)} vs {opponent.moniker}"
+            win.addstr("\n" + leader + indent + line, user_color)
+
+        if opponent := user.last_killer:
+            line = f"[last-Killer] {user.duel_as_str(opponent, True)} vs {opponent.moniker}"
+            win.addstr("\n" + leader + indent + line, user_color)
+
         win.noutrefresh()
 
     def show_journal(self, level: str, line: str) -> None:
