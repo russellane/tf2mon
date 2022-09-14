@@ -16,7 +16,7 @@ class GameStatusEvent(GameEvent):
     # "#    158 "Jones"             [U:1:9999999999]     2:21:27    78    0 active
     # "#      3 "Nobody"            BOT                                     active
 
-    pattern = r'#\s*(?P<s_userid>\d+) "(?P<username>.+)"\s+(?P<steamid>\S+)(?: \s+(?P<elapsed>[\d:]+)\s+(?P<ping>\d+))'
+    pattern = r'#\s*(?P<s_userid>\d+) "(?P<username>.+)"\s+(?P<steamid>\S+)(?:\s+(?P<elapsed>[\d:]+)\s+(?P<ping>\d+))'
 
     def handler(self, match: re.Match) -> None:
 

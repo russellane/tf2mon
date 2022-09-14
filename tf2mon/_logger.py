@@ -100,6 +100,7 @@ def add_logging_levels() -> None:
     logger.level("KILLBLU", no=_always, color="<cyan>")
     logger.level("KILLRED", no=_always, color="<red>")
     logger.level("STATUS", no=_trace, color="<magenta>")
+    logger.level("SUICIDE", no=_always, color="<red>")
     logger.level("TEAMCHAT", no=_always, color="<green><italic>")
     logger.level("TEAMCHATBLU", no=_always, color="<cyan><italic>")
     logger.level("TEAMCHATRED", no=_always, color="<red><italic>")

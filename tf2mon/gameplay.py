@@ -14,6 +14,7 @@ from tf2mon.game.perk import (
     GamePerkOnEvent,
 )
 from tf2mon.game.status import GameStatusEvent
+from tf2mon.game.suicide import GameSuicideEvent
 from tf2mon.regex import Regex
 from tf2mon.users import Users
 
@@ -56,6 +57,7 @@ class Gameplay:
         GameChatEvent().regex,
         GameKillEvent().regex,
         GameConnectedEvent().regex,
+        GameSuicideEvent().regex,
         GameStatusEvent().regex,
         GameLobbyEvent().regex,
         GamePerkOnEvent().regex,

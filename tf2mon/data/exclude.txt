@@ -1,6 +1,11 @@
+: material .* not found.$
+CSoundEmitterSystemBase::GetParametersForSound
+CSoundPatch::Update:  Removing CSoundPatch
+PhysModelParseSolid failed for entity
 ^ ##### CTexture::LoadTextureBitsFromFile
 ^# userid name
 ^--- Missing Vgui material
+^Binding uncached material
 ^Cannot update control point
 ^DataTable warning: .*clamping\.$
 ^EmitSound: pitch out of bounds
@@ -13,7 +18,8 @@
 ^SOLID_VPHYSICS static prop with no vphysics model!
 ^SetupBones: invalid bone array size
 ^Soundscape: 
-^props_.*mdl : material "
+^\d+:Stopped sound
+^total_channels == MAX_CHANNELS
 ertexlit_and_unlit_generic_bump_[pv]s20
 m_face->glyph->bitmap.width is 0 for ch:32
 to attach particle system
