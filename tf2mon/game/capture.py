@@ -2,7 +2,7 @@ import re
 
 from loguru import logger
 
-from tf2mon.game import GameEvent
+from tf2mon.gameevent import GameEvent
 from tf2mon.users import Users
 
 

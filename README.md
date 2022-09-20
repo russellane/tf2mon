@@ -4,10 +4,9 @@
     tf2mon [--tf2-install-dir DIR] [--rewind | --no-rewind]
            [--follow | --no-follow] [--list-con-logfile]
            [--trunc-con-logfile] [--clean-con-logfile]
-           [--exclude-file FILE]
-           [--sort-order {AGE,STEAMID,CONN,K,KD,USERNAME}]
+           [--exclude-file FILE] [--layout {DFLT,FULL,TALL,MRGD,WIDE}]
            [--log-location {MOD,NAM,THM,THN,FILE,NUL}]
-           [--layout {DFLT,FULL,TALL,MRGD,WIDE}] [--single-step]
+           [--sort-order {AGE,STEAMID,CONN,K,KD,USERNAME}] [--single-step]
            [--break LINENO] [--search PATTERN] [--inject-cmd LINENO:CMD]
            [--inject-file FILE] [--toggles] [--database FILE]
            [--hackers FILE] [--print-steamids STEAMID [STEAMID ...]]
@@ -56,13 +55,13 @@ By default, `tf2mon` starts reading `con_logfile` from its end
     --exclude-file FILE
                         Exclude lines that match patterns in `FILE` (default:
                         `~/dev/tf2mon/tf2mon/data/exclude.txt`).
-    --sort-order {AGE,STEAMID,CONN,K,KD,USERNAME}
-                        Choose sort order (fkey: `F7`) (default: `KD`).
+    --layout {DFLT,FULL,TALL,MRGD,WIDE}
+                        Choose display layout (fkey: `F9`) (default: `MRGD`).
     --log-location {MOD,NAM,THM,THN,FILE,NUL}
                         Choose format of logger location field (fkey: `F8`)
                         (default: `NUL`).
-    --layout {DFLT,FULL,TALL,MRGD,WIDE}
-                        Choose display layout (fkey: `F9`) (default: `MRGD`).
+    --sort-order {AGE,STEAMID,CONN,K,KD,USERNAME}
+                        Choose sort order (fkey: `F7`) (default: `KD`).
 
 #### Debugging options
     --single-step       Single-step at startup.
@@ -96,21 +95,21 @@ By default, `tf2mon` starts reading `con_logfile` from its end
   These function keys are available in-game and in the monitor:
   
                  F1 Display Help.
-            CTRL+F1 Display Message of the Day.
+            ctrl+F1 Display Message of the Day.
                  F2 Enable/disable debug (use `ECHO` or `SAY`).
                  F3 Enable/disable `Taunt` messages.
-           SHIFT+F3 Enable/disable `Throe` messages.
+           shift+F3 Enable/disable `Throe` messages.
                  F4 Include `Kill/Death ratio` in `User.moniker`.
-           SHIFT+F4 Display kills in journal window.
+           shift+F4 Display kills in journal window.
                  F5 Cycle contents of User Panel.
-           SHIFT+F5 Display perks in journal window.
+           shift+F5 Display perks in journal window.
                  F6 Join Other Team.
                  F7 Cycle scoreboard Sort column.
                  F8 Cycle logger `location` format.
-            CTRL+F8 Reset logger `padding`.
-           SHIFT+F8 Cycle logger `level`.
+            ctrl+F8 Reset logger `padding`.
+           shift+F8 Cycle logger `level`.
                  F9 Cycle grid layout.
-           SHIFT+F9 Clear chat window(s).
+           shift+F9 Clear chat window(s).
              KP_INS Show debugging.
              KP_DEL Start single-stepping.
                   [ Kick last killer as `cheater`.

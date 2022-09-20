@@ -9,14 +9,12 @@ import libcurses
 from loguru import logger
 
 import tf2mon
-from tf2mon.admin import Admin
+import tf2mon.game
 from tf2mon.conlog import Conlog
 from tf2mon.database import Database
-from tf2mon.gameplay import Gameplay
 from tf2mon.pkg import APPNAME
 from tf2mon.player import Player
 from tf2mon.racist import load_racist_data
-from tf2mon.regex import Regex
 from tf2mon.role import load_weapons_data
 from tf2mon.steamplayer import SteamPlayer
 from tf2mon.ui import UI
@@ -25,10 +23,6 @@ from tf2mon.users import Users
 
 class Monitor:
     """Team Fortress 2 Console Monitor."""
-
-    _regex_list: list[Regex] = []
-    _admin = Admin()
-    _gameplay = Gameplay()
 
     def run(self):
         """Run the Monitor."""
@@ -40,9 +34,6 @@ class Monitor:
         tf2mon.conlog = Conlog(tf2mon.options)
         load_weapons_data(Path(__file__).parent / "data" / "weapons.csv")
         load_racist_data(Path(__file__).parent / "data" / "racist.txt")
-        self._regex_list += self._admin.regex_list
-        self._regex_list += self._gameplay.regex_list
-        self._regex_list += tf2mon.controller.get_regex_list()
         tf2mon.ui = UI(win)
         Users.me = Users.my = Users[tf2mon.config.get("player_name")]
         tf2mon.controller.start()
@@ -68,16 +59,29 @@ class Monitor:
         stepper = tf2mon.SingleStepControl
 
         while (line := tf2mon.conlog.readline()) is not None:
+            # conlog.readline does not return excluded lines.
             if not line:
                 continue
 
-            regex = Regex.search_list(line, self._regex_list)
-            if not regex:
+            event, match = None, None
+            for event in [
+                x
+                for x in tf2mon.game.events + tf2mon.controller.controls
+                if hasattr(x, "search")
+            ]:
+                if match := event.search(line):
+                    break
+            else:
                 logger.log("ignore", tf2mon.conlog.last_line)
                 continue
 
-            # start single stepping if pattern match
-            if not stepper.is_stepping and stepper.pattern and stepper.pattern.search(line):
+            logger.log("regex", match)
+
+            if hasattr(event, "start_stepping") and event.start_stepping:
+                logger.log("ADMIN", f"break on {event.__class__.__name__}")
+                stepper.start_single_stepping()
+
+            elif stepper.pattern and stepper.pattern.search(line):
                 pattern = stepper.pattern.pattern
                 flags = "i" if (stepper.pattern.flags & re.IGNORECASE) else ""
                 logger.log("ADMIN", f"break search /{pattern}/{flags}")
@@ -92,19 +96,24 @@ class Monitor:
             if stepper.is_stepping:
                 stepper.clear()
 
-            regex.handler(regex.re_match_obj)
-            tf2mon.MsgQueuesControl.send()
-            tf2mon.ui.update_display()
+            if hasattr(event, "handler"):
+                event.handler(match)
+                tf2mon.MsgQueuesControl.send()
+                tf2mon.ui.update_display()
 
     def admin(self) -> None:
         """Admin console read-evaluate-process-loop."""
+
+        # pylint: disable=too-many-branches
+
+        stepper = tf2mon.SingleStepControl
 
         while not tf2mon.conlog.is_eof or tf2mon.options.follow:
 
             tf2mon.ui.update_display()
 
             prompt = APPNAME
-            if tf2mon.SingleStepControl.is_stepping:
+            if stepper.is_stepping:
                 prompt += " (single-stepping)"
             prompt += ": "
 
@@ -117,17 +126,47 @@ class Monitor:
                     logger.log("console", f"lineno={tf2mon.conlog.lineno} <EOF>")
                 # else:
                 #     logger.trace("step...")
-                tf2mon.SingleStepControl.set()
+                stepper.set()
                 continue
 
             logger.log("console", f"line={line!r}")
 
-            cmd = line  # .upper()
-            if "quit".find(cmd) == 0:
+            if "quit".find(line) == 0:
                 logger.log("console", "quit")
                 return
 
-            if regex := Regex.search_list(cmd, self._admin.regex_list):
-                regex.handler(regex.re_match_obj)
+            try:
+                cmd, arg = line.split(maxsplit=1)
+            except ValueError:
+                cmd = line
+                arg = None
+
+            if "breakpoint".find(cmd) == 0 and arg.isdigit:
+                stepper.set_single_step_lineno(int(arg))
+
+            elif cmd[0] == "/":
+                stepper.set_single_step_pattern(cmd[1:])
+
+            elif "continue".find(cmd) == 0 or "go".find(cmd) == 0 or "run".find(cmd) == 0:
+                stepper.stop_single_stepping()
+
+            elif "kick".find(cmd) == 0 and arg.isdigit:
+                Users.kick_userid(int(arg), Player.CHEATER)
+
+            elif "kkk".find(cmd) == 0 and arg.isdigit:
+                Users.kick_userid(int(arg), Player.RACIST)
+
+            elif "suspect".find(cmd) == 0 and arg.isdigit:
+                Users.kick_userid(int(arg), Player.SUSPECT)
+
+            elif "dump".find(cmd) == 0:
+                tf2mon.dump()
+
+            elif "help".find(cmd) == 0:
+                tf2mon.HelpControl.handler(None)
+
+            elif "motd".find(cmd) == 0:
+                tf2mon.MotdControl.handler(None)
+
             else:
                 logger.error(f"bad admin command {cmd!r}")

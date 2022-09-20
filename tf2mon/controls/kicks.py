@@ -1,19 +1,13 @@
 """Kicks queue control."""
 
 import tf2mon
-from tf2mon.control import Control
-from tf2mon.msgqueue import MsgQueue
+from tf2mon.controls.msgqueue import MsgQueueControl
 
 
-class KicksControl(Control, MsgQueue):
+class KicksControl(MsgQueueControl):
     """Kicks queue control."""
 
     name = "kicks"
-
-    def __init__(self):
-        """Kicks queue control."""
-
-        super().__init__(self.name)
 
 
 class KicksPopControl(KicksControl):

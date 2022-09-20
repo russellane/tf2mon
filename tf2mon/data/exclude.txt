@@ -4,15 +4,18 @@ CSoundPatch::Update:  Removing CSoundPatch
 PhysModelParseSolid failed for entity
 ^ ##### CTexture::LoadTextureBitsFromFile
 ^# userid name
+^(TOGGLE-SCOREBOARD|TOGGLE-QUEUES|CHATS-POP|CHATS-POPLEFT|CHATS-CLEAR)$
 ^--- Missing Vgui material
 ^Binding uncached material
 ^Cannot update control point
+^Client ping times:
 ^DataTable warning: .*clamping\.$
 ^EmitSound: pitch out of bounds
 ^Error: Material "
 ^Error: Material "models/workshop/player/items/all_class
 ^Failed to find attachment point specified for
 ^No such variable "
+^QVALVE
 ^Requesting texture value from var
 ^Restoring player view height at
 ^SOLID_VPHYSICS static prop with no vphysics model!

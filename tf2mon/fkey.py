@@ -1,10 +1,12 @@
 """Function Keys."""
 
 import curses
+import curses.ascii
 import re
-from typing import ClassVar
+from dataclasses import dataclass, field
+from typing import Callable, ClassVar
 
-# Values for `modifier`; also used as `label` prefix.
+# Values for `modifier`; also used as `shortname` prefix.
 MOD_BASE = ""
 MOD_CTRL = "c"
 MOD_SHIFT = "s"
@@ -33,6 +35,20 @@ class FKey:
         # "xxx": curses.KEY_SRIGHT,
         # "xxx": curses.KEY_SDC,  # can't do KEY_SIC
     }
+
+    # physical keys, by `name`.
+    pkeys: ClassVar[dict[str, list]] = {}
+
+    # Keyname in TF2 terms, with optional modifier "shift+" or "ctrl+" (not both).
+    # e.g., "A", "shift+A", "ctrl+KP_LEFTARROW".
+    keyspec: str
+
+    name: str  # TF2 terms: "B", "KP_LEFTARROW", "F1"
+    modifier: str  # MOD_BASE, MOD_CTRL or MOD_SHIFT
+    key: int  # ord("B"), curses.KEY_LEFT, curses.KEY_F1
+    shortname: str  # for status-line.
+    longname: str  # for `--help`.
+    pkey: "PKey"  # physical key
 
     def __init__(self, keyspec: str):
         """Init `FKey` from `keyspec`.
@@ -64,9 +80,9 @@ class FKey:
             raise ValueError("keyspec", self.keyspec)
 
         mod, eff, key = matched.groups()
-        self.name: str = (eff or "") + key  # TF2 terms: "B", "KP_LEFTARROW", "F1"
+        self.name = (eff or "") + key  # TF2 terms: "B", "KP_LEFTARROW", "F1"
 
-        self.modifier: str = MOD_BASE
+        self.modifier = MOD_BASE
         if mod:
             if mod == "SHIFT":
                 self.modifier = MOD_SHIFT
@@ -75,7 +91,7 @@ class FKey:
             else:
                 raise ValueError("keyspec", self.keyspec)
 
-        self.key: int = None  # ord("B"), curses.KEY_LEFT, curses.KEY_F1
+        self.key = None  # ord("B"), curses.KEY_LEFT, curses.KEY_F1
         if eff:
             self.key = curses.KEY_F0
             try:
@@ -95,7 +111,19 @@ class FKey:
             elif self.modifier == MOD_CTRL:
                 self.key += 24
 
-        self.label: str = self.modifier + self.name  # display name
+        self.shortname = self.modifier + self.name  # display name
+
+        self.longname = ""
+        if self.modifier == MOD_SHIFT:
+            self.longname = "shift+"
+        elif self.modifier == MOD_CTRL:
+            self.longname = "ctrl+"
+        self.longname += self.name
+
+        self.pkey = self.__class__.pkeys.get(self.name)
+        if not self.pkey:
+            self.pkey = PKey(self.name)
+            self.__class__.pkeys[self.name] = self.pkey
 
     def __repr__(self):
         return str(self.__dict__)
@@ -114,3 +142,41 @@ class FKey:
     def is_shift(self) -> bool:
         """Return True if `shift` was also pressed."""
         return self.modifier == MOD_SHIFT
+
+    @property
+    def is_ascii(self) -> bool:
+        """Return True if this is an ascii key."""
+        return curses.ascii.isascii(self.key)
+
+    def bind(self, payload) -> None:
+        """Bind `payload` to this key."""
+
+        if self.is_ctrl:
+            if self.pkey.ctrl:
+                raise ValueError("duplicate keyspec", self.keyspec)
+            self.pkey.ctrl = payload
+        #
+        elif self.is_shift:
+            if self.pkey.shift:
+                raise ValueError("duplicate keyspec", self.keyspec)
+            self.pkey.shift = payload
+        #
+        else:
+            if self.pkey.base:
+                raise ValueError("duplicate keyspec", self.keyspec)
+            self.pkey.base = payload
+
+
+@dataclass
+class PKey:
+    """A physical key may perform `base`, `ctrl` and `shift` `Function`s."""
+
+    name: str  # e.g., "A", "F1"
+    base: Callable[[re.Match], None] = field(default=None, init=False)
+    ctrl: Callable[[re.Match], None] = field(default=None, init=False)
+    shift: Callable[[re.Match], None] = field(default=None, init=False)
+
+    @property
+    def bindings(self) -> list[Callable[[re.Match], None]]:
+        """Return list of `payload`s bound to this `PKey`."""
+        return [x for x in [self.base, self.ctrl, self.shift] if x is not None]

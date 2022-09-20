@@ -3,7 +3,7 @@ import re
 from loguru import logger
 
 import tf2mon
-from tf2mon.game import GameEvent
+from tf2mon.gameevent import GameEvent
 from tf2mon.role import Role, get_role_weapon_state
 from tf2mon.spammer import Spammer
 from tf2mon.users import Users

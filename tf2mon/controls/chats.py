@@ -1,5 +1,7 @@
 """Chats controls."""
 
+import re
+
 import tf2mon
 from tf2mon.chat import Chat
 from tf2mon.control import Control
@@ -26,7 +28,7 @@ class ClearChatsControl(Control):
 
     name = "CLEAR-CHATS"
 
-    def handler(self, _match) -> None:
+    def handler(self, _match: re.Match = None) -> None:
         tf2mon.ChatsControl.clear()
         tf2mon.ui.refresh_chats()
         tf2mon.ui.update_display()
@@ -37,6 +39,6 @@ class RefreshChatsControl(Control):
 
     name = "REFRESH-CHATS"
 
-    def handler(self, _match) -> None:
+    def handler(self, _match: re.Match = None) -> None:
         tf2mon.ui.refresh_chats()
         tf2mon.ui.update_display()

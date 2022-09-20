@@ -1,16 +1,38 @@
-import re
+"""Team Fortress 2 Gameplay."""
 
-from tf2mon.regex import Regex
+from .capture import GameCaptureEvent
+from .chat import GameChatEvent
+from .connected import GameConnectedEvent
+from .kill import GameKillEvent
+from .lobby import GameLobbyEvent
+from .misc import (
+    GameHostnameEvent,
+    GameLobbyFailedEvent,
+    GamePingEvent,
+    GameServerEvent,
+    GameTeamsSwitchedEvent,
+    GameUserSwitchedEvent,
+)
+from .perk import GamePerkChangeEvent, GamePerkOff1Event, GamePerkOff2Event, GamePerkOnEvent
+from .status import GameStatusEvent
+from .suicide import GameSuicideEvent
 
-
-class GameEvent:
-    """Base class of all game events."""
-
-    pattern: str
-
-    @property
-    def regex(self) -> Regex:
-        return Regex(self.pattern, self.handler)
-
-    def handler(self, match: re.Match) -> None:
-        raise NotImplementedError
+events = [
+    GameCaptureEvent(),
+    GameServerEvent(),
+    GamePingEvent(),
+    GameChatEvent(),
+    GameKillEvent(),
+    GameConnectedEvent(),
+    GameSuicideEvent(),
+    GameStatusEvent(),
+    GameLobbyEvent(),
+    GamePerkOnEvent(),
+    GamePerkOff1Event(),
+    GamePerkOff2Event(),
+    GamePerkChangeEvent(),
+    GameLobbyFailedEvent(),
+    GameTeamsSwitchedEvent(),
+    GameUserSwitchedEvent(),
+    GameHostnameEvent(),
+]

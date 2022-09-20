@@ -10,6 +10,7 @@ per-file-ignores =
     # don't check docstrings in tests
     tests/*:D,PLC
     tf2mon/game/*:D,PLC
+    tf2mon/admin.py:D,PLC
 
     # D102 Missing docstring in public method
     # PLC0116 Missing function or method docstring (missing-function-docstring)

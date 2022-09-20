@@ -1,13 +1,14 @@
 """Application control."""
 
 import argparse
-from typing import Callable
+import re
+from typing import Callable, ClassVar
 
 from libcli import BaseCLI
 
 import tf2mon
-from tf2mon.command import Command
 from tf2mon.fkey import FKey
+from tf2mon.pkg import APPTAG
 from tf2mon.toggle import Toggle
 
 
@@ -17,11 +18,16 @@ class Control:
     Optional methods that derived classes MAY define:
     :g/[gh]..attr/p
 
+    CONTROL -
         status
             Return current value as `str` formatted for display.
+            Default `None` to hide.
 
         handler
             Perform monitor function.
+
+        name
+            Command name; e.g., 'HELP', 'TOGGLE-SORT'.
 
         action
             Game "script" text to `exec`.
@@ -30,29 +36,50 @@ class Control:
             Add control to cli `parser`.
 
         start
-            Start using curses/user-interface.
             Finalize initialization after curses has been started.
-            ...
-
     """
 
-    command: Command = None
+    controls_by_key: ClassVar[dict[int, "Control"]] = {}
+    pkeys: dict[str, FKey] = {}
+
+    name: str = None  # token
+    # status: Callable[..., str] = None
+    # handler: Callable[[re.Match], None] = None
+    action: str = None
 
     # Optional; function key to operate control.
     fkey: FKey = None
 
     #
-    cli: BaseCLI = None
+    cli: ClassVar[BaseCLI] = None
+
+    def __init__(self):
+        """Init."""
+
+        if self.name:
+            # Default action, have game send this event notification
+            # message to monitor whenever game calls for this command,
+            # such as in response to an in-game key-press or mouse-click.
+            token = APPTAG + self.name
+            if not self.action:
+                self.action = f"echo {token}"
+            self.pattern = f"^{token}$"
+            self._re = re.compile(self.pattern)
+            self.match = self._re.match
+            self.search = self._re.search
+        else:
+            self.match = lambda _line: False
+            self.search = lambda _line: False
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.__dict__})"
 
     def add_fkey_to_help(self, arg: argparse.Action) -> None:
-        """Add 'FKey.label` to help text for `arg`."""
+        """Add fkey to help text for `arg`."""
 
         if not self.fkey:
             return
-        text = f" (fkey: `{self.fkey.label}`)"
+        text = f" (fkey: `{self.fkey.longname}`)"
         if arg.help.endswith(self.cli.help_line_ending):
             arg.help = (
                 arg.help[: -len(self.cli.help_line_ending)] + text + self.cli.help_line_ending

@@ -2,7 +2,7 @@ import re
 
 from loguru import logger
 
-from tf2mon.game import GameEvent
+from tf2mon.gameevent import GameEvent
 from tf2mon.users import Users
 
 
@@ -38,7 +38,7 @@ class GamePerkOff2Event(GameEvent):
 
     pattern = r"[0-9A-F]{6}\[RTD\] Your perk has worn off."
 
-    def handler(self, match: re.Match) -> None:
+    def handler(self, _match: re.Match) -> None:
 
         user = Users.me
         user.perk = None

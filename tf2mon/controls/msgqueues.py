@@ -36,7 +36,7 @@ class MsgQueuesControl(Control):
             return
 
         logger.info(f"Writing `{_static_path}`")
-        script = tf2mon.controller.commands.as_tf2_exec_script(
+        script = tf2mon.controller.as_tf2_exec_script(
             str(_static_path.relative_to(_scripts.parent)),
             str(_dynamic_path.relative_to(_scripts.parent)),
         )

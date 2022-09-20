@@ -2,7 +2,7 @@ import re
 
 import tf2mon
 from tf2mon.chat import Chat
-from tf2mon.game import GameEvent
+from tf2mon.gameevent import GameEvent
 from tf2mon.player import Player
 from tf2mon.racist import is_racist_text
 from tf2mon.users import Users

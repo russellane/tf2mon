@@ -1,19 +1,13 @@
 """Spams queue control."""
 
 import tf2mon
-from tf2mon.control import Control
-from tf2mon.msgqueue import MsgQueue
+from tf2mon.controls.msgqueue import MsgQueueControl
 
 
-class SpamsControl(Control, MsgQueue):
+class SpamsControl(MsgQueueControl):
     """Spams queue control."""
 
     name = "spams"
-
-    def __init__(self):
-        """Spams queue control."""
-
-        super().__init__(self.name)
 
 
 class SpamsPopControl(SpamsControl):
