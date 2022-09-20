@@ -458,7 +458,6 @@ class CLI(BaseCLI):
 
         tf2mon.config = self.config
         tf2mon.options = self.options
-        tf2mon.steam_web_api = SteamWebAPI(self.config.get("webapi_key"))
 
         if self.options.con_logfile == self.config["con_logfile"]:
             # Not given on command line; prefix with effective parent.
@@ -484,6 +483,8 @@ class CLI(BaseCLI):
             Conlog(self.options).clean()
             logger.info(f"con_logfile {str(self.options.con_logfile)!r} cleaned; Exiting.")
             self.parser.exit()
+
+        tf2mon.steam_web_api = SteamWebAPI(self.config.get("webapi_key"))
 
         if self.options.print_steamids:
             Database(self.options.database)
