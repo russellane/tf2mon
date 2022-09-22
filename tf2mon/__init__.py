@@ -21,6 +21,7 @@ ui: UI = None
 
 from tf2mon.controls.chats import ChatsControl as _ChatsControl  # noqa
 from tf2mon.controls.chats import ClearChatsControl as _ClearChatsControl  # noqa
+from tf2mon.controls.chats import RefreshChatsControl as _RefreshChatsControl  # noqa
 from tf2mon.controls.gridlayout import GridLayoutControl as _GridLayoutControl  # noqa
 from tf2mon.controls.help import HelpControl as _HelpControl  # noqa
 from tf2mon.controls.help import MotdControl as _MotdControl  # noqa
@@ -57,6 +58,7 @@ from tf2mon.controls.userpanel import UserPanelControl as _UserPanelControl  # n
 
 controller = Controller(
     [
+        ChatsControl := _ChatsControl(),
         ClearChatsControl := _ClearChatsControl(),
         ClearQueuesControl := _ClearQueuesControl(),
         DebugFlagControl := _DebugFlagControl(),
@@ -74,9 +76,9 @@ controller = Controller(
         LogLevelControl := _LogLevelControl(),
         LogLocationControl := _LogLocationControl(),
         MotdControl := _MotdControl(),
-        ChatsControl := _ChatsControl(),
         MsgQueuesControl := _MsgQueuesControl(),
         PushControl := _PushControl(),
+        RefreshChatsControl := _RefreshChatsControl(),
         ResetPaddingControl := _ResetPaddingControl(),
         ShowDebugControl := _ShowDebugControl(),
         ShowKDControl := _ShowKDControl(),
@@ -112,6 +114,7 @@ controller.bind(LogLocationControl, "F8")
 controller.bind(ResetPaddingControl, "Ctrl+F8")
 controller.bind(LogLevelControl, "Shift+F8")
 controller.bind(GridLayoutControl, "F9")
+controller.bind(RefreshChatsControl, "Ctrl+F9")
 controller.bind(ClearChatsControl, "Shift+F9")
 controller.bind(ShowDebugControl, "KP_INS")
 controller.bind(SingleStepStartControl, "KP_DEL")
