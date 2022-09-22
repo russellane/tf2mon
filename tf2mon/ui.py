@@ -6,6 +6,7 @@ import os
 import sys
 
 import libcurses
+from libcurses.bw import BorderedWindow
 from loguru import logger
 
 import tf2mon
@@ -19,6 +20,8 @@ from tf2mon.users import Users
 
 class UI:
     """User Interface."""
+
+    # pylint: disable=too-many-instance-attributes
 
     def __init__(self, win: curses.window):
         """Initialize User Interface."""
@@ -48,6 +51,8 @@ class UI:
             self.layout.scorewin_red,
             self.colormap[Team.RED.name],
         )
+
+        self.popup_win: curses.window = None
 
     def build_grid(self) -> None:
         """Add boxes to grid.
@@ -128,6 +133,9 @@ class UI:
         self.scoreboard.refresh()
         self.show_status()
         self.grid.refresh()
+
+        if self.popup_win:
+            self.popup_win.refresh()
 
     def refresh_chats(self):
         """Refresh chat panel(s)."""
@@ -274,6 +282,20 @@ class UI:
             win.addch("\n")
         win.addstr(line, self.colormap[level])
         win.noutrefresh()
+
+    def popup(self, level: str, text: str) -> None:
+        """Display `text` in a popup window."""
+
+        self.popup_win = BorderedWindow(
+            self.grid.nlines - 10,
+            80,
+            self.grid.begin_y + 5,
+            self.grid.begin_x + 20,
+        )
+        # self.popup_win.box()
+        # self.popup_win.scrollok(True)
+        self.popup_win.w.addstr(text, self.colormap[level])
+        self.popup_win.refresh()
 
     def show_player_intel(self, player) -> None:
         """Display what we know about `player`."""
