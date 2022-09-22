@@ -37,7 +37,7 @@ class FKey:
     }
 
     # physical keys, by `name`.
-    pkeys: ClassVar[dict[str, list]] = {}
+    pkeys: ClassVar[dict[str, "PKey"]] = {}
 
     # Keyname in TF2 terms, with optional modifier "shift+" or "ctrl+" (not both).
     # e.g., "A", "shift+A", "ctrl+KP_LEFTARROW".
