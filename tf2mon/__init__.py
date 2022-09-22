@@ -44,6 +44,7 @@ from tf2mon.controls.misc import ShowKillsControl as _ShowKillsControl  # noqa
 from tf2mon.controls.misc import ShowPerksControl as _ShowPerksControl  # noqa
 from tf2mon.controls.misc import TauntFlagControl as _TauntFlagControl  # noqa
 from tf2mon.controls.misc import ThroeFlagControl as _ThroeFlagControl  # noqa
+from tf2mon.controls.msgqueues import DisplayFileControl as _DisplayFileControl  # noqa
 from tf2mon.controls.msgqueues import MsgQueuesControl as _MsgQueuesControl  # noqa
 from tf2mon.controls.singlestep import SingleStepControl as _SingleStepControl  # noqa
 from tf2mon.controls.singlestep import SingleStepStartControl as _SingleStepStartControl  # noqa
@@ -59,6 +60,7 @@ controller = Controller(
         ClearChatsControl := _ClearChatsControl(),
         ClearQueuesControl := _ClearQueuesControl(),
         DebugFlagControl := _DebugFlagControl(),
+        DisplayFileControl := _DisplayFileControl(),
         GridLayoutControl := _GridLayoutControl(),
         HelpControl := _HelpControl(),
         JoinOtherTeamControl := _JoinOtherTeamControl(),
@@ -96,6 +98,7 @@ controller = Controller(
 # ordered for rendering `--help`
 controller.bind(HelpControl, "F1")
 controller.bind(MotdControl, "Ctrl+F1")
+controller.bind(DisplayFileControl, "Shift+F1")
 controller.bind(DebugFlagControl, "F2")
 controller.bind(TauntFlagControl, "F3")
 controller.bind(ThroeFlagControl, "Shift+F3")

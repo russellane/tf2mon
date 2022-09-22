@@ -1,5 +1,6 @@
 """Message queues control."""
 
+from pathlib import Path
 from typing import IO
 
 from loguru import logger
@@ -63,3 +64,20 @@ class MsgQueuesControl(Control):
         for control in self._controls:
             print("\n".join(control.aliases()), file=self._file)
         self._file.flush()
+
+
+class DisplayFileControl(Control):
+    """Display file."""
+
+    name = "DISPLAY-FILE"
+    _path: Path = None
+
+    def start(self) -> None:
+        self._path = tf2mon.options.tf2_install_dir / "cfg" / "user" / "tf2mon.cfg"
+
+    def handler(self, _match) -> None:
+
+        tf2mon.ui.popup(
+            "help",
+            f" {self._path} ".center(80, "-") + "\n" + self._path.read_text(encoding="utf-8"),
+        )
