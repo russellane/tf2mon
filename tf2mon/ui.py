@@ -12,7 +12,7 @@ from loguru import logger
 import tf2mon
 from tf2mon.baselayout import BaseLayout
 from tf2mon.scoreboard import Scoreboard
-from tf2mon.user import Team, UserState
+from tf2mon.user import Team, User
 from tf2mon.users import Users
 
 # from playsound import playsound
@@ -341,7 +341,7 @@ class UI:
         indent = " " * 12  # 12=len("99 and 99 vs")
 
         lines.append("Duels:")
-        for opponent in [x for x in user.opponents.values() if x.state == UserState.ACTIVE]:
+        for opponent in [x for x in user.opponents.values() if x.is_active]:
             lines.append(f"{user.duel_as_str(opponent, True)} vs {opponent.moniker}")
 
             if opponent.key in user.nkills_by_opponent_by_weapon:

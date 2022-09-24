@@ -134,6 +134,12 @@ class User:
         return f"{self.userid}-{self._clean_username[:15]}"
 
     @property
+    def is_active(self) -> bool:
+        """Return True if user is active."""
+
+        return self.n_status_checks < self._max_status_checks
+
+    @property
     def points(self):
         """Return number of points scored."""
 

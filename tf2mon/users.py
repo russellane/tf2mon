@@ -9,7 +9,7 @@ from loguru import logger
 import tf2mon
 from tf2mon.player import Player
 from tf2mon.racist import is_racist_text
-from tf2mon.user import Team, User, UserState
+from tf2mon.user import Team, User
 
 
 class _Users:
@@ -39,16 +39,15 @@ class _Users:
                 user.kick(Player.RACIST)
 
         # reset inactivity counter
-        if user.state == UserState.INACTIVE:
+        if not user.is_active:
             logger.debug(f"Active again {user}")
-            user.state = UserState.ACTIVE
         user.n_status_checks = 0
         return user
 
     def active_users(self) -> Iterator[User]:
         """Yield active users (unsorted)."""
 
-        yield from [x for x in self.users_by_username.values() if x.state == UserState.ACTIVE]
+        yield from [x for x in self.users_by_username.values() if x.is_active]
 
     def sorted(self) -> Iterator[User]:
         """Yield active users in sort order."""
@@ -84,13 +83,10 @@ class _Users:
         current. That's why `_max_status_checks` should be at least 2 or 3.
         """
 
-        for user in list(self.users_by_username.values()):
-            if user == self.me:
-                continue
+        for user in [x for x in self.users_by_username.values() if x != self.me]:
             user.n_status_checks += 1
-            if user.n_status_checks == self._max_status_checks:
+            if not user.is_active:
                 logger.log("INACTIVE", user)
-                user.state = UserState.INACTIVE
 
     def switch_teams(self) -> None:
         """Switch teams."""
