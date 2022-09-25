@@ -4,6 +4,7 @@ from enum import Enum
 
 import tf2mon
 from tf2mon.control import CycleControl
+from tf2mon.layouts.chat import ChatLayout
 from tf2mon.layouts.default import DefaultLayout
 from tf2mon.layouts.full import FullLayout
 from tf2mon.layouts.tall import TallLayout
@@ -16,9 +17,10 @@ class GridLayoutControl(CycleControl):
     """Cycle grid layout."""
 
     name = "TOGGLE-LAYOUT"
-    enum = Enum("_e_layout", "DFLT FULL TALL MRGD WIDE")
+    enum = Enum("_e_layout", "CHAT DFLT FULL TALL MRGD WIDE")
     toggle = Toggle("_t_layout", enum)
     items = {
+        enum.CHAT: ChatLayout,
         enum.DFLT: DefaultLayout,
         enum.FULL: FullLayout,
         enum.TALL: TallLayout,
