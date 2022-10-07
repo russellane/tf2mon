@@ -3,7 +3,6 @@
 import tf2mon
 from tf2mon.control import BoolControl, Control
 from tf2mon.toggle import Toggle
-from tf2mon.users import Users
 
 
 class DebugFlagControl(BoolControl):
@@ -52,6 +51,10 @@ class ShowKillsControl(BoolControl):
     name = "TOGGLE-SHOW-KILLS"
     toggle = Toggle("kills", [False, True])
 
+    def handler(self, _match) -> None:
+        super().handler(_match)
+        tf2mon.ChatsControl.refresh()
+
 
 class ShowPerksControl(Control):
     """Display perks in journal window."""
@@ -60,7 +63,7 @@ class ShowPerksControl(Control):
 
     def handler(self, _match) -> None:
         tf2mon.ui.show_journal("help", " Perks ".center(80, "-"))
-        for user in [x for x in Users.active_users() if x.perk]:
+        for user in [x for x in tf2mon.users.active_users() if x.perk]:
             tf2mon.ui.show_journal("help", f"{user!r:25} {user.perk}")
 
 
@@ -71,11 +74,11 @@ class JoinOtherTeamControl(Control):
 
     def handler(self, _match) -> None:
         if self.toggling_enabled():
-            Users.me.assign_team(Users.my.opposing_team)
+            tf2mon.users.me.assign_team(tf2mon.users.my.opposing_team)
             tf2mon.ui.update_display()
 
     def status(self) -> str:
-        return Users.my.team.name  # if Users.my.team else "blu"
+        return tf2mon.users.my.team.name  # if tf2mon.users.my.team else "blu"
 
 
 class ClearQueuesControl(Control):

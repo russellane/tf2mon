@@ -1,44 +1,33 @@
-"""Player 'chat' messages."""
+"""Player `Chat` message."""
 
 import time
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
-from loguru import logger
+if TYPE_CHECKING:
+    from tf2mon.user import User, UserStats
 
 
+@dataclass
 class Chat:
-    """Player 'chat' messages."""
+    """Player `Chat` message."""
 
-    def __init__(self, user, teamflag, msg):
-        """Create `Chat` object.
+    user: "User"
+    teamflag: bool
+    msg: str
+    timestamp: float = field(default=None)
+    #
+    s_timestamp: str = field(default=None, init=False)
+    stats: "UserStats" = field(default=None, init=False)
 
-        Args:
-            user:       User(object).
-            teamflag:   True=team-chat, False=all-chat.
-            msg:        The msg chatted by the user.
-        """
+    def __post_init__(self):
+        """Initialize data and other attributes."""
 
-        self.seqno = time.strftime("%T", time.localtime(int(time.time())))
-        self.user = user
-        self.teamflag = teamflag
-        self.msg = msg
+        if not self.timestamp:
+            self.timestamp = time.time()
 
-        level = "TEAMCHAT" if teamflag else "CHAT"
-        if self.user.team:
-            level += self.user.team.name
+        self.s_timestamp = time.strftime("%T", time.localtime(self.timestamp))
+        # _dt = datetime.datetime.fromtimestamp(self.timestamp)
+        # self.s_timestamp = _dt.strftime("%T.%f")  # [:-4]
 
-        logger.opt(depth=1).log(level, f"{user} {msg}")
-
-    def __repr__(self):
-        return (
-            self.__class__.__name__
-            + "("
-            + ", ".join(
-                [
-                    f"seqno={self.seqno}",
-                    f"user={self.user}",
-                    f"teamflag={self.teamflag}",
-                    f"msg={self.msg!r}",
-                ]
-            )
-            + ")"
-        )
+        self.stats = self.user.snap_stats()

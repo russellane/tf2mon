@@ -2,8 +2,8 @@ import re
 
 from loguru import logger
 
+import tf2mon
 from tf2mon.gameevent import GameEvent
-from tf2mon.users import Users
 
 
 class GameServerEvent(GameEvent):
@@ -55,7 +55,7 @@ class GameUserSwitchedEvent(GameEvent):
     pattern = r"You have switched to team (?P<teamname>\w+) and will"
 
     def handler(self, match: re.Match) -> None:
-        Users.me.assign_team(match.group("teamname"))
+        tf2mon.users.me.assign_team(match.group("teamname"))
 
 
 class GameHostnameEvent(GameEvent):
@@ -65,4 +65,4 @@ class GameHostnameEvent(GameEvent):
     pattern = "^hostname: (.*)"
 
     def handler(self, _match: re.Match) -> None:
-        Users.check_status()
+        tf2mon.users.check_status()

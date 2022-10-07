@@ -1,8 +1,10 @@
 """A user of the game."""
 
 import re
+import time
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, NewType
+from typing import Iterator, List, NewType
 
 from loguru import logger
 
@@ -24,11 +26,35 @@ class Team(Enum):
     BLU = 3
 
 
-class UserState(Enum):
-    """Valid states."""
+@dataclass
+class UserStats:
+    """Snapshot of stats at some point in time."""
 
-    ACTIVE = "A"
-    INACTIVE = "I"
+    # pylint: disable=too-many-instance-attributes
+    user: "User"
+    last_killer: "User"
+    last_victim: "User"
+    role: Role
+    weapon_state: WeaponState
+    nkills: int
+    ndeaths: int
+    kdratio: float
+    # timestamp: float
+
+
+@dataclass
+class Kill:
+    """A Kill."""
+
+    killer: UserStats  # snapshot of killer at time of kill
+    victim: UserStats  # snapshot of victim at time of death
+    timestamp: float = field(default=None)
+
+    def __post_init__(self):
+        """Initialize data and other attributes."""
+
+        if not self.timestamp:
+            self.timestamp = time.time()
 
 
 class User:
@@ -44,6 +70,8 @@ class User:
             ]
         )
     )
+
+    _max_status_checks = 2
 
     def is_cheater_chat(self, chat):
         """Return True first time chat appears to be from a cheater."""
@@ -75,10 +103,10 @@ class User:
         self.last_scoreboard_line = True
         self.dirty = True
 
-        self.state = UserState.ACTIVE
         self.n_status_checks = 0
         self.nsnipes = 0
         self.role = Role.unknown
+        self.weapon_state: WeaponState = None
         self.ncaptures = 0
         self.ndefenses = 0
         self.chats: List[Chat] = []
@@ -94,6 +122,8 @@ class User:
         self.last_killer: User = None
         self.last_victim: User = None
 
+        self.kills: List[Kill] = []
+        self.deaths: List[Kill] = []
         self.nkills = 0
         self.ndeaths = 0
         self.kdratio: float = 0
@@ -178,6 +208,49 @@ class User:
 
         team = f"{self.team.name}:" if self.team else ""
         return f"{team}{self.userid}={self.username!r}"
+
+    def snap_stats(self) -> UserStats:
+        """Take and return a snapshot of current stats."""
+
+        return UserStats(
+            self,
+            self.last_killer,
+            self.last_victim,
+            self.role,
+            self.weapon_state,
+            self.nkills,
+            self.ndeaths,
+            self.kdratio,
+        )
+
+    def format_user_stats(self) -> Iterator[str]:
+        """Return most recent kill and most recent death in reverse chronological order."""
+
+        kills: list[Kill] = []
+
+        if len(self.kills) > 0:
+            kills.append(self.kills[-1])
+        if len(self.deaths) > 0:
+            kills.append(self.deaths[-1])
+
+        for kill in sorted(kills, key=lambda x: -x.timestamp):
+            if self == kill.killer:
+                opponent = kill.victim
+                label = "[last-Victim]"
+            else:
+                opponent = kill.killer
+                label = "[last-Killer]"
+
+            yield " ".join(
+                [
+                    time.strftime("%T", time.localtime(kill.timestamp)),
+                    label,
+                    self.duel_as_str(opponent, formatted=True),
+                    "vs",
+                    f"{opponent.username:20.20}",
+                    opponent.weapon_state or "",
+                ]
+            )
 
     def assign_teamno(self, teamno):
         """Assign this user to `teamno`."""

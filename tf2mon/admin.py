@@ -5,7 +5,6 @@ from loguru import logger
 import tf2mon
 from tf2mon.player import Player
 from tf2mon.regex import Regex
-from tf2mon.users import Users
 
 
 class Admin:
@@ -31,17 +30,17 @@ class Admin:
         # kick cheater
         Regex(
             R"^kick[= ](?P<userid>\d+)$",
-            lambda m: Users.kick_userid(int(m.group("userid")), Player.CHEATER),
+            lambda m: tf2mon.users.kick_userid(int(m.group("userid")), Player.CHEATER),
         ),
         # kick racist
         Regex(
             R"^kkk[= ](?P<userid>\d+)$",
-            lambda m: Users.kick_userid(int(m.group("userid")), Player.RACIST),
+            lambda m: tf2mon.users.kick_userid(int(m.group("userid")), Player.RACIST),
         ),
         # mark suspect
         Regex(
             R"^suspect[= ](?P<userid>\d+)$",
-            lambda m: Users.kick_userid(int(m.group("userid")), Player.SUSPECT),
+            lambda m: tf2mon.users.kick_userid(int(m.group("userid")), Player.SUSPECT),
         ),
         # drop to python debugger
         Regex("^PDB$", lambda m: tf2mon.debugger()),

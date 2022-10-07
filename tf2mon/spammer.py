@@ -5,7 +5,6 @@ from loguru import logger
 import tf2mon
 from tf2mon.pkg import APPNAME
 from tf2mon.toggle import Cycle
-from tf2mon.users import Users
 
 
 class Spammer:
@@ -96,7 +95,7 @@ class Spammer:
 
         m = messages.cycle.format(
             user=user.moniker,
-            duel=Users.my.duel_as_str(user),
+            duel=tf2mon.users.my.duel_as_str(user),
             weapon=weapon,
             killed=self._killed.cycle,
             insult=self._insults.cycle,

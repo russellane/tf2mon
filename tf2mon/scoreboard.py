@@ -8,7 +8,6 @@ import tf2mon
 from tf2mon.player import Player
 from tf2mon.texttable import TextColumn, TextTable
 from tf2mon.user import Team
-from tf2mon.users import Users
 
 
 class Scoreboard:
@@ -70,7 +69,7 @@ class Scoreboard:
 
         libcurses.clear_mouse_handlers()
 
-        users = list(Users.sorted())
+        users = list(tf2mon.users.sorted())
         team1 = [x for x in users if x.team == Team.BLU]
         team2 = [x for x in users if x.team == Team.RED]
 
@@ -150,13 +149,15 @@ class Scoreboard:
                 self._onmouse, begin_y + lineno, begin_x + 0, ncols, user
             )
 
+        win.noutrefresh()
+
     def _onmouse(self, mouse: libcurses.MouseEvent, user):
         """Handle mouse events within team scoreboards."""
 
         if mouse.button != 1:
             return False  # not handled
 
-        for active_user in Users.active_users():
+        for active_user in tf2mon.users.active_users():
             active_user.selected = False
         user.selected = True
         tf2mon.ui.update_display()

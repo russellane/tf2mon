@@ -2,8 +2,8 @@ import re
 
 from loguru import logger
 
+import tf2mon
 from tf2mon.gameevent import GameEvent
-from tf2mon.users import Users
 
 
 class GameCaptureEvent(GameEvent):
@@ -16,7 +16,7 @@ class GameCaptureEvent(GameEvent):
 
         for name in username.split(", "):  # fix: names containing commas
 
-            user = Users[name]
+            user = tf2mon.users[name]
 
             user.assign_teamno(int(s_teamno))
 

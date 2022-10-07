@@ -2,8 +2,8 @@ import re
 
 from loguru import logger
 
+import tf2mon
 from tf2mon.gameevent import GameEvent
-from tf2mon.users import Users
 
 
 class GameSuicideEvent(GameEvent):
@@ -14,6 +14,6 @@ class GameSuicideEvent(GameEvent):
 
         (username,) = match.groups()
 
-        user = Users[username]
+        user = tf2mon.users[username]
         logger.log("SUICIDE", user)
         user.ndeaths += 1

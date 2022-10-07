@@ -2,6 +2,8 @@
 
 import re
 
+from loguru import logger
+
 import tf2mon
 from tf2mon.chat import Chat
 from tf2mon.control import Control
@@ -14,13 +16,23 @@ class ChatsControl(Control):
 
     def append(self, chat: Chat) -> None:
         self._chats.append(chat)
+        tf2mon.ui.show_chat(chat)
 
     def clear(self) -> None:
         self._chats = []
+        self.refresh()
 
-    @property
-    def value(self) -> list[Chat]:
-        return self._chats
+    def refresh(self) -> None:
+        if tf2mon.ui.layout.chatwin_blu:
+            tf2mon.ui.layout.chatwin_blu.erase()
+        if tf2mon.ui.layout.chatwin_red:
+            tf2mon.ui.layout.chatwin_red.erase()
+        for chat in self._chats:
+            tf2mon.ui.show_chat(chat)
+        if tf2mon.ui.layout.chatwin_blu:
+            tf2mon.ui.layout.chatwin_blu.noutrefresh()
+        if tf2mon.ui.layout.chatwin_red:
+            tf2mon.ui.layout.chatwin_red.noutrefresh()
 
 
 class ClearChatsControl(Control):
@@ -30,8 +42,8 @@ class ClearChatsControl(Control):
 
     def handler(self, _match: re.Match = None) -> None:
         tf2mon.ChatsControl.clear()
-        tf2mon.ui.refresh_chats()
         tf2mon.ui.update_display()
+        logger.success(self.name)
 
 
 class RefreshChatsControl(Control):
@@ -40,5 +52,6 @@ class RefreshChatsControl(Control):
     name = "REFRESH-CHATS"
 
     def handler(self, _match: re.Match = None) -> None:
-        tf2mon.ui.refresh_chats()
+        tf2mon.ChatsControl.refresh()
         tf2mon.ui.update_display()
+        logger.success(self.name)

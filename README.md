@@ -4,7 +4,7 @@
     tf2mon [--tf2-install-dir DIR] [--rewind | --no-rewind]
            [--follow | --no-follow] [--list-con-logfile]
            [--trunc-con-logfile] [--clean-con-logfile]
-           [--exclude-file FILE] [--layout {DFLT,FULL,TALL,MRGD,WIDE}]
+           [--exclude-file FILE] [--layout {CHAT,DFLT,FULL,TALL,MRGD,WIDE}]
            [--log-location {MOD,NAM,THM,THN,FILE,NUL}]
            [--sort-order {AGE,STEAMID,CONN,K,KD,USERNAME}] [--single-step]
            [--break LINENO] [--search PATTERN] [--inject-cmd LINENO:CMD]
@@ -55,7 +55,7 @@ By default, `tf2mon` starts reading `con_logfile` from its end
     --exclude-file FILE
                         Exclude lines that match patterns in `FILE` (default:
                         `~/dev/tf2mon/tf2mon/data/exclude.txt`).
-    --layout {DFLT,FULL,TALL,MRGD,WIDE}
+    --layout {CHAT,DFLT,FULL,TALL,MRGD,WIDE}
                         Choose display layout (fkey: `F9`) (default: `MRGD`).
     --log-location {MOD,NAM,THM,THN,FILE,NUL}
                         Choose format of logger location field (fkey: `F8`)
@@ -96,6 +96,7 @@ By default, `tf2mon` starts reading `con_logfile` from its end
   
                  F1 Display Help.
             ctrl+F1 Display Message of the Day.
+           shift+F1 Display file.
                  F2 Enable/disable debug (use `ECHO` or `SAY`).
                  F3 Enable/disable `Taunt` messages.
            shift+F3 Enable/disable `Throe` messages.
@@ -109,6 +110,7 @@ By default, `tf2mon` starts reading `con_logfile` from its end
             ctrl+F8 Reset logger `padding`.
            shift+F8 Cycle logger `level`.
                  F9 Cycle grid layout.
+            ctrl+F9 Refresh chat window(s).
            shift+F9 Clear chat window(s).
              KP_INS Show debugging.
              KP_DEL Start single-stepping.

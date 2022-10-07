@@ -12,7 +12,7 @@ from tf2mon.racist import is_racist_text
 from tf2mon.user import Team, User
 
 
-class _Users:
+class Users:
     """Collection of `User`s."""
 
     users_by_username: dict[str, User] = {}
@@ -84,8 +84,9 @@ class _Users:
         """
 
         for user in [x for x in self.users_by_username.values() if x != self.me]:
+            was_active = user.is_active
             user.n_status_checks += 1
-            if not user.is_active:
+            if was_active and not user.is_active:
                 logger.log("INACTIVE", user)
 
     def switch_teams(self) -> None:
@@ -121,9 +122,3 @@ class _Users:
                 return True
 
         return False
-
-
-Users: _Users = None
-
-if not Users:
-    Users = _Users()

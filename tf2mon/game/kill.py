@@ -6,7 +6,7 @@ import tf2mon
 from tf2mon.gameevent import GameEvent
 from tf2mon.role import Role, get_role_weapon_state
 from tf2mon.spammer import Spammer
-from tf2mon.users import Users
+from tf2mon.user import Kill
 
 
 class GameKillEvent(GameEvent):
@@ -21,8 +21,8 @@ class GameKillEvent(GameEvent):
 
         s_killer, s_victim, weapon, s_crit = match.groups()
 
-        killer = Users[s_killer]
-        victim = Users[s_victim]
+        killer = tf2mon.users[s_killer]
+        victim = tf2mon.users[s_victim]
 
         killer.last_victim = victim
         victim.last_killer = killer
@@ -75,12 +75,17 @@ class GameKillEvent(GameEvent):
         role, weapon_state = get_role_weapon_state(killer.role, weapon, crit, killer.perk)
         if role:
             killer.role = role
+            killer.weapon_state = weapon_state
             if killer.role == Role.sniper:
                 killer.nsnipes += 1
         else:
             role = killer.role
             if weapon not in ("player", "world"):
                 logger.error(f"cannot map {weapon} for {killer} {role}")
+
+        kill = Kill(killer, victim)
+        killer.kills.append(kill)
+        victim.deaths.append(kill)
 
         if not role and weapon not in ("player", "world"):
             logger.error(f"cannot map {weapon} for {killer} {role}")
@@ -105,19 +110,10 @@ class GameKillEvent(GameEvent):
             weapon_state,
         )
 
-        if tf2mon.ShowKillsControl.value:
-            level = "KILL"
-            if killer.team:
-                level += killer.team.name
-            tf2mon.ui.show_journal(
-                level,
-                f"         {killer.moniker!r:25} killed {victim.moniker!r:25} {weapon_state!r}",
-            )
-
-        if killer == Users.me:
+        if killer == tf2mon.users.me:
             if tf2mon.TauntFlagControl.value:
                 self.spammer.taunt(victim, weapon, crit)
-        elif victim == Users.me and tf2mon.ThroeFlagControl.value:
+        elif victim == tf2mon.users.me and tf2mon.ThroeFlagControl.value:
             self.spammer.throe(killer, weapon, crit)
 
         if not victim.team and killer.team:

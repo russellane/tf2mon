@@ -18,7 +18,6 @@ from tf2mon.racist import load_racist_data
 from tf2mon.role import load_weapons_data
 from tf2mon.steamplayer import SteamPlayer
 from tf2mon.ui import UI
-from tf2mon.users import Users
 
 
 class Monitor:
@@ -35,7 +34,6 @@ class Monitor:
         load_weapons_data(Path(__file__).parent / "data" / "weapons.csv")
         load_racist_data(Path(__file__).parent / "data" / "racist.txt")
         tf2mon.ui = UI(win)
-        Users.me = Users.my = Users[tf2mon.config.get("player_name")]
         tf2mon.controller.start()
         tf2mon.reset_game()
 
@@ -151,13 +149,13 @@ class Monitor:
                 stepper.stop_single_stepping()
 
             elif "kick".find(cmd) == 0 and arg.isdigit:
-                Users.kick_userid(int(arg), Player.CHEATER)
+                tf2mon.users.kick_userid(int(arg), Player.CHEATER)
 
             elif "kkk".find(cmd) == 0 and arg.isdigit:
-                Users.kick_userid(int(arg), Player.RACIST)
+                tf2mon.users.kick_userid(int(arg), Player.RACIST)
 
             elif "suspect".find(cmd) == 0 and arg.isdigit:
-                Users.kick_userid(int(arg), Player.SUSPECT)
+                tf2mon.users.kick_userid(int(arg), Player.SUSPECT)
 
             elif "dump".find(cmd) == 0:
                 tf2mon.dump()

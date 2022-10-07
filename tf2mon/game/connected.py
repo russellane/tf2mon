@@ -4,7 +4,6 @@ from loguru import logger
 
 import tf2mon
 from tf2mon.gameevent import GameEvent
-from tf2mon.users import Users
 
 
 class GameConnectedEvent(GameEvent):
@@ -15,7 +14,7 @@ class GameConnectedEvent(GameEvent):
 
         (username,) = match.groups()
 
-        logger.log("CONNECT", Users[username])
+        logger.log("CONNECT", tf2mon.users[username])
 
         tf2mon.ui.notify_operator = True
         if username == tf2mon.config.get("player_name"):

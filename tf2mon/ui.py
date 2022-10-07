@@ -12,8 +12,7 @@ from loguru import logger
 import tf2mon
 from tf2mon.baselayout import BaseLayout
 from tf2mon.scoreboard import Scoreboard
-from tf2mon.user import Team, User
-from tf2mon.users import Users
+from tf2mon.user import Team
 
 # from playsound import playsound
 
@@ -102,7 +101,8 @@ class UI:
             self.layout.cmdline_win.scrollok(True)
             self.layout.cmdline_win.keypad(True)
 
-        self.refresh_chats()
+        if tf2mon.ui is not None:
+            tf2mon.ChatsControl.refresh()
         self.grid.redraw()
 
     def getline(self, prompt=None):
@@ -127,28 +127,14 @@ class UI:
 
         self.refresh_kicks()
         self.refresh_spams()
-        self.refresh_duels(Users.me)
-        self.refresh_user(Users.me)
+        self.refresh_duels(tf2mon.users.me)
+        self.refresh_user(tf2mon.users.me)
         # chatwin_blu and chatwin_red are rendered from gameplay/_playerchat
         self.scoreboard.refresh()
         self.show_status()
-        self.grid.refresh()
 
         if self.popup_win:
             self.popup_win.refresh()
-
-    def refresh_chats(self):
-        """Refresh chat panel(s)."""
-
-        for win in [
-            self.layout.chatwin_blu,
-            self.layout.chatwin_red,
-        ]:
-            if win:
-                win.erase()
-
-        for chat in tf2mon.ChatsControl.value:
-            self.show_chat(chat)
 
     def refresh_kicks(self):
         """Refresh kicks panel."""
@@ -161,7 +147,7 @@ class UI:
             )
 
         if self.layout.user_win:
-            self.refresh_user(Users.me)
+            self.refresh_user(tf2mon.users.me)
 
     def refresh_spams(self):
         """Refresh spams panel."""
@@ -174,7 +160,7 @@ class UI:
             )
 
         if self.layout.user_win:
-            self.refresh_user(Users.me)
+            self.refresh_user(tf2mon.users.me)
 
     def refresh_duels(self, user):
         """Refresh duels panel."""
@@ -183,7 +169,7 @@ class UI:
             self._show_lines("user", self._format_duels(user), self.layout.duels_win)
 
         if self.layout.user_win:
-            self.refresh_user(Users.me)
+            self.refresh_user(tf2mon.users.me)
 
     def refresh_user(self, user):
         """Refresh user panel."""
@@ -222,10 +208,10 @@ class UI:
         if user.display_level:
             color = self.colormap[user.display_level]
 
-        if user == Users.my.last_killer:
+        if user == tf2mon.users.my.last_killer:
             color |= curses.A_BOLD | curses.A_ITALIC
 
-        if user == Users.my.last_victim:
+        if user == tf2mon.users.my.last_victim:
             color |= curses.A_BOLD
 
         if user.selected:
@@ -256,19 +242,16 @@ class UI:
             color |= curses.A_UNDERLINE
         user_color = self.user_color(user, color)
 
-        leader = f"{chat.seqno}: {chat.user.username:20.20}: "
+        leader = f"{chat.s_timestamp}: {chat.user.username:20.20}: "
         if sum(win.getyx()):
             win.addch("\n")
         win.addstr(leader + chat.msg, user_color)
 
-        indent = " " * 15
-        if opponent := user.last_victim:
-            line = f"[last-Victim] {user.duel_as_str(opponent, True)} vs {opponent.moniker}"
-            win.addstr("\n" + leader + indent + line, user_color)
-
-        if opponent := user.last_killer:
-            line = f"[last-Killer] {user.duel_as_str(opponent, True)} vs {opponent.moniker}"
-            win.addstr("\n" + leader + indent + line, user_color)
+        if tf2mon.ShowKillsControl.value and chat.msg != "/rtd":
+            # self._show_last_duels(win, leader, user, user_color)
+            indent = " " * 15
+            for line in chat.user.format_user_stats():
+                win.addstr(f"\n{leader}{indent}{line}")
 
         win.noutrefresh()
 
@@ -302,16 +285,6 @@ class UI:
 
         level = player.display_level
         leader = f"{level}: {player.steamid}"
-
-        # self.show_journal(
-        #     "Player",
-        #     f"{leader}: {player}",
-        # )
-
-        # self.show_journal(
-        #     level,
-        #     f"{leader}: {player.astuple()}",
-        # )
 
         self.show_journal(
             level,
@@ -357,7 +330,7 @@ class UI:
     def show_status(self):
         """Update status line."""
 
-        line = tf2mon.controller.get_status_line() + f" UID={Users.my.userid}"
+        line = tf2mon.controller.get_status_line() + f" UID={tf2mon.users.my.userid}"
 
         try:
             self.layout.status_win.addstr(
