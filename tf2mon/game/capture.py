@@ -4,6 +4,7 @@ from loguru import logger
 
 import tf2mon
 from tf2mon.gameevent import GameEvent
+from tf2mon.user import Team
 
 
 class GameCaptureEvent(GameEvent):
@@ -18,7 +19,13 @@ class GameCaptureEvent(GameEvent):
 
             user = tf2mon.users[name]
 
-            user.assign_teamno(int(s_teamno))
+            try:
+                team = Team(int(s_teamno))
+                if user.team and user.team != team:
+                    logger.warning(f"{user} switched to team `{team.name}`")
+                user.team = team
+            except ValueError as err:
+                logger.error(f"{err} s_teamno {s_teamno!r}")
 
             if action == "captured":
                 user.ncaptures += 1
@@ -26,6 +33,7 @@ class GameCaptureEvent(GameEvent):
             else:
                 user.ndefenses += 1
                 level = "DEF"
+
             user.dirty = True
             level += user.team.name
 

@@ -84,7 +84,7 @@ class GameStatusEvent(GameEvent):
 
         #
         if not user.team and (team := tf2mon.users.teams_by_steamid.get(steamid)):
-            user.assign_team(team)
+            user.team = team
 
         #
         if not user.steamplayer:

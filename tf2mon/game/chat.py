@@ -42,9 +42,9 @@ class GameChatEvent(GameEvent):
             # we're on the same team
             if not user.team:
                 if tf2mon.users.my.team:
-                    user.assign_team(tf2mon.users.my.team)
+                    user.team = tf2mon.users.my.team
             elif not tf2mon.users.my.team:
-                tf2mon.users.me.assign_team(user.team)
+                tf2mon.users.my.team = user.team
 
         # inspect msg
         if is_racist_text(chat.msg):

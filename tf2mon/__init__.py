@@ -18,7 +18,7 @@ conlog: Conlog = None
 options: Namespace = None
 steam_web_api: SteamWebAPI = None
 ui: UI = None
-users: Users = Users()
+users: Users = None
 
 from tf2mon.controls.chats import ChatsControl as _ChatsControl  # noqa
 from tf2mon.controls.chats import ClearChatsControl as _ClearChatsControl  # noqa
@@ -140,7 +140,7 @@ def reset_game() -> None:
     global users  # noqa
     users = Users()
     users.me = users.my = users[config.get("player_name")]
-    users.me.assign_team(Team.BLU)
+    users.my.team = Team.BLU
     users.my.display_level = "user"
     ChatsControl.clear()
     MsgQueuesControl.clear()

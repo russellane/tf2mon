@@ -117,6 +117,6 @@ class GameKillEvent(GameEvent):
             self.spammer.throe(killer, weapon, crit)
 
         if not victim.team and killer.team:
-            victim.assign_team(killer.opposing_team)
+            victim.team = killer.opposing_team
         elif not killer.team and victim.team:
-            killer.assign_team(victim.opposing_team)
+            killer.team = victim.opposing_team

@@ -74,7 +74,7 @@ class JoinOtherTeamControl(Control):
 
     def handler(self, _match) -> None:
         if self.toggling_enabled():
-            tf2mon.users.me.assign_team(tf2mon.users.my.opposing_team)
+            tf2mon.users.my.team = tf2mon.users.my.opposing_team
             tf2mon.ui.update_display()
 
     def status(self) -> str:

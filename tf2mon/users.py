@@ -15,12 +15,13 @@ from tf2mon.user import Team, User
 class Users:
     """Collection of `User`s."""
 
-    users_by_username: dict[str, User] = {}
-    users_by_steamid: dict[int, User] = {}
-    teams_by_steamid: dict[int, Team] = {}
-    me: User = None
-    my: User = None
-    _max_status_checks = 2
+    def __init__(self):
+        self.users_by_username: dict[str, User] = {}
+        self.users_by_steamid: dict[int, User] = {}
+        self.teams_by_steamid: dict[int, Team] = {}
+        self.me: User = None
+        self.my: User = None
+        self._max_status_checks = 2
 
     def __getitem__(self, username: str) -> User:
         """Create user `username` if non-existent, and return user `username`."""
@@ -93,7 +94,7 @@ class Users:
         """Switch teams."""
 
         for user in self.active_users():
-            user.assign_team(user.opposing_team)
+            user.team = user.opposing_team
 
     re_cheater_names = re.compile(
         "|".join(

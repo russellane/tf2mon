@@ -96,7 +96,7 @@ class User:
         self.username_upper = username.upper()
         self.userid = 0  # from status command
         self.steamid = None  # from status and tf_lobby_debug commands
-        self.team = None
+        self._team: Team = None  # @team.setter
         self.elapsed: int = 0
         self.s_elapsed: str = ""
         self.ping = 0
@@ -252,17 +252,13 @@ class User:
                 ]
             )
 
-    def assign_teamno(self, teamno):
-        """Assign this user to `teamno`."""
+    @property
+    def team(self) -> Team:
+        """Return user's `Team`."""
+        return self._team
 
-        try:
-            team = Team(teamno)
-        except ValueError as err:
-            logger.error(f"{err} teamno {teamno!r}")
-
-        self.assign_team(team)
-
-    def assign_team(self, team):
+    @team.setter
+    def team(self, team):
         """Assign this user to `team`."""
 
         if isinstance(team, str):
@@ -280,16 +276,16 @@ class User:
         elif self.team != team:
             logger.debug(f"{self} change from {self.team} to {team}")
 
-        self.team = team
+        self._team = team
         self.dirty = True
 
         # assign any unassigned opponents
 
         for opponent in self.opponents.values():
             if not opponent.team:
-                opponent.assign_team(self.opposing_team)
+                opponent.team = self.opposing_team
             if not self.team:
-                self.assign_team(opponent.opposing_team)
+                self.team = opponent.opposing_team
 
     def vet(self) -> None:
         """Vet this player, whose `steamid` has just been obtained."""

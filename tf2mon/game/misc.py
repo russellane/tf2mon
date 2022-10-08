@@ -55,7 +55,7 @@ class GameUserSwitchedEvent(GameEvent):
     pattern = r"You have switched to team (?P<teamname>\w+) and will"
 
     def handler(self, match: re.Match) -> None:
-        tf2mon.users.me.assign_team(match.group("teamname"))
+        tf2mon.users.my.team = match.group("teamname")
 
 
 class GameHostnameEvent(GameEvent):
