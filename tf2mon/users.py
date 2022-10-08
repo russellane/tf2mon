@@ -16,6 +16,8 @@ class Users:
     """Collection of `User`s."""
 
     def __init__(self):
+        """Initialize collection of `User`s."""
+
         self.users_by_username: dict[str, User] = {}
         self.users_by_steamid: dict[int, User] = {}
         self.teams_by_steamid: dict[int, Team] = {}
