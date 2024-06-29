@@ -21,7 +21,7 @@ class GameServerEvent(GameEvent):
     pattern = r"(account|version|map|udp\/ip|tags|steamid|players|edicts)\s+: (.*)"
 
     def handler(self, _match: re.Match) -> None:
-        ...  # logger.log("server", m.group(0)),
+        pass  # logger.log("server", m.group(0)),
 
 
 class GamePingEvent(GameEvent):
@@ -31,7 +31,7 @@ class GamePingEvent(GameEvent):
     pattern = r"\s*\d+ ms .*"
 
     def handler(self, _match: re.Match) -> None:
-        ...  # logger.log("server", m.group(0)),
+        pass  # logger.log("server", m.group(0)),
 
 
 class GameLobbyFailedEvent(GameEvent):
@@ -47,7 +47,7 @@ class GameTeamsSwitchedEvent(GameEvent):
     pattern = "^Teams have been switched"
 
     def handler(self, _match: re.Match) -> None:
-        ...  # tf2mon.users.switch_teams()
+        pass  # tf2mon.users.switch_teams()
 
 
 class GameUserSwitchedEvent(GameEvent):

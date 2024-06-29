@@ -1,17 +1,18 @@
 [flake8]
 max-line-length = 120
 ignore =
-    E203 # black; whitespace before ':'
-    W503 # black; line break before binary operator
-    PLR0903 # Too few public methods (1/2) (too-few-public-methods)
-    PLC0301 # Line too long (114/97) (line-too-long)
+    # black; whitespace before ':'
+    E203,
+    # black; line break before binary operator
+    W503,
+    # Too few public methods (1/2) (too-few-public-methods)
+    PLR903,
 
 per-file-ignores = 
     # don't check docstrings in tests
     tests/*:D,PLC
     tf2mon/game/*:D,PLC
-    tf2mon/admin.py:D,PLC
 
     # D102 Missing docstring in public method
     # PLC0116 Missing function or method docstring (missing-function-docstring)
-    tf2mon/controls/*:D102,PLC0116
+    tf2mon/controls/*:D102,PLC116

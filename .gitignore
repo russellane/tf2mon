@@ -3,7 +3,7 @@
 .cache
 .coverage
 .junk/
-.pdm.toml
+.pdm-python
 .pytest_cache/
 .tf2
 __pycache__/

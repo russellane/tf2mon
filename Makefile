@@ -1,53 +1,6 @@
-# tf2mon/Makefile
-
-PROJECT		= tf2mon
-SOURCES		= $(PROJECT) tests
-
-build:		__pypackages__ tags lint test doc
-		pdm build
-
-__pypackages__:
-		pdm install
-
-.PHONY:		tags
-tags:
-		ctags -R --sort=no $(SOURCES) __pypackages__ 
-
-lint:		black isort flake8
-
-black:
-		python -m black -q $(SOURCES)
-
-isort:
-		python -m isort $(SOURCES)
-
-flake8:
-		python -m flake8 $(SOURCES)
-
-test:		pytest
-
-pytest:
-		python -m pytest --exitfirst --showlocals --verbose tests
-
-pytest_debug:
-		python -m pytest --exitfirst --showlocals --verbose --capture=no tests
-
-doc:		README.md
-.PHONY:		README.md
-README.md:
-		python -m $(PROJECT) --md-help >$@
-
-clean:
-		rm -rf .pytest_cache __pypackages__ dist tags
-		find . -type f -name '*.py[co]' -delete
-		find . -type d -name __pycache__ -delete
-
-bump_micro:	_bump_micro clean build
-_bump_micro:
-		pdm bump micro
-
-upload:
-		twine upload --verbose -r pypi dist/*
+PROJECT = tf2mon
+include Python.mk
+doc :: README.md
 
 .PHONY:		mypy
 mypy:
