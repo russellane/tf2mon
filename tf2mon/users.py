@@ -3,36 +3,36 @@
 import re
 from typing import Iterator
 
-from fuzzywuzzy import fuzz
+from fuzzywuzzy import fuzz  # type: ignore
 from loguru import logger
 
 import tf2mon
 from tf2mon.player import Player
 from tf2mon.racist import is_racist_text
-from tf2mon.user import Team, User
+from tf2mon.user import Team, User, UserKey
 
 
 class Users:
     """Collection of `User`s."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize collection of `User`s."""
 
-        self.users_by_username: dict[str, User] = {}
+        self.users_by_username: dict[UserKey, User] = {}
         self.users_by_steamid: dict[int, User] = {}
         self.teams_by_steamid: dict[int, Team] = {}
-        self.me: User = None
-        self.my: User = None
+        self.me: User
+        self.my: User
         self._max_status_checks = 2
 
-    def __getitem__(self, username: str) -> User:
+    def __getitem__(self, username: UserKey) -> User:
         """Create user `username` if non-existent, and return user `username`."""
 
-        username = username.replace(";", ".")
+        username = UserKey(username.replace(";", "."))
 
         if not (user := self.users_by_username.get(username)):
             user = User(username)
-            self.users_by_username[user.username] = user
+            self.users_by_username[UserKey(user.username)] = user
             logger.log("ADDUSER", user)
 
             if self._is_cheater_name(user):

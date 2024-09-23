@@ -3,6 +3,7 @@
 import curses
 from argparse import Namespace
 from pprint import pformat
+from typing import Any
 
 from loguru import logger
 
@@ -10,15 +11,15 @@ from tf2mon.conlog import Conlog
 from tf2mon.controller import Controller
 from tf2mon.steamweb import SteamWebAPI
 from tf2mon.ui import UI
-from tf2mon.user import Team
+from tf2mon.user import Team, UserKey
 from tf2mon.users import Users
 
-config: dict = {}
-conlog: Conlog = None
-options: Namespace = None
-steam_web_api: SteamWebAPI = None
-ui: UI = None
-users: Users = None
+config: dict[str, Any] = {}
+conlog: Conlog | None = None
+options: Namespace
+steam_web_api: SteamWebAPI
+ui: UI
+users: Users
 
 from tf2mon.controls.chats import ChatsControl as _ChatsControl  # noqa
 from tf2mon.controls.chats import ClearChatsControl as _ClearChatsControl  # noqa
@@ -139,7 +140,7 @@ def reset_game() -> None:
 
     global users  # noqa
     users = Users()
-    users.me = users.my = users[config.get("player_name")]
+    users.me = users.my = users[UserKey(str(config.get("player_name")))]
     users.my.team = Team.BLU
     users.my.display_level = "user"
     ChatsControl.clear()
@@ -149,6 +150,9 @@ def reset_game() -> None:
 def debugger() -> None:
     """Drop into python debugger."""
 
+    global conlog  # noqa
+    assert conlog
+
     if conlog.is_eof or SingleStepControl.is_stepping:
         curses.reset_shell_mode()
         breakpoint()  # pylint: disable=forgotten-debug-statement
@@ -157,6 +161,8 @@ def debugger() -> None:
 
 def dump() -> None:
     """Dump stuff."""
+
+    global users  # noqa
 
     logger.success(pformat(users.__dict__))
     for user in users.users_by_username.values():

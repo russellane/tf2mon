@@ -3,6 +3,9 @@
 And functions to operate on a list of them.
 """
 
+# mypy: ignore-errors
+# This file is no longer used.
+
 import re
 
 from loguru import logger
@@ -11,7 +14,7 @@ from loguru import logger
 class Regex:
     """A regular-expression/handler pair."""
 
-    def __init__(self, pattern, handler=None):
+    def __init__(self, pattern: str, handler=None) -> None:
         """Create object to run `handler` when `pattern` is a hit."""
 
         self.regex = re.compile(pattern)

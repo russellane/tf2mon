@@ -2,9 +2,9 @@ PROJECT = tf2mon
 include Python.mk
 doc :: README.md
 
-.PHONY:		mypy
-mypy:
-		mypy --ignore-missing-imports --no-strict-optional $(PROJECT)
+MYPYOPTS +=	--disallow-any-generics
+MYPYOPTS +=	--disallow-untyped-defs
+lint::		mypy
 
 #-------------------------------------------------------------------------------
 

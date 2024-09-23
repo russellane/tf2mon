@@ -1,10 +1,12 @@
 """A user of the game."""
 
+from __future__ import annotations
+
 import re
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Iterator, List, NewType
+from typing import Iterator, NewType
 
 from loguru import logger
 
@@ -31,11 +33,11 @@ class UserStats:
     """Snapshot of stats at some point in time."""
 
     # pylint: disable=too-many-instance-attributes
-    user: "User"
-    last_killer: "User"
-    last_victim: "User"
-    role: Role
-    weapon_state: WeaponState
+    user: User | None
+    last_killer: User | None
+    last_victim: User | None
+    role: Role | None
+    weapon_state: WeaponState | None
     nkills: int
     ndeaths: int
     kdratio: float
@@ -48,9 +50,9 @@ class Kill:
 
     killer: UserStats  # snapshot of killer at time of kill
     victim: UserStats  # snapshot of victim at time of death
-    timestamp: float = field(default=None)
+    timestamp: float = field(default=0, init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Initialize data and other attributes."""
 
         if not self.timestamp:
@@ -73,15 +75,7 @@ class User:
 
     _max_status_checks = 2
 
-    def is_cheater_chat(self, chat):
-        """Return True first time chat appears to be from a cheater."""
-
-        if self.cheater_chat_seen:
-            return False
-        self.cheater_chat_seen = self._re_cheater_chats.search(chat.msg)
-        return self.cheater_chat_seen
-
-    def __init__(self, username: str):
+    def __init__(self, username: str) -> None:
         """Create `User`."""
 
         self.username = username.replace(";", ".")
@@ -96,34 +90,34 @@ class User:
         self.username_upper = username.upper()
         self.userid = 0  # from status command
         self.steamid = None  # from status and tf_lobby_debug commands
-        self._team: Team = None  # @team.setter
+        self._team: Team | None = None  # @team.setter
         self.elapsed: int = 0
         self.s_elapsed: str = ""
         self.ping = 0
-        self.last_scoreboard_line = True
+        self.last_scoreboard_line = ""
         self.dirty = True
 
         self.n_status_checks = 0
         self.nsnipes = 0
         self.role = Role.unknown
-        self.weapon_state: WeaponState = None
+        self.weapon_state: WeaponState | None = None
         self.ncaptures = 0
         self.ndefenses = 0
-        self.chats: List[Chat] = []
-        self.display_level = None
+        self.chats: list[Chat] = []
+        self.display_level = ""
         self.selected = False
-        self.perk = None
+        self.perk = ""
 
         #
         self.opponents: dict[UserKey, User] = {}
         self.victims: dict[UserKey, User] = {}
         self.killers: dict[UserKey, User] = {}
 
-        self.last_killer: User = None
-        self.last_victim: User = None
+        self.last_killer: User | None = None
+        self.last_victim: User | None = None
 
-        self.kills: List[Kill] = []
-        self.deaths: List[Kill] = []
+        self.kills: list[Kill] = []
+        self.deaths: list[Kill] = []
         self.nkills = 0
         self.ndeaths = 0
         self.kdratio: float = 0
@@ -135,12 +129,12 @@ class User:
         self.nkills_by_opponent_by_weapon: dict[UserKey, dict[WeaponState, int]] = {}
 
         # list of non-kill actions performed, like capture/defend.
-        self.actions: List[str] = []
+        self.actions: list[str] = []
 
         #
-        self.steamplayer: SteamPlayer = None
+        self.steamplayer: SteamPlayer | None = None
         self.age = 0
-        self.player: Player = None
+        self.player: Player | None = None
 
         # Database `Player`s are keyed by `steamid`. If `self.kick(attr)`
         # is called before steamid is available, spool the work until it is.
@@ -152,16 +146,24 @@ class User:
         # notify the operator asap to `TF2MON-PUSH` steamids to us.
         # Careful, this might be a legitimate name-change, not a cheating name-stealer.
 
-        self.cloner: User = None  # when this user is being cloned
-        self.clonee: User = None  # when this user is the name-stealing clone
+        self.cloner: User | None = None  # when this user is being cloned
+        self.clonee: User | None = None  # when this user is the name-stealing clone
 
         self.cheater_chat_seen = False
 
+    def is_cheater_chat(self, chat: Chat) -> bool:
+        """Return True first time chat appears to be from a cheater."""
+
+        if self.cheater_chat_seen:
+            return False
+        self.cheater_chat_seen = bool(self._re_cheater_chats.search(chat.msg))
+        return self.cheater_chat_seen
+
     @property
-    def key(self) -> str:
+    def key(self) -> UserKey:
         """Return readable hashable key."""
 
-        return f"{self.userid}-{self._clean_username[:15]}"
+        return UserKey(f"{self.userid}-{self._clean_username[:15]}")
 
     @property
     def is_active(self) -> bool:
@@ -170,19 +172,19 @@ class User:
         return self.n_status_checks < self._max_status_checks
 
     @property
-    def points(self):
+    def points(self) -> int:
         """Return number of points scored."""
 
         return self.nkills + self.ncaptures + self.ndefenses
 
     @property
-    def opposing_team(self):
+    def opposing_team(self) -> Team:
         """Return opposing team."""
 
         return Team.RED if self.team == Team.BLU else Team.BLU
 
     @property
-    def moniker(self):
+    def moniker(self) -> str:
         """Return name, optionally including his kill/death ratio."""
 
         if not tf2mon.ShowKDControl.value:
@@ -197,14 +199,14 @@ class User:
             self._clean_username, self.nkills, self.ndeaths, self.nkills / self.ndeaths
         )
 
-    def duel_as_str(self, opponent, formatted=False):
+    def duel_as_str(self, opponent: User, formatted: bool = False) -> str:
         """Return string showing win/loss record against `opponent`."""
 
         nkills = self.nkills_by_opponent.get(opponent.key, 0)
         ndeaths = self.ndeaths_by_opponent.get(opponent.key, 0)
         return f"{nkills:2} and {ndeaths:2}" if formatted else f"{nkills} and {ndeaths}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
 
         team = f"{self.team.name}:" if self.team else ""
         return f"{team}{self.userid}={self.username!r}"
@@ -234,12 +236,14 @@ class User:
             kills.append(self.deaths[-1])
 
         for kill in sorted(kills, key=lambda x: -x.timestamp):
-            if self == kill.killer:
-                opponent = kill.victim
+            if self == kill.killer.user:
+                opponent = kill.victim.user
                 label = "[last-Victim]"
             else:
-                opponent = kill.killer
+                opponent = kill.killer.user
                 label = "[last-Killer]"
+
+            assert opponent
 
             yield " ".join(
                 [
@@ -253,12 +257,12 @@ class User:
             )
 
     @property
-    def team(self) -> Team:
+    def team(self) -> Team | None:
         """Return user's `Team`."""
         return self._team
 
     @team.setter
-    def team(self, team):
+    def team(self, team: Team | str) -> None:
         """Assign this user to `team`."""
 
         if isinstance(team, str):
@@ -331,7 +335,7 @@ class User:
             if self.player.is_banned:
                 self.do_kick()
 
-    def kick(self, attr):
+    def kick(self, attr: str) -> None:
         """Kick this user."""
 
         if not self.steamid:
@@ -339,8 +343,8 @@ class User:
             self.pending_attrs.append(attr)
             self.display_level = attr.upper()
             logger.log(self.display_level, f"{self} needs steamid, Press KP_DOWNARROW to PUSH")
-            tf2mon.notify_operator = True
-            tf2mon.sound_alarm = True
+            tf2mon.ui.notify_operator = True
+            tf2mon.ui.sound_alarm = True
             return
 
         if self.player:
@@ -363,6 +367,8 @@ class User:
 
     def do_kick(self) -> None:
         """Work."""
+
+        assert self.player
 
         # msg = f"say {tf2mon.APPNAME} ALERT: "
         msg = "say ALERT: "

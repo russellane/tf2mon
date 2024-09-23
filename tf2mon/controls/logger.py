@@ -1,6 +1,8 @@
 """Logger controls."""
 
+from argparse import ArgumentParser
 from enum import Enum
+from typing import Match
 
 from loguru import logger as _logger
 
@@ -13,7 +15,7 @@ class LogLevelControl(CycleControl):
     """Cycle logger `level`."""
 
     name = "TOGGLE-LOG-LEVEL"
-    enum = Enum("_e_loglvl", "INFO DEBUG TRACE")
+    enum = Enum("enum", "INFO DEBUG TRACE")
     toggle = Toggle("_t_loglvl", enum)
     items = {
         enum.INFO: "INFO",  # ""
@@ -27,7 +29,7 @@ class LogLevelControl(CycleControl):
         tf2mon.ui.logsink.set_verbose(tf2mon.options.verbose)
         self.toggle.start(self.enum.__dict__[tf2mon.ui.logsink.level])
 
-    def handler(self, _match) -> None:
+    def handler(self, _match: Match[str] | None) -> None:
         tf2mon.ui.logsink.set_level(self.items[self.toggle.cycle])
         tf2mon.ui.show_status()
 
@@ -36,7 +38,7 @@ class LogLocationControl(CycleControl):
     """Cycle logger `location` format."""
 
     name = "TOGGLE-LOG-LOCATION"
-    enum = Enum("_e_logloc", "MOD NAM THM THN FILE NUL")
+    enum = Enum("enum", "MOD NAM THM THN FILE NUL")
     toggle = Toggle("_t_logloc", enum)
     items = {
         enum.MOD: "{module}.{function}:{line}",
@@ -51,14 +53,14 @@ class LogLocationControl(CycleControl):
         self.toggle.start(self.enum.__dict__[tf2mon.options.log_location])
         tf2mon.ui.logsink.set_location(self.items[self.toggle.value])
 
-    def handler(self, _match) -> None:
+    def handler(self, _match: Match[str] | None) -> None:
         tf2mon.ui.logsink.set_location(self.items[self.toggle.cycle])
         tf2mon.ui.show_status()
 
     def status(self) -> str:
         return self.toggle.value.name
 
-    def add_arguments_to(self, parser) -> None:
+    def add_arguments_to(self, parser: ArgumentParser) -> None:
         arg = parser.add_argument(
             "--log-location",
             choices=[x.name for x in list(self.enum)],
@@ -74,6 +76,6 @@ class ResetPaddingControl(Control):
 
     name = "RESET-PADDING"
 
-    def handler(self, _match) -> None:
+    def handler(self, _match: Match[str] | None) -> None:
         tf2mon.ui.logsink.reset_padding()
         _logger.info("padding reset")

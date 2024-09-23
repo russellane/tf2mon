@@ -1,6 +1,7 @@
 """Collection of `Control`s."""
 
 import time
+from argparse import ArgumentParser
 
 from libcurses import register_fkey
 from loguru import logger
@@ -20,7 +21,7 @@ class Controller:
     # subset bound to function-keys; ordered for rendering `--help`.
     bindings: list[Control] = []
 
-    def __init__(self, controls: list[Control] = None):
+    def __init__(self, controls: list[Control] | None = None) -> None:
         """Initialize `Controller` with list of `Control`s."""
 
         if controls is not None:
@@ -33,7 +34,7 @@ class Controller:
         control.fkey.bind(control)
         self.bindings.append(control)
 
-    def add_arguments_to(self, parser) -> None:
+    def add_arguments_to(self, parser: ArgumentParser) -> None:
         """Add arguments for all controls to `parser`."""
 
         Control.cli = parser.get_default("cli")
@@ -47,6 +48,7 @@ class Controller:
         lines = []
         for control in self.bindings:
             # 17 == indent 4 + len("KP_RIGHTARROW")
+            assert control.fkey
             lines.append(f"{control.fkey.longname:>17} {control.__doc__}")
         return "\n".join(lines)
 
@@ -60,8 +62,9 @@ class Controller:
             # else:
             #     logger.warning(f"Not starting {control.__class__.__name__}")
 
-        for control in [x for x in self.bindings if not x.fkey.is_ascii]:
+        for control in [x for x in self.bindings if x.fkey and not x.fkey.is_ascii]:
             if hasattr(control, "handler"):
+                assert control.fkey
                 logger.debug(
                     f"Registering {control.__class__.__name__} to {control.fkey.longname}"
                 )
@@ -98,7 +101,7 @@ class Controller:
         for key in [
             x for x in FKey.pkeys.values() if x.name and x.base and not (x.ctrl or x.shift)
         ]:
-            if key.base.action:
+            if key.base and hasattr(key.base, "action") and key.base.action:
                 lines.append(f'bind "{key.name}" "{key.base.action}"')
 
         lines.extend(
@@ -113,17 +116,17 @@ class Controller:
         _shift = ["_user_bind_shift", "_class_bind_shift"]
 
         for key in [x for x in FKey.pkeys.values() if x.name and (x.ctrl or x.shift)]:
-            if key.base and key.base.action:
+            if key.base and hasattr(key.base, "action") and key.base.action:
                 alias = f"_b{key.name}"
                 lines.append(f'alias {alias} "{key.base.action}"')
                 _base.append(f"bind {key.name} {alias}")
 
-            if key.ctrl and key.ctrl.action:
+            if key.ctrl and hasattr(key.ctrl, "action") and key.ctrl.action:
                 alias = f"_c{key.name}"
                 lines.append(f'alias {alias} "{key.ctrl.action}"')
                 _ctrl.append(f"bind {key.name} {alias}")
 
-            if key.shift and key.shift.action:
+            if key.shift and hasattr(key.shift, "action") and key.shift.action:
                 alias = f"_s{key.name}"
                 lines.append(f'alias {alias} "{key.shift.action}"')
                 _shift.append(f"bind {key.name} {alias}")
@@ -181,12 +184,13 @@ class Controller:
 
         return "\n".join(lines) + "\n"
 
-    def get_status_line(self):
+    def get_status_line(self) -> str:
         """Return 1-line string showing current state of function keys."""
 
-        items = []
+        items: list[str] = []
         for pkey in FKey.pkeys.values():
             for control in pkey.bindings:
+                assert control is not None
                 if hasattr(control, "status") and control.status:
                     items.append(f"{control.fkey.shortname}={control.status()}")
         return " ".join(items)

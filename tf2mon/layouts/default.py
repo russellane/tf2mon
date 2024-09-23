@@ -27,7 +27,7 @@ class DefaultLayout(BaseLayout):
 
     # pylint: disable=too-many-instance-attributes
 
-    def __post_init__(self, grid: libcurses.Grid, max_users: int):
+    def __post_init__(self, grid: libcurses.Grid, max_users: int) -> None:
         """Build windows."""
 
         _nlines = int(max_users / 2) + 2 + 1  # 2=borders (top and bottom), 1=header.

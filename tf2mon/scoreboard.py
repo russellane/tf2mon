@@ -7,7 +7,7 @@ import libcurses
 import tf2mon
 from tf2mon.player import Player
 from tf2mon.texttable import TextColumn, TextTable
-from tf2mon.user import Team
+from tf2mon.user import Team, User
 
 
 class Scoreboard:
@@ -33,7 +33,13 @@ class Scoreboard:
         ]
     )
 
-    def __init__(self, win1, color1, win2, color2):
+    def __init__(
+        self,
+        win1: curses.window,
+        color1: int,
+        win2: curses.window,
+        color2: int,
+    ) -> None:
         """Create scoreboard for two teams.
 
         Args:
@@ -53,16 +59,18 @@ class Scoreboard:
         i = 0
         for col in self.table.columns:
             self._col_x_width_by_heading[col.heading] = (i, col.width)
-            i += col.width + 1
+            i += int(col.width) + 1
 
         # updated by `set_sort_order`
         self._sort_col_x = 0
         self._sort_col_width = 0
 
-    def set_sort_order(self, sort_order):
+    def set_sort_order(self, sort_order: str) -> None:
         """Set sort order."""
 
-        self._sort_col_x, self._sort_col_width = self._col_x_width_by_heading[sort_order]
+        self._sort_col_x, self._sort_col_width = [
+            int(x) for x in self._col_x_width_by_heading[sort_order]
+        ]
 
     def refresh(self) -> None:
         """Display the scoreboards."""
@@ -84,7 +92,15 @@ class Scoreboard:
         self._refresh_team(self.win1, self.color1, team1)
         self._refresh_team(self.win2, self.color2, team2 + unassigned)
 
-    def _refresh_team(self, win, color, team):
+    def _refresh_team(
+        self,
+        win: curses.window,
+        color: int,
+        team: list[User],
+    ) -> None:
+
+        # pylint: disable=too-many-branches
+        # pylint: disable=too-many-locals
 
         ncols = win.getmaxyx()[1]
         win.erase()
@@ -114,14 +130,33 @@ class Scoreboard:
                     if _sp.realname:
                         names.append(_sp.realname)
 
+                _steam_id = 0
+                if user.steamid:
+                    _steam_id = user.steamid.id
+
+                _personastate = ""
+                if _sp and _sp.personastate:
+                    _personastate = str(_sp.personastate)
+
+                _loccountrycode = ""
+                if _sp and _sp.loccountrycode:
+                    _loccountrycode = _sp.loccountrycode
+
+                _locstatecode = ""
+                if _sp and _sp.locstatecode:
+                    _locstatecode = _sp.locstatecode
+
+                _age = ""
+                if _sp and _sp.age:
+                    _age = str(_sp.age)
+
                 user.last_scoreboard_line = self.table.format_detail(
                     user.userid,
-                    (_sp and _sp.personastate) or "",
-                    (_sp and _sp.loccountrycode) or "",
-                    (_sp and _sp.locstatecode) or "",
-                    # (_sp and _sp.loccityid) or "",
-                    (_sp and _sp.age) or "",
-                    user.steamid.id if user.steamid else 0,
+                    _personastate,
+                    _loccountrycode,
+                    _locstatecode,
+                    _age,
+                    _steam_id,
                     user.s_elapsed,
                     user.n_status_checks,
                     user.nsnipes,
@@ -151,7 +186,7 @@ class Scoreboard:
 
         win.noutrefresh()
 
-    def _onmouse(self, mouse: libcurses.MouseEvent, user):
+    def _onmouse(self, mouse: libcurses.MouseEvent, user: User) -> bool:
         """Handle mouse events within team scoreboards."""
 
         if mouse.button != 1:

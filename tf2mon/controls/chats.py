@@ -1,6 +1,6 @@
 """Chats controls."""
 
-import re
+from typing import Match
 
 from loguru import logger
 
@@ -23,6 +23,11 @@ class ChatsControl(Control):
         self.refresh()
 
     def refresh(self) -> None:
+
+        if not hasattr(tf2mon.ui, "layout"):
+            return
+        assert tf2mon.ui.layout
+
         if tf2mon.ui.layout.chatwin_blu:
             tf2mon.ui.layout.chatwin_blu.erase()
         if tf2mon.ui.layout.chatwin_red:
@@ -40,7 +45,7 @@ class ClearChatsControl(Control):
 
     name = "CLEAR-CHATS"
 
-    def handler(self, _match: re.Match = None) -> None:
+    def handler(self, _match: Match[str] | None = None) -> None:
         tf2mon.ChatsControl.clear()
         tf2mon.ui.update_display()
         logger.success(self.name)
@@ -51,7 +56,7 @@ class RefreshChatsControl(Control):
 
     name = "REFRESH-CHATS"
 
-    def handler(self, _match: re.Match = None) -> None:
+    def handler(self, _match: Match[str] | None = None) -> None:
         tf2mon.ChatsControl.refresh()
         tf2mon.ui.update_display()
         logger.success(self.name)

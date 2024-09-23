@@ -1,4 +1,4 @@
-import re
+from typing import Match
 
 from loguru import logger
 
@@ -15,7 +15,7 @@ class GameLobbyEvent(GameEvent):
 
     pattern = r"\s*(?:Member|Pending)\[\d+\] (?P<steamid>\S+)\s+team = (?P<teamname>\w+)"
 
-    def handler(self, match: re.Match) -> None:
+    def handler(self, match: Match[str]) -> None:
 
         # this will not be called for games on local server with bots
         # or community servers; only on valve matchmaking servers.

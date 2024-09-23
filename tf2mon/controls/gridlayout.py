@@ -1,6 +1,8 @@
 """Cycle Grid Layout."""
 
+from argparse import ArgumentParser
 from enum import Enum
+from typing import Match
 
 import tf2mon
 from tf2mon.control import CycleControl
@@ -17,7 +19,7 @@ class GridLayoutControl(CycleControl):
     """Cycle grid layout."""
 
     name = "TOGGLE-LAYOUT"
-    enum = Enum("_e_layout", "CHAT DFLT FULL TALL MRGD WIDE")
+    enum = Enum("enum", "CHAT DFLT FULL TALL MRGD WIDE")
     toggle = Toggle("_t_layout", enum)
     items = {
         enum.CHAT: ChatLayout,
@@ -32,12 +34,12 @@ class GridLayoutControl(CycleControl):
         self.toggle.start(self.enum.__dict__[tf2mon.options.layout])
         tf2mon.ui.grid.handle_term_resized_event()
 
-    def handler(self, _match) -> None:
+    def handler(self, _match: Match[str] | None) -> None:
         _ = self.toggle.toggle
         tf2mon.ui.grid.handle_term_resized_event()
         tf2mon.ui.update_display()
 
-    def add_arguments_to(self, parser) -> None:
+    def add_arguments_to(self, parser: ArgumentParser) -> None:
         arg = parser.add_argument(
             "--layout",
             choices=[x.name for x in list(self.enum)],

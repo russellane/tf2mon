@@ -1,8 +1,10 @@
 """Application control."""
 
+from __future__ import annotations
+
 import argparse
 import re
-from typing import Callable, ClassVar
+from typing import Any, ClassVar, Match
 
 from libcli import BaseCLI
 
@@ -39,21 +41,24 @@ class Control:
             Finalize initialization after curses has been started.
     """
 
-    controls_by_key: ClassVar[dict[int, "Control"]] = {}
     pkeys: dict[str, FKey] = {}
 
-    name: str = None  # token
+    name: str = ""  # token
     # status: Callable[..., str] = None
     # handler: Callable[[re.Match], None] = None
-    action: str = None
+    action: str = ""
 
     # Optional; function key to operate control.
-    fkey: FKey = None
+    fkey: FKey | None = None
 
     #
-    cli: ClassVar[BaseCLI] = None
+    cli: ClassVar[BaseCLI]
 
-    def __init__(self):
+    #
+    match = None
+    search = None
+
+    def __init__(self) -> None:
         """Init."""
 
         if self.name:
@@ -63,15 +68,12 @@ class Control:
             token = APPTAG + self.name
             if not self.action:
                 self.action = f"echo {token}"
-            self.pattern = f"^{token}$"
-            self._re = re.compile(self.pattern)
+            pattern = f"^{token}$"
+            self._re = re.compile(pattern)
             self.match = self._re.match
             self.search = self._re.search
-        else:
-            self.match = lambda _line: False
-            self.search = lambda _line: False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.__dict__})"
 
     def add_fkey_to_help(self, arg: argparse.Action) -> None:
@@ -80,6 +82,8 @@ class Control:
         if not self.fkey:
             return
         text = f" (fkey: `{self.fkey.longname}`)"
+        assert arg.help
+        assert self.cli
         if arg.help.endswith(self.cli.help_line_ending):
             arg.help = (
                 arg.help[: -len(self.cli.help_line_ending)] + text + self.cli.help_line_ending
@@ -97,6 +101,8 @@ class Control:
         it is not checked by keys that only alter the display.
         """
 
+        assert tf2mon.conlog
+
         return (
             tf2mon.conlog.is_eof
             or tf2mon.options.toggles
@@ -107,9 +113,9 @@ class Control:
 class BoolControl(Control):
     """Bool control."""
 
-    toggle: Toggle = None
+    toggle: Toggle
 
-    def handler(self, _match) -> None:
+    def handler(self, _match: Match[str] | None) -> None:
         """Handle event."""
 
         if self.toggling_enabled():
@@ -131,8 +137,8 @@ class BoolControl(Control):
 class CycleControl(Control):
     """Cycle control."""
 
-    toggle: Toggle = None
-    items: dict = {}
+    toggle: Toggle
+    items: dict[Any, Any] = {}
 
     def status(self) -> str:
         """Return value formatted for display."""
@@ -140,7 +146,7 @@ class CycleControl(Control):
         return self.toggle.value.name
 
     @property
-    def value(self) -> Callable:
+    def value(self) -> Any:
         """Return value."""
 
         return self.items[self.toggle.value]

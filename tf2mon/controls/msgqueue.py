@@ -9,9 +9,7 @@ class MsgQueueControl(Control):
 
     # pylint: disable=too-many-instance-attributes
 
-    name: str = None
-
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize control."""
 
         self.msgq = MsgQueue(self.name)

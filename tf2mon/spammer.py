@@ -5,6 +5,7 @@ from loguru import logger
 import tf2mon
 from tf2mon.pkg import APPNAME
 from tf2mon.toggle import Cycle
+from tf2mon.user import User
 
 
 class Spammer:
@@ -75,25 +76,25 @@ class Spammer:
 
     _airblast_weapons = ("world", "deflect_promode", "deflect_rocket")
 
-    def taunt(self, victim, weapon, crit):
+    def taunt(self, victim: User, weapon: str, crit: str) -> None:
         """Make noise when operator kills opponent."""
 
         self._push_spam(self._crit_taunts if crit else self._no_crit_taunts, victim, weapon)
 
-    def throe(self, killer, weapon, crit):
+    def throe(self, killer: User, weapon: str, crit: str) -> None:
         """Make noise when opponent kills operator."""
 
         spam = self._crit_throes if crit else self._no_crit_throes
         suffix = (" +" + killer.perk) if killer.perk else ""
         self._push_spam(spam, killer, weapon, suffix)
 
-    def _is_airblast(self, weapon):
+    def _is_airblast(self, weapon: str) -> bool:
 
         return weapon in self._airblast_weapons
 
-    def _push_spam(self, messages, user, weapon, suffix=""):
+    def _push_spam(self, messages: Cycle, user: User, weapon: str, suffix: str = "") -> None:
 
-        m = messages.cycle.format(
+        m = str(messages.cycle).format(
             user=user.moniker,
             duel=tf2mon.users.my.duel_as_str(user),
             weapon=weapon,
@@ -102,7 +103,7 @@ class Spammer:
         )
         tf2mon.SpamsControl.push("say " + m + suffix)
 
-    def spam(self, spamno):
+    def spam(self, spamno: int) -> None:
         """Respond to SPAM command."""
 
         if spamno == 1:

@@ -3,55 +3,55 @@ import pytest
 from tf2mon.cli import main
 
 
-def test_version():
+def test_version() -> None:
     with pytest.raises(SystemExit) as err:
         main(["--version"])
     assert err.value.code == 0
 
 
-def test_help():
+def test_help() -> None:
     with pytest.raises(SystemExit) as err:
         main(["--help"])
     assert err.value.code == 0
 
 
-def test_md_help():
+def test_md_help() -> None:
     with pytest.raises(SystemExit) as err:
         main(["--md-help"])
     assert err.value.code == 0
 
 
-def test_long_help():
+def test_long_help() -> None:
     with pytest.raises(SystemExit) as err:
         main(["--long-help"])
     assert err.value.code == 2
 
 
-def test_bogus_option():
+def test_bogus_option() -> None:
     with pytest.raises(SystemExit) as err:
         main(["--bogus-option"])
     assert err.value.code == 2
 
 
-def test_print_config():
+def test_print_config() -> None:
     with pytest.raises(SystemExit) as err:
         main(["--print-config"])
     assert err.value.code == 0
 
 
-def test_print_url():
+def test_print_url() -> None:
     with pytest.raises(SystemExit) as err:
         main(["--print-url"])
     assert err.value.code == 0
 
 
-def test_debug():
+def test_debug() -> None:
     with pytest.raises(SystemExit) as err:
         main(["-X"])
     assert err.value.code == 0
 
 
-def test_list_con_logfile():
+def test_list_con_logfile() -> None:
     with pytest.raises(SystemExit) as err:
         main(["--list-con-logfile"])
     assert err.value.code == 0
@@ -75,7 +75,7 @@ def test_list_con_logfile():
         # ("tests/fixtures/file3.toml", None),
     ],
 )
-def test_config_files(config_file, expected):
+def test_config_files(config_file: str, expected: list[str]) -> None:
 
     print()
     try:

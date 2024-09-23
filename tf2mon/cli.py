@@ -45,7 +45,7 @@ class CLI(BaseCLI):
         "player_name": "Bad Dad",
     }
 
-    def __init__(self, argv: list[str] = None) -> None:
+    def __init__(self, argv: list[str] | None = None) -> None:
         """Build and parse command line."""
 
         threading.current_thread().name = "MAIN"
@@ -484,7 +484,7 @@ class CLI(BaseCLI):
             logger.info(f"con_logfile {str(self.options.con_logfile)!r} cleaned; Exiting.")
             self.parser.exit()
 
-        tf2mon.steam_web_api = SteamWebAPI(self.config.get("webapi_key"))
+        tf2mon.steam_web_api = SteamWebAPI(str(self.config.get("webapi_key")))
 
         if self.options.print_steamids:
             Database(self.options.database)
@@ -495,7 +495,7 @@ class CLI(BaseCLI):
         self.monitor.run()
 
 
-def main(args: list[str] = None) -> None:
+def main(args: list[str] | None = None) -> None:
     """Command line interface entry point (function)."""
 
-    return CLI(args).main()
+    CLI(args).main()

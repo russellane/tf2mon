@@ -2,7 +2,7 @@
 
 import re
 import threading
-from typing import Callable, Optional
+from typing import Callable, Match, Pattern
 
 from loguru import logger
 
@@ -13,12 +13,12 @@ from tf2mon.control import Control
 class SingleStepControl(Control):
     """Single-step control."""
 
-    is_stepping: bool = None
-    pattern: re.Pattern = None
-    clear: Callable[[None], None] = None
-    set: Callable[[None], None] = None
-    wait: Callable[[Optional[float]], bool] = None
-    _event: threading.Event = None
+    is_stepping: bool = False
+    pattern: Pattern[str] | None = None
+    clear: Callable[[], None] | None = None
+    set: Callable[[], None] | None = None
+    wait: Callable[[float | None], bool] | None = None
+    _event: threading.Event | None = None
 
     def start(self) -> None:
         self._event = threading.Event()
@@ -39,24 +39,27 @@ class SingleStepControl(Control):
         else:
             self.stop_single_stepping()
 
-    def start_single_stepping(self):
+    def start_single_stepping(self) -> None:
         self.is_stepping = True
+        assert self._event
         self._event.clear()
 
-    def stop_single_stepping(self):
+    def stop_single_stepping(self) -> None:
         self.is_stepping = False
+        assert self._event
         self._event.set()
 
-    def set_single_step_lineno(self, lineno=0):
+    def set_single_step_lineno(self, lineno: int = 0) -> None:
         """Begin single-stepping at `lineno` if given else at eof."""
 
         if lineno:
+            assert tf2mon.conlog
             tf2mon.conlog.inject_cmd(lineno, "SINGLE-STEP")
         else:
             # stop single-stepping until eof, then single-step again
             self.stop_single_stepping()
 
-    def set_single_step_pattern(self, pattern=None):
+    def set_single_step_pattern(self, pattern: str | None = None) -> None:
         """Begin single-stepping at next line that matches `pattern`.
 
         Pass `None` to clear the pattern.
@@ -81,6 +84,6 @@ class SingleStepStartControl(Control):
 
     name = "SINGLE-STEP"
 
-    def handler(self, _match) -> None:
+    def handler(self, _match: Match[str] | None) -> None:
         tf2mon.SingleStepControl.start_single_stepping()
         logger.info("single-step")

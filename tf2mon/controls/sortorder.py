@@ -1,6 +1,8 @@
 """Cycle scoreboard Sort column."""
 
+from argparse import ArgumentParser
 from enum import Enum
+from typing import Match
 
 import tf2mon
 from tf2mon.control import CycleControl
@@ -11,7 +13,7 @@ class SortOrderControl(CycleControl):
     """Cycle scoreboard Sort column."""
 
     name = "TOGGLE-SORT"
-    enum = Enum("_e_soc", "AGE STEAMID CONN K KD USERNAME")
+    enum = Enum("enum", "AGE STEAMID CONN K KD USERNAME")
     toggle = Toggle("_t_soc", enum)
     items = {
         enum.AGE: lambda user: (user.age, user.username_upper),
@@ -27,12 +29,12 @@ class SortOrderControl(CycleControl):
         tf2mon.ui.scoreboard.set_sort_order(self.toggle.value.name)
         assert self.toggle.value.name == tf2mon.options.sort_order
 
-    def handler(self, _match) -> None:
+    def handler(self, _match: Match[str] | None) -> None:
         _ = self.toggle.toggle
         tf2mon.ui.scoreboard.set_sort_order(self.toggle.value.name)
         tf2mon.ui.update_display()
 
-    def add_arguments_to(self, parser) -> None:
+    def add_arguments_to(self, parser: ArgumentParser) -> None:
         arg = parser.add_argument(
             "--sort-order",
             choices=[x.name for x in list(self.enum)],

@@ -1,5 +1,8 @@
 """Monitor Admin console."""
 
+# mypy: ignore-errors
+# This file is no longer used.
+
 from loguru import logger
 
 import tf2mon

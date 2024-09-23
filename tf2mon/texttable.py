@@ -1,6 +1,7 @@
 """Table/Column formatters."""
 
 from dataclasses import dataclass, field
+from typing import Any
 
 
 @dataclass
@@ -9,10 +10,10 @@ class TextColumn:
 
     width: int | float
     heading: str
-    fmt_heading: str = field(default=None, init=False)
-    fmt_detail: str = field(default=None, init=False)
+    fmt_heading: str = field(default_factory=str, init=False)
+    fmt_detail: str = field(default_factory=str, init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Init table column."""
 
         if isinstance(self.width, float):
@@ -50,9 +51,9 @@ class TextColumn:
 class TextTable:
     """Table formatter."""
 
-    columns: list[TextColumn] = None
-    _formatted_header: str = field(default=None, init=False)
-    _fmt_detail: str = field(default=None, init=False)
+    columns: list[TextColumn] = field(default_factory=list)
+    _formatted_header: str = field(default_factory=str, init=False)
+    _fmt_detail: str = field(default_factory=str, init=False)
 
     @property
     def formatted_header(self) -> str:
@@ -64,7 +65,7 @@ class TextTable:
 
         return self._formatted_header
 
-    def format_detail(self, *values) -> str:
+    def format_detail(self, *values: Any) -> str:
         """Docstring."""
 
         result = []

@@ -1,14 +1,16 @@
 """Extend `list` with a `toggle` method to cycle through the values with each access."""
 
+from typing import Any
 
-class Cycle(list):
+
+class Cycle:
     """Circular list to return next item with each access.
 
     Extend `list` with a `toggle` method to cycle through the values with
     each access.
     """
 
-    def __init__(self, name, values):
+    def __init__(self, name: str, values: Any) -> None:
         """Create new `Cycle`.
 
         Args:
@@ -26,33 +28,31 @@ class Cycle(list):
         self._max = _len - 1
         self._idx = 0
 
-    def __setitem__(self, index, value):
-        # ignore index
+    def __setitem__(self, _index: int, value: Any) -> None:
         if value not in self._values:
             raise KeyError(f"value {value!r} not in {self.name!r}")
         while self._values[self._idx] != value:
-            self.next  # pylint: disable=pointless-statement
-        return value
+            _ = self.next
 
-    def start(self, value):
+    def start(self, value: Any) -> None:
         """Set starting `value`."""
-        return self.__setitem__(None, value)  # noqa
+        self.__setitem__(0, value)  # pylint: disable=unnecessary-dunder-call
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> Any:
         return self._values[index]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self._values)
 
     @property
-    def prev(self):
+    def prev(self) -> Any:
         """Return previous value."""
         if self._max:
             self._idx = self._max if self._idx == 0 else self._idx - 1
         return self._values[self._idx]
 
     @property
-    def next(self):
+    def next(self) -> Any:
         """Return next value."""
         if self._max:
             self._idx = 0 if self._idx == self._max else self._idx + 1
@@ -62,7 +62,7 @@ class Cycle(list):
     toggle = next
 
     @property
-    def value(self):
+    def value(self) -> Any:
         """Return current value."""
         return self._values[self._idx]
 

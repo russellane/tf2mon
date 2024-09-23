@@ -1,10 +1,11 @@
-import re
+from typing import Match
 
 from loguru import logger
 
 import tf2mon
 from tf2mon.gameevent import GameEvent
 from tf2mon.steamid import BOT_STEAMID, parse_steamid
+from tf2mon.user import UserKey
 
 
 class GameStatusEvent(GameEvent):
@@ -17,7 +18,7 @@ class GameStatusEvent(GameEvent):
 
     pattern = r'#\s*(?P<s_userid>\d+) "(?P<username>.+)"\s+(?P<steamid>\S+)(?:\s+(?P<elapsed>[\d:]+)\s+(?P<ping>\d+))'
 
-    def handler(self, match: re.Match) -> None:
+    def handler(self, match: Match[str]) -> None:
 
         # pylint: disable=too-many-branches
         # pylint: disable=too-many-locals
@@ -44,7 +45,7 @@ class GameStatusEvent(GameEvent):
                 user.userid = userid
 
         if not user:
-            user = tf2mon.users[username]
+            user = tf2mon.users[UserKey(username)]
 
         user.dirty = True
 
@@ -79,7 +80,7 @@ class GameStatusEvent(GameEvent):
             user.s_elapsed = _hh + ":" + _mm + ":" + _ss
 
         #
-        user.ping = ping
+        user.ping = int(ping)
         logger.log("STATUS", user)
 
         #

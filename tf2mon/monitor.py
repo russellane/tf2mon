@@ -23,7 +23,7 @@ from tf2mon.ui import UI
 class Monitor:
     """Team Fortress 2 Console Monitor."""
 
-    def run(self):
+    def run(self) -> None:
         """Run the Monitor."""
         libcurses.wrapper(self._run)
 
@@ -49,10 +49,11 @@ class Monitor:
         # Read from keyboard/mouse, write to display.
         self.admin()
 
-    def game(self):
+    def game(self) -> None:
         """Read console log file and play game."""
 
         Database(tf2mon.options.database, [Player, SteamPlayer])
+        assert tf2mon.conlog
         tf2mon.conlog.open()  # waits until it exists; then opens and returns.
         stepper = tf2mon.SingleStepControl
 
@@ -65,8 +66,9 @@ class Monitor:
             for event in [
                 x
                 for x in tf2mon.game.events + tf2mon.controller.controls
-                if hasattr(x, "search")
+                if hasattr(x, "search") and x.search
             ]:
+                assert event.search
                 if match := event.search(line):
                     break
             else:
@@ -90,8 +92,10 @@ class Monitor:
             logger.log(level, tf2mon.conlog.last_line)
 
             # check gate
-            stepper.wait()
+            assert stepper.wait
+            stepper.wait(None)
             if stepper.is_stepping:
+                assert stepper.clear
                 stepper.clear()
 
             if hasattr(event, "handler"):
@@ -105,6 +109,8 @@ class Monitor:
         # pylint: disable=too-many-branches
 
         stepper = tf2mon.SingleStepControl
+        assert stepper
+        assert tf2mon.conlog
 
         while not tf2mon.conlog.is_eof or tf2mon.options.follow:
 
@@ -124,6 +130,7 @@ class Monitor:
                     logger.log("console", f"lineno={tf2mon.conlog.lineno} <EOF>")
                 # else:
                 #     logger.trace("step...")
+                assert stepper.set
                 stepper.set()
                 continue
 
@@ -139,22 +146,25 @@ class Monitor:
                 cmd = line
                 arg = None
 
-            if "breakpoint".find(cmd) == 0 and arg.isdigit:
+            if "breakpoint".find(cmd) == 0 and arg and arg.isdigit():
                 stepper.set_single_step_lineno(int(arg))
 
             elif cmd[0] == "/":
-                stepper.set_single_step_pattern(cmd[1:])
+                pattern = cmd[1:]
+                if arg:
+                    pattern += f" {arg}"
+                stepper.set_single_step_pattern(pattern)
 
             elif "continue".find(cmd) == 0 or "go".find(cmd) == 0 or "run".find(cmd) == 0:
                 stepper.stop_single_stepping()
 
-            elif "kick".find(cmd) == 0 and arg.isdigit:
+            elif "kick".find(cmd) == 0 and arg and arg.isdigit():
                 tf2mon.users.kick_userid(int(arg), Player.CHEATER)
 
-            elif "kkk".find(cmd) == 0 and arg.isdigit:
+            elif "kkk".find(cmd) == 0 and arg and arg.isdigit():
                 tf2mon.users.kick_userid(int(arg), Player.RACIST)
 
-            elif "suspect".find(cmd) == 0 and arg.isdigit:
+            elif "suspect".find(cmd) == 0 and arg and arg.isdigit():
                 tf2mon.users.kick_userid(int(arg), Player.SUSPECT)
 
             elif "dump".find(cmd) == 0:
@@ -165,6 +175,9 @@ class Monitor:
 
             elif "motd".find(cmd) == 0:
                 tf2mon.MotdControl.handler(None)
+
+            elif "pdb".find(cmd) == 0:
+                tf2mon.debugger()
 
             else:
                 logger.error(f"bad admin command {cmd!r}")

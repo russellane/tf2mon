@@ -1,5 +1,7 @@
 """Table of `Player`s."""
 
+from __future__ import annotations
+
 import json
 import time
 from dataclasses import dataclass
@@ -59,7 +61,7 @@ class Player(DatabaseTable):
     TACOBOT = "tacobot"
     PAZER = "pazer"
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # additional (non-database) properties
 
         self._s_prev_time = self._s_last_time
@@ -69,7 +71,10 @@ class Player(DatabaseTable):
     def create_table(cls) -> None:
         """Execute create table statement."""
 
-        Database().execute(
+        db = Database()
+        assert db
+
+        db.execute(
             f"create table if not exists {cls.__tablename__}"
             """(
                 steamid integer primary key,
@@ -93,7 +98,7 @@ class Player(DatabaseTable):
                 names text
             )""",
         )
-        Database().connection.commit()
+        db.connection.commit()
 
     def getattrs(self) -> list[str]:
         """Docstring."""
@@ -116,17 +121,20 @@ class Player(DatabaseTable):
             self.milenko,
         ]
 
-    def setattrs(self, attrs) -> None:
+    def setattrs(self, attrs: list[str]) -> None:
         """Docstring."""
         for attr in attrs:
             setattr(self, attr, attr)
 
     @classmethod
-    def fetch_steamid(cls, steamid: int) -> "Player":
+    def fetch_steamid(cls, steamid: int) -> Player | None:
         """Return `Player` for given steamid, else None if not found."""
 
-        Database().execute(f"select * from {cls.__tablename__} where steamid=?", (steamid,))
-        if row := Database().fetchone():
+        db = Database()
+        assert db
+
+        db.execute(f"select * from {cls.__tablename__} where steamid=?", (steamid,))
+        if row := db.fetchone():
             return cls(*tuple(row))
         return None
 
@@ -163,10 +171,13 @@ class Player(DatabaseTable):
 
         return json.loads(self.names).get("json", []) if self.names else []
 
-    def strftime(self, seconds=None) -> str:
+    def strftime(self, seconds: int | None = None) -> str:
         """Return time formatted as a string."""
 
-        return time.strftime("%FT%T", time.localtime(seconds or int(time.time())))
+        if not seconds:
+            seconds = int(time.time())
+
+        return time.strftime("%FT%T", time.localtime(seconds))
 
     @property
     def display_level(self) -> str:
@@ -198,10 +209,10 @@ class Player(DatabaseTable):
         return self.__class__.__name__
 
     @property
-    def is_banned(self):
+    def is_banned(self) -> bool:
         """Return True if hacker is suspect or racist."""
 
-        return (
+        return bool(
             self.racist
             or self._racist
             or self.cheater
@@ -215,7 +226,7 @@ class Player(DatabaseTable):
         )
 
     @staticmethod
-    def new_player(steamid: int, attrs: list[str], name: str) -> "Player":
+    def new_player(steamid: int, attrs: list[str], name: str) -> Player:
         """Create, insert and return new `Player`."""
 
         player = Player(steamid)

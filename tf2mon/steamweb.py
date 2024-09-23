@@ -2,7 +2,7 @@
 
 import time
 
-import steam.webapi
+import steam.webapi  # type: ignore
 from loguru import logger
 
 from tf2mon.steamid import BOT_STEAMID, SteamID
@@ -42,7 +42,7 @@ class SteamWebAPI:
             self._nbots += 1
             return SteamPlayer(
                 steamid=steamid,
-                personaname=None,
+                personaname="",
                 profileurl="",
                 personastate=0,
                 realname="",
@@ -74,21 +74,21 @@ class SteamWebAPI:
 
         steamplayer = SteamPlayer(
             steamid,
-            summary.get("personaname"),
-            summary.get("profileurl"),
-            summary.get("personastate"),
-            summary.get("realname"),
-            summary.get("timecreated"),
-            summary.get("loccountrycode"),
-            summary.get("locstatecode"),
-            summary.get("loccityid"),
+            summary.get("personaname", ""),
+            summary.get("profileurl", ""),
+            int(summary.get("personastate", 0)),
+            summary.get("realname", ""),
+            int(summary.get("timecreated", 0)),
+            summary.get("loccountrycode", ""),
+            summary.get("locstatecode", ""),
+            summary.get("loccityid", ""),
             now,
         )
 
         steamplayer.upsert()
         return steamplayer
 
-    def _get_player_summaries(self, steamids):
+    def _get_player_summaries(self, steamids: list[SteamID]) -> list[dict[str, str]]:
 
         if not self._webapi:
             return []

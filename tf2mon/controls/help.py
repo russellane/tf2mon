@@ -2,6 +2,7 @@
 
 import textwrap
 from pathlib import Path
+from typing import Match
 
 import tf2mon
 from tf2mon.control import Control
@@ -12,7 +13,7 @@ class HelpControl(Control):
 
     name = "HELP"
 
-    def handler(self, _match) -> None:
+    def handler(self, _match: Match[str] | None) -> None:
 
         tf2mon.ui.show_journal("help", " Function Keys ".center(80, "-"))
         for line in tf2mon.controller.fkey_help().splitlines():
@@ -43,12 +44,12 @@ class MotdControl(Control):
     """Display Message of the Day."""
 
     name = "MOTD"
-    _path: Path = None
+    _path: Path
 
     def start(self) -> None:
         self._path = tf2mon.options.tf2_install_dir / "cfg" / "motd.txt"
 
-    def handler(self, _match) -> None:
+    def handler(self, _match: Match[str] | None) -> None:
         tf2mon.ui.show_journal("help", f" {self._path} ".center(80, "-"))
 
         with open(self._path, encoding="utf-8") as file:

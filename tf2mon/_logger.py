@@ -12,17 +12,18 @@ from loguru import logger
 class InterceptHandler(logging.Handler):
     """See https://loguru.readthedocs.io/en/stable/overview.html#entirely-compatible-with-standard-logging."""  # noqa
 
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord) -> None:
         """Redirect standard logging to loguru sink."""
         # Get corresponding Loguru level if it exists
         try:
             level = logger.level(record.levelname).name
         except ValueError:
-            level = record.levelno
+            level = str(record.levelno)
 
         # Find caller from where originated the logged message
         frame, depth = logging.currentframe(), 2
         while frame.f_code.co_filename == logging.__file__:
+            assert frame.f_back
             frame = frame.f_back
             depth += 1
 
@@ -51,7 +52,7 @@ def add_logging_levels() -> None:
     # pylint: disable=too-many-statements
 
     # remove bold from loguru default colors
-    for lvl in logger._core.levels.values():  # noqa: protected-access
+    for lvl in logger._core.levels.values():  # type: ignore # noqa: protected-access
         logger.level(lvl.name, color=lvl.color.replace("<bold>", ""))
 
     # set severity of custom levels relative to the builtins

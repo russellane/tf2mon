@@ -11,17 +11,20 @@ logging.basicConfig(force=True, level=logging.DEBUG)
 
 
 @pytest.fixture(name="api", scope="session")
-def api_(session):  # noqa unused
+def api_(session: str) -> SteamWebAPI:
+    # pylint: disable=unused-argument
+
     path = Path("~/.tf2mon.toml").expanduser()
     config = tomli.loads(path.read_text(encoding="utf-8"))
     webapi_key = None
-    if tf2mon := config.get("tf2mon"):
-        webapi_key = tf2mon.get("webapi_key")
+    tf2mon = config.get("tf2mon")
+    assert tf2mon
+    webapi_key = tf2mon.get("webapi_key")
     return SteamWebAPI(webapi_key)
 
 
 @pytest.mark.parametrize(("steamid"), [-3, -2, -1, 0])
-def test_fetch_steamid_not_found(api, steamid):
+def test_fetch_steamid_not_found(api: SteamWebAPI, steamid: int) -> None:
     result = api.fetch_steamid(steamid)
     # print(result)
     assert result
@@ -40,14 +43,14 @@ def test_fetch_steamid_not_found(api, steamid):
                 personastate=0,
                 realname="Alfred",
                 timecreated=1063193241,
-                loccountrycode=None,
-                locstatecode=None,
-                loccityid=None,
+                loccountrycode="",
+                locstatecode="",
+                loccityid="",
             ),
         ),
     ],
 )
-def test_fetch_known_steamids(api, steamid, expected):
+def test_fetch_known_steamids(api: SteamWebAPI, steamid: int, expected: SteamPlayer) -> None:
     result = api.fetch_steamid(steamid)
     assert result
     assert result.steamid == expected.steamid
@@ -64,7 +67,7 @@ def test_fetch_known_steamids(api, steamid, expected):
 
 
 @pytest.mark.parametrize(("steamid"), [42708103])
-def test_fetch_steamid_found(api, steamid):
+def test_fetch_steamid_found(api: SteamWebAPI, steamid: int) -> None:
     steamplayer = api.fetch_steamid(steamid)
     assert steamplayer
     # print(steamplayer)

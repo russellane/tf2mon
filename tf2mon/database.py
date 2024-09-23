@@ -1,15 +1,21 @@
 """Database."""
 
+from __future__ import annotations
+
 import dataclasses
 import sqlite3
-from typing import Iterator
+from pathlib import Path
+from typing import Any, Iterator
 
 from loguru import logger
 
-DATABASE = None
+DATABASE: sqlite3.dbapi2.Cursor | None = None
 
 
-def Database(path=None, tables=None) -> sqlite3.dbapi2.Cursor:  # noqa invalid-name
+def Database(  # pylint: disable=invalid-name
+    path: Path | None = None,
+    tables: list[type[DatabaseTable]] | None = None,
+) -> sqlite3.dbapi2.Cursor | None:  # noqa invalid-name
     """Open and return new session with database."""
 
     global DATABASE  # pylint: disable=global-statement
@@ -29,36 +35,48 @@ def Database(path=None, tables=None) -> sqlite3.dbapi2.Cursor:  # noqa invalid-n
 class DatabaseTable:
     """Base class for all database tables."""
 
-    __tablename__: str = None
+    __tablename__: str
+
+    @classmethod
+    def create_table(cls) -> None:
+        """Docstring."""
+
+        raise NotImplementedError
 
     @classmethod
     def select_all(cls) -> Iterator[object]:
         """Yield all rows in table."""
 
-        for row in Database().execute(f"select * from {cls.__tablename__}"):
+        db = Database()
+        assert db
+
+        for row in db.execute(f"select * from {cls.__tablename__}"):
             yield cls(*tuple(row))
 
     @classmethod
     def valueholders(cls) -> str:
         """Return text for sql `values` clause."""
 
-        placeholders = ",".join(["?"] * len(dataclasses.fields(cls)))
+        placeholders = ",".join(["?"] * len(dataclasses.fields(cls)))  # type: ignore
         return f"values({placeholders})"
 
-    def astuple(self) -> tuple:
+    def astuple(self) -> tuple[Any, ...]:
         """Return column values."""
 
-        return dataclasses.astuple(self)
+        return dataclasses.astuple(self)  # type: ignore
 
     def upsert(self) -> None:
         """Update or Insert this row into the table."""
 
+        db = Database()
+        assert db
+
         try:
-            Database().execute(
+            db.execute(
                 f"replace into {self.__tablename__} {self.valueholders()}",
                 self.astuple(),
             )
         except Exception as err:
             logger.critical(err)
             raise
-        Database().connection.commit()
+        db.connection.commit()

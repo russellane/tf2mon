@@ -1,5 +1,7 @@
 """Miscelleneous controls."""
 
+from typing import Match
+
 import tf2mon
 from tf2mon.control import BoolControl, Control
 from tf2mon.toggle import Toggle
@@ -17,7 +19,7 @@ class ShowDebugControl(Control):
 
     name = "SHOW-DEBUG"
 
-    def handler(self, _match) -> None:
+    def handler(self, _match: Match[str] | None) -> None:
         tf2mon.ui.show_journal("help", " Grid ".center(80, "-"))
         tf2mon.ui.show_journal("help", str(tf2mon.ui.grid))
         for box in tf2mon.ui.grid.boxes:
@@ -51,7 +53,7 @@ class ShowKillsControl(BoolControl):
     name = "TOGGLE-SHOW-KILLS"
     toggle = Toggle("kills", [False, True])
 
-    def handler(self, _match) -> None:
+    def handler(self, _match: Match[str] | None) -> None:
         super().handler(_match)
         tf2mon.ChatsControl.refresh()
 
@@ -61,7 +63,7 @@ class ShowPerksControl(Control):
 
     name = "SHOW-PERKS"
 
-    def handler(self, _match) -> None:
+    def handler(self, _match: Match[str] | None) -> None:
         tf2mon.ui.show_journal("help", " Perks ".center(80, "-"))
         for user in [x for x in tf2mon.users.active_users() if x.perk]:
             tf2mon.ui.show_journal("help", f"{user!r:25} {user.perk}")
@@ -72,12 +74,13 @@ class JoinOtherTeamControl(Control):
 
     name = "SWITCH-MY-TEAM"
 
-    def handler(self, _match) -> None:
+    def handler(self, _match: Match[str] | None) -> None:
         if self.toggling_enabled():
             tf2mon.users.my.team = tf2mon.users.my.opposing_team
             tf2mon.ui.update_display()
 
     def status(self) -> str:
+        assert tf2mon.users.my.team
         return tf2mon.users.my.team.name  # if tf2mon.users.my.team else "blu"
 
 
@@ -87,7 +90,7 @@ class ClearQueuesControl(Control):
     name = "CLEAR-QUEUES"
     action = "tf2mon_clear_queues"
 
-    def handler(self, _match) -> None:
+    def handler(self, _match: Match[str] | None) -> None:
         """Handle event."""
 
         tf2mon.KicksControl.clear()

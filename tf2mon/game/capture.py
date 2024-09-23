@@ -1,23 +1,23 @@
-import re
+from typing import Match
 
 from loguru import logger
 
 import tf2mon
 from tf2mon.gameevent import GameEvent
-from tf2mon.user import Team
+from tf2mon.user import Team, UserKey
 
 
 class GameCaptureEvent(GameEvent):
 
     pattern = r"(?P<username>.*) (?P<action>(?:captured|defended)) (?P<capture_pt>.*) for team #(?P<s_teamno>\d)$"
 
-    def handler(self, match: re.Match) -> None:
+    def handler(self, match: Match[str]) -> None:
 
         username, action, capture_pt, s_teamno = match.groups()
 
         for name in username.split(", "):  # fix: names containing commas
 
-            user = tf2mon.users[name]
+            user = tf2mon.users[UserKey(name)]
 
             try:
                 team = Team(int(s_teamno))
@@ -35,6 +35,8 @@ class GameCaptureEvent(GameEvent):
                 level = "DEF"
 
             user.dirty = True
+
+            assert user.team
             level += user.team.name
 
             logger.log(level, f"{user} {capture_pt!r}")

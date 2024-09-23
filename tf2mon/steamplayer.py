@@ -1,5 +1,7 @@
 """Table of `SteamPlayer`s."""
 
+from __future__ import annotations
+
 import time
 from dataclasses import dataclass
 
@@ -27,12 +29,12 @@ class SteamPlayer(DatabaseTable):
     loccityid: str = ""
     mtime: int = 0
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
 
         steamid = SteamID(self.steamid)
         if self.profileurl and self.profileurl == steamid.community_url + "/":
             # for asthetics only; to avoid clutter
-            self.profileurl = None  # indicate long noisy determinable value
+            self.profileurl = ""  # indicate long noisy determinable value
 
         now = int(time.time())
 
@@ -45,7 +47,10 @@ class SteamPlayer(DatabaseTable):
     def create_table(cls) -> None:
         """Execute create table statement."""
 
-        Database().execute(
+        db = Database()
+        assert db
+
+        db.execute(
             f"create table if not exists {cls.__tablename__}"
             """(
                 steamid integer primary key,
@@ -60,14 +65,17 @@ class SteamPlayer(DatabaseTable):
                 mtime integer
             )""",
         )
-        Database().connection.commit()
+        db.connection.commit()
 
     @classmethod
-    def fetch_steamid(cls, steamid: int) -> "SteamPlayer":
+    def fetch_steamid(cls, steamid: int) -> SteamPlayer | None:
         """Return `SteamPlayer` for given steamid, else None if not found."""
 
-        Database().execute(f"select * from {cls.__tablename__} where steamid=?", (steamid,))
-        if row := Database().fetchone():
+        db = Database()
+        assert db
+
+        db.execute(f"select * from {cls.__tablename__} where steamid=?", (steamid,))
+        if row := db.fetchone():
             return cls(*tuple(row))
         return None
 

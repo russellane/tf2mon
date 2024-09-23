@@ -11,8 +11,10 @@ from loguru import logger
 
 import tf2mon
 from tf2mon.baselayout import BaseLayout
+from tf2mon.chat import Chat
+from tf2mon.player import Player
 from tf2mon.scoreboard import Scoreboard
-from tf2mon.user import Team
+from tf2mon.user import Team, User
 
 # from playsound import playsound
 
@@ -31,11 +33,16 @@ class UI:
         # create empty grid
         self.grid = libcurses.Grid(win)
 
-        self.layout: BaseLayout = None  # set by `build_grid`.
+        self.scoreboard: Scoreboard
+        self.logsink: libcurses.Sink
+        # self.colormap: dict[str, int]
+        # self.layout: BaseLayout | None = None  # set by `build_grid`.
+        self.layout: BaseLayout  # set by `build_grid`.
 
         # `register_builder` 1) calls `build_grid` and 2) configures
         # `KEY_RESIZE` to call it again each time that event occurs.
         self.grid.register_builder(self.build_grid)
+        # assert self.layout
 
         # begin logging to curses window, too.
         self.logsink = libcurses.Sink(self.layout.logger_win)
@@ -51,7 +58,7 @@ class UI:
             self.colormap[Team.RED.name],
         )
 
-        self.popup_win: curses.window = None
+        self.popup_win: BorderedWindow | None = None
 
     def build_grid(self) -> None:
         """Add boxes to grid.
@@ -101,11 +108,15 @@ class UI:
             self.layout.cmdline_win.scrollok(True)
             self.layout.cmdline_win.keypad(True)
 
-        if tf2mon.ui is not None:
+        if (
+            tf2mon.ui is not None
+            and self.layout.chatwin_blu is not None
+            and self.layout.chatwin_red is not None
+        ):
             tf2mon.ChatsControl.refresh()
         self.grid.redraw()
 
-    def getline(self, prompt=None):
+    def getline(self, prompt: str | None = None) -> str | None:
         """Read and return next line from keyboard."""
 
         self.layout.cmdline_win.erase()
@@ -113,12 +124,14 @@ class UI:
             self.layout.cmdline_win.addstr(0, 0, prompt)
         return libcurses.getline(self.layout.cmdline_win)
 
-    def update_display(self):
+    def update_display(self) -> None:
         """Update display."""
 
         if self.sound_alarm:
             self.sound_alarm = False
-            if tf2mon.monitor.conlog.is_eof:  # don't do this when replaying logfile from start
+            if (
+                tf2mon.conlog and tf2mon.conlog.is_eof
+            ):  # don't do this when replaying logfile from start
                 ...
                 # playsound('/usr/share/sounds/sound-icons/prompt.wav')
                 # playsound('/usr/share/sounds/sound-icons/cembalo-10.wav')
@@ -136,33 +149,33 @@ class UI:
         if self.popup_win:
             self.popup_win.refresh()
 
-    def refresh_kicks(self):
+    def refresh_kicks(self) -> None:
         """Refresh kicks panel."""
 
         if self.layout.kicks_win:
             self._show_lines(
                 "KICKS",
-                reversed(tf2mon.KicksControl.msgs),
+                list(reversed(tf2mon.KicksControl.msgs)),
                 self.layout.kicks_win,
             )
 
         if self.layout.user_win:
             self.refresh_user(tf2mon.users.me)
 
-    def refresh_spams(self):
+    def refresh_spams(self) -> None:
         """Refresh spams panel."""
 
         if self.layout.spams_win:
             self._show_lines(
                 "SPAMS",
-                reversed(tf2mon.SpamsControl.msgs),
+                list(reversed(tf2mon.SpamsControl.msgs)),
                 self.layout.spams_win,
             )
 
         if self.layout.user_win:
             self.refresh_user(tf2mon.users.me)
 
-    def refresh_duels(self, user):
+    def refresh_duels(self, user: User) -> None:
         """Refresh duels panel."""
 
         if self.layout.duels_win:
@@ -171,7 +184,7 @@ class UI:
         if self.layout.user_win:
             self.refresh_user(tf2mon.users.me)
 
-    def refresh_user(self, user):
+    def refresh_user(self, user: User) -> None:
         """Refresh user panel."""
 
         panel = tf2mon.UserPanelControl
@@ -202,7 +215,7 @@ class UI:
 
             self.layout.user_win.noutrefresh()
 
-    def user_color(self, user, color):
+    def user_color(self, user: User, color: int) -> int:
         """Return `color` to display `user` in scoreboard."""
 
         if user.display_level:
@@ -225,7 +238,7 @@ class UI:
 
         return color
 
-    def show_chat(self, chat):
+    def show_chat(self, chat: Chat) -> None:
         """Display (append) `chat` in appropriate team window."""
 
         win = None
@@ -258,6 +271,7 @@ class UI:
     def show_journal(self, level: str, line: str) -> None:
         """Display `line` in some pseudo "journal" window."""
 
+        assert self.layout
         if (win := self.layout.chatwin_blu) is None:
             return
 
@@ -280,7 +294,7 @@ class UI:
         self.popup_win.w.addstr(text, self.colormap[level])
         self.popup_win.refresh()
 
-    def show_player_intel(self, player) -> None:
+    def show_player_intel(self, player: Player) -> None:
         """Display what we know about `player`."""
 
         level = player.display_level
@@ -308,9 +322,9 @@ class UI:
             f"{leader}: attrs={[x for x in player.getattrs() if x]}",
         )
 
-    def _format_duels(self, user):
+    def _format_duels(self, user: User) -> list[str]:
 
-        lines = []
+        lines: list[str] = []
         indent = " " * 12  # 12=len("99 and 99 vs")
 
         lines.append("Duels:")
@@ -327,7 +341,7 @@ class UI:
 
         return lines
 
-    def show_status(self):
+    def show_status(self) -> None:
         """Update status line."""
 
         line = tf2mon.controller.get_status_line() + f" UID={tf2mon.users.my.userid}"
@@ -341,7 +355,7 @@ class UI:
             pass
         self.layout.status_win.noutrefresh()
 
-    def _show_lines(self, level, lines, win):
+    def _show_lines(self, level: str, lines: list[str], win: curses.window) -> None:
 
         win.erase()
 

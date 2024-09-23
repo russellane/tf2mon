@@ -4,6 +4,7 @@ import re
 import time
 from argparse import Namespace
 from collections import namedtuple
+from typing import IO
 
 from loguru import logger
 
@@ -24,11 +25,11 @@ class Conlog:
     def __init__(self, options: Namespace):
         """Prepare to open and read the console logfile."""
 
-        self.path = options.con_logfile
+        self.path = options.con_logfile.expanduser()
         self.rewind = options.rewind
         self.follow = options.follow
-        self.is_eof: bool = False
-        self.last_line = None
+        self.is_eof: bool = True
+        self.last_line: str | None = None
         self.lineno: int = 0
 
         # strip optional timestamp; value not used.
@@ -39,8 +40,8 @@ class Conlog:
             "|".join(options.exclude_file.read_text(encoding="utf-8").splitlines())
         )
 
-        self._buffer: str = None
-        self._file = None
+        self._buffer: str | None = None
+        self._file: IO[str] | None = None
         self._inject_cmds: list[_CMD] = []
         self._is_inject_paused = False
         self._is_inject_sorted = False
@@ -53,23 +54,23 @@ class Conlog:
             with open(options.inject_file, encoding="utf-8") as file:
                 self._inject_cmd_list(file)
 
-    def _inject_cmd_list(self, cmds):
+    def _inject_cmd_list(self, cmds: IO[str]) -> None:
         """Inject list of commands into logfile."""
 
         for line in cmds:
             lineno, cmd = line.strip().split(":", maxsplit=1)
-            self.inject_cmd(lineno, cmd)
+            self.inject_cmd(int(lineno), cmd)
 
-    def inject_cmd(self, lineno, cmd):
+    def inject_cmd(self, lineno: int, cmd: str) -> None:
         """Inject command into logfile before `lineno`."""
 
         if not cmd.startswith(APPTAG):
             cmd = APPTAG + cmd
 
-        self._inject_cmds.append(_CMD(int(lineno) - 1, cmd))
+        self._inject_cmds.append(_CMD(lineno - 1, cmd))
         self._is_inject_sorted = False
 
-    def open(self):
+    def open(self) -> None:
         """Wait for existence of and open console logfile."""
 
         while not self.path.exists():
@@ -80,18 +81,22 @@ class Conlog:
 
         self._file = open(self.path, encoding="utf-8", errors="replace")  # noqa
 
-        if not self.rewind:
+        if self.rewind:
+            self.is_eof = False
+        else:
             while self._file.readline() != "":
                 self.lineno += 1
 
             logger.log("ADMIN", f"lineno={self.lineno}")
             self.is_eof = True
 
-    def readline(self):
+    def readline(self) -> str | None:
         """Read and return next line from console lofgile.
 
         Return None on end-of-file, else line.strip() (which may evaluate False).
         """
+
+        assert self._file
 
         while True:
 
@@ -150,13 +155,13 @@ class Conlog:
 
             time.sleep(1)  # hello
 
-    def trunc(self):
+    def trunc(self) -> None:
         """Truncate console logfile."""
 
         with open(self.path, "w", encoding="utf-8"):
             pass
 
-    def clean(self):
+    def clean(self) -> None:
         """Print non-excluded lines to `stdout`."""
 
         with open(self.path, encoding="utf-8", errors="replace") as file:

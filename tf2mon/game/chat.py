@@ -1,4 +1,4 @@
-import re
+from typing import Match
 
 from loguru import logger
 
@@ -7,6 +7,7 @@ from tf2mon.chat import Chat
 from tf2mon.gameevent import GameEvent
 from tf2mon.player import Player
 from tf2mon.racist import is_racist_text
+from tf2mon.user import UserKey
 
 
 class GameChatEvent(GameEvent):
@@ -19,12 +20,12 @@ class GameChatEvent(GameEvent):
         r"(?:(?P<dead>\*DEAD\*)?(?P<teamflag>\(TEAM\))? )?(?P<username>.*) :  ?(?P<msg>.*)$"
     )
 
-    def handler(self, match: re.Match) -> None:
+    def handler(self, match: Match[str]) -> None:
 
         _dead, teamflag, username, msg = match.groups()
 
-        user = tf2mon.users[username]
-        chat = Chat(user, teamflag, msg)
+        user = tf2mon.users[UserKey(username)]
+        chat = Chat(user, bool(teamflag), msg)
 
         user.chats.append(chat)
         tf2mon.ChatsControl.append(chat)

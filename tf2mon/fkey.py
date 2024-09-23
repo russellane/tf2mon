@@ -1,10 +1,12 @@
 """Function Keys."""
 
+from __future__ import annotations
+
 import curses
 import curses.ascii
 import re
 from dataclasses import dataclass, field
-from typing import Callable, ClassVar
+from typing import Any, ClassVar, Pattern
 
 # Values for `modifier`; also used as `shortname` prefix.
 MOD_BASE = ""
@@ -15,7 +17,7 @@ MOD_SHIFT = "s"
 class FKey:
     """The simultaneous pressing of a base key and an optional modifier key."""
 
-    pattern: ClassVar[re.Pattern] = re.compile(r"^(?:(SHIFT|CTRL)\+)?(F)?(.+)$")
+    pattern: ClassVar[Pattern[str]] = re.compile(r"^(?:(SHIFT|CTRL)\+)?(F)?(.+)$")
 
     curses_from_game: ClassVar[dict[str, int]] = {
         "KP_HOME": curses.KEY_HOME,
@@ -37,7 +39,7 @@ class FKey:
     }
 
     # physical keys, by `name`.
-    pkeys: ClassVar[dict[str, "PKey"]] = {}
+    pkeys: ClassVar[dict[str, PKey]] = {}
 
     # Keyname in TF2 terms, with optional modifier "shift+" or "ctrl+" (not both).
     # e.g., "A", "shift+A", "ctrl+KP_LEFTARROW".
@@ -48,7 +50,7 @@ class FKey:
     key: int  # ord("B"), curses.KEY_LEFT, curses.KEY_F1
     shortname: str  # for status-line.
     longname: str  # for `--help`.
-    pkey: "PKey"  # physical key
+    pkey: PKey  # physical key
 
     def __init__(self, keyspec: str):
         """Init `FKey` from `keyspec`.
@@ -91,7 +93,6 @@ class FKey:
             else:
                 raise ValueError("keyspec", self.keyspec)
 
-        self.key = None  # ord("B"), curses.KEY_LEFT, curses.KEY_F1
         if eff:
             self.key = curses.KEY_F0
             try:
@@ -120,12 +121,13 @@ class FKey:
             self.longname = "ctrl+"
         self.longname += self.name
 
-        self.pkey = self.__class__.pkeys.get(self.name)
-        if not self.pkey:
-            self.pkey = PKey(self.name)
-            self.__class__.pkeys[self.name] = self.pkey
+        pkey = self.__class__.pkeys.get(self.name)
+        if not pkey:
+            pkey = PKey(self.name)
+            self.__class__.pkeys[self.name] = pkey
+        self.pkey = pkey
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self.__dict__)
 
     @property
@@ -148,7 +150,7 @@ class FKey:
         """Return True if this is an ascii key."""
         return curses.ascii.isascii(self.key)
 
-    def bind(self, payload) -> None:
+    def bind(self, payload: Any) -> None:
         """Bind `payload` to this key."""
 
         if self.is_ctrl:
@@ -172,11 +174,11 @@ class PKey:
     """A physical key may perform `base`, `ctrl` and `shift` `Function`s."""
 
     name: str  # e.g., "A", "F1"
-    base: Callable[[re.Match], None] = field(default=None, init=False)
-    ctrl: Callable[[re.Match], None] = field(default=None, init=False)
-    shift: Callable[[re.Match], None] = field(default=None, init=False)
+    base: Any | None = field(default=None, init=False)
+    ctrl: Any | None = field(default=None, init=False)
+    shift: Any | None = field(default=None, init=False)
 
     @property
-    def bindings(self) -> list[Callable[[re.Match], None]]:
+    def bindings(self) -> list[Any]:
         """Return list of `payload`s bound to this `PKey`."""
         return [x for x in [self.base, self.ctrl, self.shift] if x is not None]

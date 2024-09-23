@@ -15,15 +15,15 @@ class MsgQueue:
         """Create `MsgQueue` named `name`."""
 
         self.name = name
-        self.msgs: deque = deque()
+        self.msgs: deque[str] = deque()
 
-    def push(self, msg) -> None:
+    def push(self, msg: str) -> None:
         """Append message to end of queue."""
 
         self.msgs.append(msg)
         logger.opt(depth=1).log("PUSH", msg)
 
-    def pushleft(self, msg) -> None:
+    def pushleft(self, msg: str) -> None:
         """Append message to other end of queue."""
 
         self.msgs.insert(0, msg)
