@@ -1,14 +1,10 @@
-"""Extend `list` with a `toggle` method to cycle through the values with each access."""
+"""Circular list that returns next item with each access."""
 
 from typing import Any
 
 
 class Cycle:
-    """Circular list to return next item with each access.
-
-    Extend `list` with a `toggle` method to cycle through the values with
-    each access.
-    """
+    """Circular list that returns next item with each access."""
 
     def __init__(self, name: str, values: Any) -> None:
         """Create new `Cycle`.
@@ -59,19 +55,8 @@ class Cycle:
         return self._values[self._idx]
 
     cycle = next
-    toggle = next
 
     @property
     def value(self) -> Any:
         """Return current value."""
         return self._values[self._idx]
-
-
-#    @value.setter
-#    def value(self, value):
-#        if value not in self._values:
-#            raise KeyError(f'bad value {value!r}')
-#        while self._values[self._idx] != value:
-#            self.next
-
-Toggle = Cycle

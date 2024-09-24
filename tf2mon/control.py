@@ -9,9 +9,9 @@ from typing import Any, ClassVar, Match
 from libcli import BaseCLI
 
 import tf2mon
+from tf2mon.cycle import Cycle
 from tf2mon.fkey import FKey
 from tf2mon.pkg import APPTAG
-from tf2mon.toggle import Toggle
 
 
 class Control:
@@ -95,7 +95,7 @@ class Control:
         """Return True if toggling is enabled.
 
         Don't allow toggling when replaying a game (`--rewind`),
-        unless `--toggles` is also given... or if single-stepping
+        unless `--allow-toggles` is also given... or if single-stepping
 
         This is checked by keys that alter the behavior of gameplay;
         it is not checked by keys that only alter the display.
@@ -105,7 +105,7 @@ class Control:
 
         return (
             tf2mon.conlog.is_eof
-            or tf2mon.options.toggles
+            or tf2mon.options.allow_toggles
             or tf2mon.SingleStepControl.is_stepping
         )
 
@@ -113,40 +113,40 @@ class Control:
 class BoolControl(Control):
     """Bool control."""
 
-    toggle: Toggle
+    cycle: Cycle
 
     def handler(self, _match: Match[str] | None) -> None:
         """Handle event."""
 
         if self.toggling_enabled():
-            _ = self.toggle.toggle
+            _ = self.cycle.next
             tf2mon.ui.show_status()
 
     def status(self) -> str:
         """Return value formatted for display."""
 
-        return self.toggle.name.upper() if self.toggle.value else self.toggle.name
+        return self.cycle.name.upper() if self.cycle.value else self.cycle.name
 
     @property
     def value(self) -> bool:
         """Return value."""
 
-        return self.toggle.value
+        return self.cycle.value
 
 
 class CycleControl(Control):
     """Cycle control."""
 
-    toggle: Toggle
+    cycle: Cycle
     items: dict[Any, Any] = {}
 
     def status(self) -> str:
         """Return value formatted for display."""
 
-        return self.toggle.value.name
+        return self.cycle.value.name
 
     @property
     def value(self) -> Any:
         """Return value."""
 
-        return self.items[self.toggle.value]
+        return self.items[self.cycle.value]

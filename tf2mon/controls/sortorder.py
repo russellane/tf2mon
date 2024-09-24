@@ -6,7 +6,7 @@ from typing import Match
 
 import tf2mon
 from tf2mon.control import CycleControl
-from tf2mon.toggle import Toggle
+from tf2mon.cycle import Cycle
 
 
 class SortOrderControl(CycleControl):
@@ -14,7 +14,7 @@ class SortOrderControl(CycleControl):
 
     name = "TOGGLE-SORT"
     enum = Enum("enum", "AGE STEAMID CONN K KD USERNAME")
-    toggle = Toggle("_t_soc", enum)
+    cycle = Cycle("_t_soc", enum)
     items = {
         enum.AGE: lambda user: (user.age, user.username_upper),
         enum.STEAMID: lambda user: (user.steamid.id if user.steamid else 0, user.username_upper),
@@ -25,13 +25,13 @@ class SortOrderControl(CycleControl):
     }
 
     def start(self) -> None:
-        self.toggle.start(self.enum.__dict__[tf2mon.options.sort_order])
-        tf2mon.ui.scoreboard.set_sort_order(self.toggle.value.name)
-        assert self.toggle.value.name == tf2mon.options.sort_order
+        self.cycle.start(self.enum.__dict__[tf2mon.options.sort_order])
+        tf2mon.ui.scoreboard.set_sort_order(self.cycle.value.name)
+        assert self.cycle.value.name == tf2mon.options.sort_order
 
     def handler(self, _match: Match[str] | None) -> None:
-        _ = self.toggle.toggle
-        tf2mon.ui.scoreboard.set_sort_order(self.toggle.value.name)
+        _ = self.cycle.next
+        tf2mon.ui.scoreboard.set_sort_order(self.cycle.value.name)
         tf2mon.ui.update_display()
 
     def add_arguments_to(self, parser: ArgumentParser) -> None:

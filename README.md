@@ -8,7 +8,7 @@
            [--log-location {MOD,NAM,THM,THN,FILE,NUL}]
            [--sort-order {AGE,STEAMID,CONN,K,KD,USERNAME}] [--single-step]
            [--break LINENO] [--search PATTERN] [--inject-cmd LINENO:CMD]
-           [--inject-file FILE] [--toggles] [--database FILE]
+           [--inject-file FILE] [--allow-toggles] [--database FILE]
            [--hackers FILE] [--print-steamids STEAMID [STEAMID ...]]
            [--print-hackers] [-h] [-v] [-V] [--config FILE]
            [--print-config] [--print-url] [--completion [SHELL]]
@@ -71,7 +71,7 @@ By default, `tf2mon` starts reading `con_logfile` from its end
     --inject-cmd LINENO:CMD
                         Inject `CMD` before line `LINENO`.
     --inject-file FILE  Read list of inject commands from `FILE`.
-    --toggles           Allow toggles when `--rewind` (default: `False`).
+    --allow-toggles     Allow toggles when `--rewind` (default: `False`).
 
 #### Database options
     --database FILE     Main database (default: `~/.cache/tf2mon/tf2mon.db`).

@@ -3,8 +3,8 @@
 from loguru import logger
 
 import tf2mon
+from tf2mon.cycle import Cycle
 from tf2mon.pkg import APPNAME
-from tf2mon.toggle import Cycle
 from tf2mon.user import User
 
 

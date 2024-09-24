@@ -4,14 +4,14 @@ from typing import Match
 
 import tf2mon
 from tf2mon.control import BoolControl, Control
-from tf2mon.toggle import Toggle
+from tf2mon.cycle import Cycle
 
 
 class DebugFlagControl(BoolControl):
     """Enable/disable debug (use `ECHO` or `SAY`)."""
 
     name = "TOGGLE-DEBUG"
-    toggle = Toggle("debug", [False, True])
+    cycle = Cycle("debug", [False, True])
 
 
 class ShowDebugControl(Control):
@@ -30,28 +30,28 @@ class TauntFlagControl(BoolControl):
     """Enable/disable `Taunt` messages."""
 
     name = "TOGGLE-TAUNT"
-    toggle = Toggle("taunt", [False, True])
+    cycle = Cycle("taunt", [False, True])
 
 
 class ThroeFlagControl(BoolControl):
     """Enable/disable `Throe` messages."""
 
     name = "TOGGLE-THROE"
-    toggle = Toggle("throe", [True, False])
+    cycle = Cycle("throe", [True, False])
 
 
 class ShowKDControl(BoolControl):
     """Include `Kill/Death ratio` in `User.moniker`."""
 
     name = "TOGGLE-KD"
-    toggle = Toggle("kd", [False, True])
+    cycle = Cycle("kd", [False, True])
 
 
 class ShowKillsControl(BoolControl):
     """Display kills in journal window."""
 
     name = "TOGGLE-SHOW-KILLS"
-    toggle = Toggle("kills", [False, True])
+    cycle = Cycle("kills", [False, True])
 
     def handler(self, _match: Match[str] | None) -> None:
         super().handler(_match)

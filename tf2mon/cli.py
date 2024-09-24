@@ -229,7 +229,7 @@ class CLI(BaseCLI):
         )
 
         arg = group.add_argument(
-            "--toggles",
+            "--allow-toggles",
             action="store_true",
             help="allow toggles when `--rewind`",
         )

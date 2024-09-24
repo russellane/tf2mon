@@ -125,7 +125,6 @@ def add_logging_levels() -> None:
     logger.level("report", no=_always, color="<cyan>")
     logger.level("server", no=_trace, color="<cyan>")
     logger.level("QVALVE", no=_always, color="<cyan><italic>")
-    logger.level("toggle", no=_debug, color="<green><bold><italic>")
     logger.level("user", no=_debug, color="<green>")
     logger.level("RED", no=_debug, color="<red>")
     logger.level("BLU", no=_debug, color="<cyan>")

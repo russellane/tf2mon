@@ -5,7 +5,7 @@ from typing import Match
 
 import tf2mon
 from tf2mon.control import Control
-from tf2mon.toggle import Toggle
+from tf2mon.cycle import Cycle
 
 
 class UserPanelControl(Control):
@@ -13,15 +13,15 @@ class UserPanelControl(Control):
 
     name = "TOGGLE-USER-PANEL"
     enum = Enum("enum", "AUTO DUELS KICKS SPAMS")
-    toggle = Toggle("_t_user_panel", enum)
+    cycle = Cycle("_t_user_panel", enum)
 
     def handler(self, _match: Match[str] | None) -> None:
-        _ = self.toggle.toggle
+        _ = self.cycle.next
         tf2mon.ui.update_display()
 
     def status(self) -> str:
-        return self.toggle.value.name
+        return self.cycle.value.name
 
     @property
     def value(self) -> bool:
-        return self.toggle.value
+        return self.cycle.value
