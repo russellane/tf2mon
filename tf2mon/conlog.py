@@ -3,14 +3,16 @@
 import re
 import time
 from argparse import Namespace
-from collections import namedtuple
-from typing import IO
+from typing import IO, NamedTuple
 
 from loguru import logger
 
 from tf2mon.pkg import APPTAG
 
-_CMD = namedtuple("_CMD", ["lineno", "cmd"])
+
+class _CMD(NamedTuple):
+    lineno: int
+    cmd: str
 
 
 class Conlog:

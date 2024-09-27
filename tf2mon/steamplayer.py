@@ -83,4 +83,4 @@ class SteamPlayer(DatabaseTable):
     def is_gamebot(self) -> bool:
         """Return True if this is a legitimate game BOT; not a hacker."""
 
-        return self.steamid == BOT_STEAMID.id
+        return self.steamid == BOT_STEAMID.id  # type: ignore[no-any-return]

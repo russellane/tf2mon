@@ -57,9 +57,6 @@ class LogLocationControl(CycleControl):
         tf2mon.ui.logsink.set_location(self.items[self.cycle.cycle])
         tf2mon.ui.show_status()
 
-    def status(self) -> str:
-        return self.cycle.value.name
-
     def add_arguments_to(self, parser: ArgumentParser) -> None:
         arg = parser.add_argument(
             "--log-location",

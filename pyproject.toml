@@ -88,6 +88,9 @@ add-ignore = [
     "D202",
 ]
 
+[tool.mypy]
+strict = true
+
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"

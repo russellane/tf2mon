@@ -131,7 +131,7 @@ class BoolControl(Control):
     def value(self) -> bool:
         """Return value."""
 
-        return self.cycle.value
+        return bool(self.cycle.value)
 
 
 class CycleControl(Control):
@@ -143,7 +143,7 @@ class CycleControl(Control):
     def status(self) -> str:
         """Return value formatted for display."""
 
-        return self.cycle.value.name
+        return str(self.cycle.value.name)
 
     @property
     def value(self) -> Any:

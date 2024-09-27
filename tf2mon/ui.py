@@ -197,7 +197,7 @@ class UI:
             ):
                 self._show_lines(
                     "KICKS",
-                    reversed(kicks.msgs) if kicks.msgs else ["No Kicks"],
+                    list(reversed(kicks.msgs)) if kicks.msgs else ["No Kicks"],
                     self.layout.user_win,
                 )
             #
@@ -206,7 +206,7 @@ class UI:
             ):
                 self._show_lines(
                     "SPAMS",
-                    reversed(spams.msgs) if spams.msgs else ["No Spams"],
+                    list(reversed(spams.msgs)) if spams.msgs else ["No Spams"],
                     self.layout.user_win,
                 )
             #

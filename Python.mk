@@ -41,9 +41,8 @@ isort::
 flake8::
 		python -m flake8 $(PROJECT) tests
 
-MYPYOPTS :=
 mypy::
-		python -m mypy $(MYPYOPTS) $(PROJECT) tests
+		python -m mypy $(PROJECT) tests
 
 pytest::
 		python -m pytest --exitfirst --showlocals --verbose tests

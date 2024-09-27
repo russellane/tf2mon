@@ -166,10 +166,11 @@ class Player(DatabaseTable):
         self.upsert()
 
     @property
-    def aliases(self) -> str:
+    def aliases(self) -> list[str]:
         """Return list of names used by this account."""
 
-        return json.loads(self.names).get("json", []) if self.names else []
+        ret: list[str] = json.loads(self.names).get("json", []) if self.names else []
+        return ret
 
     def strftime(self, seconds: int | None = None) -> str:
         """Return time formatted as a string."""

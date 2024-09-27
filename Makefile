@@ -2,8 +2,6 @@ PROJECT = tf2mon
 include Python.mk
 doc :: README.md
 
-MYPYOPTS +=	--disallow-any-generics
-MYPYOPTS +=	--disallow-untyped-defs
 lint::		mypy
 
 #-------------------------------------------------------------------------------

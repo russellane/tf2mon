@@ -1,7 +1,9 @@
 """Docstring."""
 
 from loguru import logger
-from steam.steamid import SteamID  # type: ignore
+from steam.steamid import SteamID  # type: ignore[import-untyped]
+
+__all__ = ["SteamID"]
 
 BOT_STEAMID = SteamID(1)
 
