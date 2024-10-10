@@ -34,7 +34,7 @@ class UI:
         self.grid = libcurses.Grid(win)
 
         self.scoreboard: Scoreboard
-        self.logsink: libcurses.Sink
+        self.logsink: libcurses.LogSink
         # self.colormap: dict[str, int]
         # self.layout: BaseLayout | None = None  # set by `build_grid`.
         self.layout: BaseLayout  # set by `build_grid`.
@@ -45,7 +45,7 @@ class UI:
         # assert self.layout
 
         # begin logging to curses window, too.
-        self.logsink = libcurses.Sink(self.layout.logger_win)
+        self.logsink = libcurses.LogSink(self.layout.logger_win)
 
         # map of `loguru-level-name` to `curses-color/attr`.
         self.colormap = libcurses.get_colormap()
