@@ -21,8 +21,9 @@ def Database(  # pylint: disable=invalid-name
     global DATABASE  # pylint: disable=global-statement
     if not DATABASE and path:
 
-        logger.info(f"Opening `{path}`")
-        conn = sqlite3.connect(path, check_same_thread=False)
+        _path = path.expanduser()
+        logger.info(f"Opening `{_path}`")
+        conn = sqlite3.connect(_path, check_same_thread=False)
         conn.row_factory = sqlite3.Row
         DATABASE = conn.cursor()
 

@@ -39,7 +39,7 @@ class Conlog:
 
         logger.info(f"Reading `{options.exclude_file}`")
         self.re_exclude = re.compile(
-            "|".join(options.exclude_file.read_text(encoding="utf-8").splitlines())
+            "|".join(options.exclude_file.expanduser().read_text(encoding="utf-8").splitlines())
         )
 
         self._buffer: str | None = None

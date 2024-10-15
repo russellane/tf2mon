@@ -19,19 +19,25 @@ from tf2mon.steamweb import SteamWebAPI
 class CLI(BaseCLI):
     """Command line interface."""
 
-    _cachedir = xdg.xdg_cache_home() / __package__
+    @staticmethod
+    def _hideuser(path: Path) -> Path:
+        """Replace home with tilde; complements `Path.expanduser`."""
+        _path = str(path)
+        _home = str(Path.home())
+        if not _path.startswith(_home):
+            return path
+        return Path("~" + _path[len(_home) :])
+
+    _cachedir = _hideuser(xdg.xdg_cache_home() / __package__)
 
     config = {
         # name of config file.
-        "config-file": Path.home().joinpath(".tf2mon.toml"),
-        #
+        "config-file": Path("~/.tf2mon.toml"),
         # toml [section-name].
         "config-name": "tf2mon",
         #
         # location of game to monitor
-        "tf2_install_dir": Path.home().joinpath(
-            "SteamLibrary", "steamapps", "common", "Team Fortress 2", "tf"
-        ),
+        "tf2_install_dir": Path("~/SteamLibrary/steamapps/common/Team Fortress 2/tf"),
         #
         # basename relative to `tf2_install_dir`.
         "con_logfile": Path("console.log"),
@@ -39,7 +45,7 @@ class CLI(BaseCLI):
         # databases.
         "database": _cachedir / "tf2mon.db",
         "hackers": _cachedir / "hackers.json",
-        "exclude-file": Path(__file__).parent / "data" / "exclude.txt",
+        "exclude-file": _hideuser(Path(__file__).parent / "data" / "exclude.txt"),
         "webapi_key": "",
         # this player.
         "player_name": "Bad Dad",
