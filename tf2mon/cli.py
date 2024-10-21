@@ -19,16 +19,7 @@ from tf2mon.steamweb import SteamWebAPI
 class CLI(BaseCLI):
     """Command line interface."""
 
-    @staticmethod
-    def _hideuser(path: Path) -> Path:
-        """Replace home with tilde; complements `Path.expanduser`."""
-        _path = str(path)
-        _home = str(Path.home())
-        if not _path.startswith(_home):
-            return path
-        return Path("~" + _path[len(_home) :])
-
-    _cachedir = _hideuser(xdg.xdg_cache_home() / __package__)
+    _cachedir = BaseCLI.hideuser(xdg.xdg_cache_home() / __package__)
 
     config = {
         # name of config file.
@@ -45,7 +36,7 @@ class CLI(BaseCLI):
         # databases.
         "database": _cachedir / "tf2mon.db",
         "hackers": _cachedir / "hackers.json",
-        "exclude-file": _hideuser(Path(__file__).parent / "data" / "exclude.txt"),
+        "exclude-file": BaseCLI.hideuser(Path(__file__).parent / "data" / "exclude.txt"),
         "webapi_key": "",
         # this player.
         "player_name": "Bad Dad",
