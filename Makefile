@@ -4,6 +4,10 @@ doc :: README.md
 
 lint::		mypy
 
+test :: cov_fail_under_49
+cov_fail_under_49:
+	python -m pytest --cov-fail-under 49 --cov=$(PROJECT) tests
+
 #-------------------------------------------------------------------------------
 
 # ./.tf2 is a symlink to some .../SteamLibrary/steamapps/common/Team Fortress 2/tf/
