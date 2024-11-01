@@ -1,8 +1,7 @@
 PROJECT = tf2mon
 include Python.mk
+lint:: mypy
 doc :: README.md
-
-lint::		mypy
 
 test :: cov_fail_under_49
 cov_fail_under_49:
