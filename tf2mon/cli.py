@@ -15,8 +15,10 @@ from tf2mon.database import Database
 from tf2mon.monitor import Monitor
 from tf2mon.steamweb import SteamWebAPI
 
+__all__ = ["Tf2monCLI"]
 
-class CLI(BaseCLI):
+
+class Tf2monCLI(BaseCLI):
     """Command line interface."""
 
     _cachedir = BaseCLI.hideuser(xdg.xdg_cache_home() / __package__)
@@ -494,5 +496,4 @@ class CLI(BaseCLI):
 
 def main(args: list[str] | None = None) -> None:
     """Command line interface entry point (function)."""
-
-    CLI(args).main()
+    Tf2monCLI(args).main()

@@ -6,9 +6,8 @@ import argparse
 import re
 from typing import Any, ClassVar, Match
 
-from libcli import BaseCLI
-
 import tf2mon
+from tf2mon.cli import Tf2monCLI
 from tf2mon.cycle import Cycle
 from tf2mon.fkey import FKey
 from tf2mon.pkg import APPTAG
@@ -52,7 +51,7 @@ class Control:
     fkey: FKey | None = None
 
     #
-    cli: ClassVar[BaseCLI]
+    cli: ClassVar[Tf2monCLI]
 
     #
     match = None

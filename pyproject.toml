@@ -22,7 +22,7 @@ dependencies = [
     "loguru>=0.7.2",
     "python-levenshtein>=0.26.1",
     "rlane-libcli>=1.0.7",
-    "rlane-libcurses>=1.0.7",
+    "rlane-libcurses>=1.0.8",
     "steam>=1.4.4",
     "xdg>=6.0.0",
 ]
