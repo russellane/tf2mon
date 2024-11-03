@@ -44,18 +44,17 @@ flake8::
 mypy::
 		python -m mypy $(PROJECT) tests
 
+COV_FAIL_UNDER = 0
+PYTEST =	python -m pytest $(PYTESTOPTS) \
+		--cov=$(PROJECT) --cov-report=html \
+		--cov-fail-under $(COV_FAIL_UNDER) \
+		--exitfirst --showlocals --verbose
+
 pytest::
-		python -m pytest --exitfirst --showlocals --verbose tests
+		$(PYTEST) tests
 
 pytest_debug::
-		python -m pytest --exitfirst --showlocals --verbose --capture=no tests
-
-coverage::
-		python -m pytest --cov=$(PROJECT) tests
-
-cov_html::
-		python -m pytest --cov=$(PROJECT) --cov-report=html tests
-		xdg-open htmlcov/index.html
+		$(PYTEST) --capture=no tests
 
 clean::
 		rm -rf .coverage .mypy_cache .pdm-build .pytest_cache __pypackages__ dist htmlcov tags 

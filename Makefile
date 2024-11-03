@@ -1,11 +1,8 @@
-PROJECT = tf2mon
 include Python.mk
-lint:: mypy
+PROJECT = tf2mon
+COV_FAIL_UNDER = 49
+lint :: mypy
 doc :: README.md
-
-test :: cov_fail_under_49
-cov_fail_under_49:
-	python -m pytest --cov-fail-under 49 --cov=$(PROJECT) tests
 
 #-------------------------------------------------------------------------------
 
