@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:1a28a6febf4796cd53d3dbc3471e277f218118bd4c3dedc4ee33ad24651315c3"
+content_hash = "sha256:486045ae3aad51236c8ad2de7eed31740ddef5aab23d71e08d66eec5c882f237"
 
 [[metadata.targets]]
 requires_python = ">=3.10"
@@ -1007,23 +1007,23 @@ files = [
 
 [[package]]
 name = "rlane-libcli"
-version = "1.0.7"
+version = "1.0.8"
 requires_python = ">=3.10"
 summary = "Command line interface framework"
 groups = ["default"]
 dependencies = [
     "ansicolors>=1.1.8",
     "argcomplete>=3.5.1",
-    "tomli>=2.0.2",
+    "tomli>=2.1.0",
 ]
 files = [
-    {file = "rlane_libcli-1.0.7-py3-none-any.whl", hash = "sha256:164eec823525a99b52bb68ceebe8412ff8cf127cbd8c200a45f8dedea196ed5e"},
-    {file = "rlane_libcli-1.0.7.tar.gz", hash = "sha256:5adb02b2cd404fa6bd2b7277d4e9fccde4fe235103a279acc41fe747843981c3"},
+    {file = "rlane_libcli-1.0.8-py3-none-any.whl", hash = "sha256:451092677facd4e8e5c3df6f9f21969fc69b85b1278d1f9e99166fd49a1936d1"},
+    {file = "rlane_libcli-1.0.8.tar.gz", hash = "sha256:16fb629a7498ede181e6439f5933a865e0a68d93273d6fcfdd27cac11732be92"},
 ]
 
 [[package]]
 name = "rlane-libcurses"
-version = "1.0.8"
+version = "1.0.9"
 requires_python = ">=3.10"
 summary = "Curses based boxes, menus, loggers"
 groups = ["default"]
@@ -1031,8 +1031,8 @@ dependencies = [
     "loguru>=0.7.2",
 ]
 files = [
-    {file = "rlane_libcurses-1.0.8-py3-none-any.whl", hash = "sha256:f53923837c10a5d7d1671d097d61979914c533869b05caf5433c67a8992de02e"},
-    {file = "rlane_libcurses-1.0.8.tar.gz", hash = "sha256:e448c0b0535fc0ab243adbe42b3263b9f5077e71dfd0eb3b5ce966d484a5c6d2"},
+    {file = "rlane_libcurses-1.0.9-py3-none-any.whl", hash = "sha256:4f69d420f9ac4c54009f809ab5eede0890a9c0c2af316dd41acdd7addacfae2e"},
+    {file = "rlane_libcurses-1.0.9.tar.gz", hash = "sha256:041a4b7e381b97121db17b3cb65876c911ceffdeb9cd177feeae764a5511f30f"},
 ]
 
 [[package]]
@@ -1076,13 +1076,13 @@ files = [
 
 [[package]]
 name = "tomli"
-version = "2.0.2"
+version = "2.1.0"
 requires_python = ">=3.8"
 summary = "A lil' TOML parser"
 groups = ["default", "dev"]
 files = [
-    {file = "tomli-2.0.2-py3-none-any.whl", hash = "sha256:2ebe24485c53d303f690b0ec092806a085f07af5a5aa1464f3931eec36caaa38"},
-    {file = "tomli-2.0.2.tar.gz", hash = "sha256:d46d457a85337051c36524bc5349dd91b1877838e2979ac5ced3e710ed8a60ed"},
+    {file = "tomli-2.1.0-py3-none-any.whl", hash = "sha256:a5c57c3d1c56f5ccdf89f6523458f60ef716e210fc47c4cfb188c5ba473e0391"},
+    {file = "tomli-2.1.0.tar.gz", hash = "sha256:3f646cae2aec94e17d04973e4249548320197cfabdf130015d023de4b74d8ab8"},
 ]
 
 [[package]]

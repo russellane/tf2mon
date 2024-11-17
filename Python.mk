@@ -56,6 +56,9 @@ pytest::
 pytest_debug::
 		$(PYTEST) --capture=no tests
 
+coverage::
+		python -m pytest --cov=$(PROJECT) tests
+
 clean::
 		rm -rf .coverage .mypy_cache .pdm-build .pytest_cache __pypackages__ dist htmlcov tags 
 		find . -type f -name '*.py[co]' -delete

@@ -1,10 +1,10 @@
 ### tf2mon - Team Fortress 2 Console Monitor
 
 #### Usage
-    tf2mon [--tf2-install-dir DIR] [--rewind | --no-rewind]
-           [--follow | --no-follow] [--list-con-logfile]
-           [--trunc-con-logfile] [--clean-con-logfile]
-           [--exclude-file FILE] [--layout {CHAT,DFLT,FULL,TALL,MRGD,WIDE}]
+    tf2mon [--tf2-install-dir DIR] [--rewind | --no-rewind] [--follow |
+           --no-follow] [--list-con-logfile] [--trunc-con-logfile]
+           [--clean-con-logfile] [--exclude-file FILE]
+           [--layout {CHAT,DFLT,FULL,TALL,MRGD,WIDE}]
            [--log-location {MOD,NAM,THM,THN,FILE,NUL}]
            [--sort-order {AGE,STEAMID,CONN,K,KD,USERNAME}] [--single-step]
            [--break LINENO] [--search PATTERN] [--inject-cmd LINENO:CMD]
