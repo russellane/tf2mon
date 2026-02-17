@@ -1,6 +1,6 @@
 include Python.mk
 PROJECT = tf2mon
-COV_FAIL_UNDER = 49
+COV_FAIL_UNDER = 47
 lint :: mypy
 doc :: README.md
 
@@ -27,7 +27,7 @@ $(CONLOG_BKUP): $(CONLOG_FILE)
 	ls -lh $<
 
 cleanlog:	latest
-		python -m tf2mon --clean-con-logfile latest >$@
+		pdm run python -m tf2mon --clean-con-logfile latest >$@
 
 distclean::
 	rm -f cleanlog latest

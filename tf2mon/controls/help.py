@@ -20,20 +20,14 @@ class HelpControl(Control):
             tf2mon.ui.show_journal("help", line)
 
         tf2mon.ui.show_journal("help", " Admin Commands ".center(80, "-"))
-        for line in (
-            textwrap.dedent(
-                """
+        for line in textwrap.dedent("""
             Press Enter to process next line.
             Enter "b 500" to set breakpoint at line 500.
             Enter "/pattern[/i]" to set search pattern.
             Enter "/" to clear search pattern.
             Enter "c" to continue.
             Enter "quit" or press ^D to quit."
-                """
-            )
-            .strip()
-            .splitlines()
-        ):
+                """).strip().splitlines():
             tf2mon.ui.show_journal("help", line)
 
     def status(self) -> str:

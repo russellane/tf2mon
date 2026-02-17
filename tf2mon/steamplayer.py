@@ -51,8 +51,7 @@ class SteamPlayer(DatabaseTable):
         assert db
 
         db.execute(
-            f"create table if not exists {cls.__tablename__}"
-            """(
+            f"create table if not exists {cls.__tablename__}" """(
                 steamid integer primary key,
                 personaname text,
                 profileurl text,

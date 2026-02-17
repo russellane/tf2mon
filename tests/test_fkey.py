@@ -1,12 +1,12 @@
 import string
 
-import icecream  # type: ignore
+import icecream
 import pytest
 from icecream import ic
 
 from tf2mon.fkey import FKey
 
-icecream.install()
+icecream.install()  # type: ignore[attr-defined]
 icecream.ic.configureOutput(prefix="=====>\n", includeContext=True)
 
 
@@ -53,7 +53,8 @@ def test_fkey_value_error(keyspec: str) -> None:
 )
 def test_fkey_letters(keyspec: str, key: int, is_shift: bool, is_ctrl: bool) -> None:
 
-    keystroke = ic(FKey(keyspec))
+    keystroke = FKey(keyspec)
+    ic(keystroke)
     assert keystroke.key == key
     assert keystroke.is_shift is is_shift
     assert keystroke.is_ctrl is is_ctrl
@@ -71,62 +72,71 @@ def test_fkey_f1_F1() -> None:
 
 def test_fkey_f1() -> None:
 
-    keystroke = ic(FKey("f1"))
+    keystroke = FKey("f1")
+    ic(keystroke)
     assert not keystroke.is_shift
     assert not keystroke.is_ctrl
 
 
 def test_fkey_f12() -> None:
 
-    keystroke = ic(FKey("f12"))
+    keystroke = FKey("f12")
+    ic(keystroke)
     assert not keystroke.is_shift
     assert not keystroke.is_ctrl
 
 
 def test_fkey_f13() -> None:
 
-    keystroke = ic(FKey("f13"))
+    keystroke = FKey("f13")
+    ic(keystroke)
     assert not keystroke.is_shift
     assert not keystroke.is_ctrl
 
 
 def test_fkey_shift_f1() -> None:
 
-    keystroke = ic(FKey("shift+f1"))
+    keystroke = FKey("shift+f1")
+    ic(keystroke)
     assert keystroke.is_shift
     assert not keystroke.is_ctrl
 
 
 def test_fkey_shift_f12() -> None:
 
-    keystroke = ic(FKey("shift+f12"))
+    keystroke = FKey("shift+f12")
+    ic(keystroke)
     assert keystroke.is_shift
     assert not keystroke.is_ctrl
 
 
 def test_fkey_shift_f13() -> None:
 
-    keystroke = ic(FKey("shift+f13"))
+    keystroke = FKey("shift+f13")
+    ic(keystroke)
     assert keystroke.is_shift
     assert not keystroke.is_ctrl
 
 
 def test_fkey_ctrl_f1() -> None:
 
-    keystroke = ic(FKey("ctrl+f1"))
+    keystroke = FKey("ctrl+f1")
+    ic(keystroke)
     assert not keystroke.is_shift
     assert keystroke.is_ctrl
 
 
 def test_fkey_ctrl_f12() -> None:
 
-    keystroke = ic(FKey("ctrl+f12"))
+    keystroke = FKey("ctrl+f12")
+    ic(keystroke)
     assert not keystroke.is_shift
     assert keystroke.is_ctrl
 
 
 def test_fkey_ctrl_f13() -> None:
 
-    keystroke = ic(FKey("ctrl+f13"))
+    keystroke = FKey("ctrl+f13")
+    ic(keystroke)
     assert not keystroke.is_shift
     assert keystroke.is_ctrl

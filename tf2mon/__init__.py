@@ -15,7 +15,7 @@ from tf2mon.user import Team, UserKey
 from tf2mon.users import Users
 
 config: dict[str, Any] = {}
-conlog: Conlog | None = None
+conlog: Conlog | None = None  # noqa: PLC103
 options: Namespace
 steam_web_api: SteamWebAPI
 ui: UI

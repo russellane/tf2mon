@@ -1,5 +1,6 @@
 """Command line interface."""
 
+import logging
 import threading
 from pathlib import Path
 
@@ -54,18 +55,17 @@ class Tf2monCLI(BaseCLI):
     def init_logging(self, verbose: int) -> None:
         """Set logging levels based on `--verbose`."""
 
-        init_logging_called = self.init_logging_called
+        if logging.root.handlers:
+            return
         super().init_logging(verbose)
-        if not init_logging_called:
-            configure_logger()
+        configure_logger()
 
     def init_parser(self) -> None:
         """Initialize argument parser."""
 
         self.parser = self.ArgumentParser(
             prog=__package__,
-            description=self.dedent(
-                """
+            description=self.dedent("""
     Team Fortress II (`TF2`) Console Monitor, `%(prog)s`, is an interactive
     terminal application that displays scoreboards and player statistics of
     an active game. `%(prog)s` can also `--rewind` and `--single-step`
@@ -86,8 +86,7 @@ class Tf2monCLI(BaseCLI):
 
     By default, `%(prog)s` starts reading `con_logfile` from its end
     (`--no-rewind`), and `--follow`s its tail.
-                """
-            ),
+                """),
         )
 
     def add_arguments(self) -> None:
@@ -271,8 +270,7 @@ class Tf2monCLI(BaseCLI):
 
         self.parser.add_argument_group(
             "Configuration file",
-            self.dedent(
-                """
+            self.dedent("""
     The configuration file (see `--config FILE` below) defines local
     settings:
 
@@ -280,16 +278,14 @@ class Tf2monCLI(BaseCLI):
         tf2_install_dir = "/path/to/your/tf2/installation"
         webapi_key = "your-steamworks-webapi-key"
         player_name = "Your Name"
-                """
-            ),
+                """),
         )
 
     def _add_numpad(self) -> None:
 
         self.parser.add_argument_group(
             "In-Game Controls, Numpad",
-            self.dedent(
-                """
+            self.dedent("""
     While playing TF2, use the `Numpad` to kick cheaters, and generate
     `Taunt` and death-`Throe` spam.
 
@@ -326,16 +322,14 @@ class Tf2monCLI(BaseCLI):
 
     The monitor can only push actions onto the queues; gamer must pop
     for action to be taken, or clear to discard.
-                """
-            ),
+                """),
         )
 
     def _add_duels(self) -> None:
 
         self.parser.add_argument_group(
             "Duels",
-            self.dedent(
-                """
+            self.dedent("""
     The user-panel displays battles with opponents, grouped by weapon (and
     its state when fired).
 
@@ -356,8 +350,7 @@ class Tf2monCLI(BaseCLI):
         │             K  1 pyro     +crit flamethrower                        │
         │             D  1 demo           player                              │
         └─────────────────────────────────────────────────────────────────────┘
-                """
-            ),
+                """),
         )
 
     def _add_fkeys_args(self) -> None:
@@ -372,8 +365,7 @@ class Tf2monCLI(BaseCLI):
 
         self.parser.add_argument_group(
             "Where to Operate",
-            self.dedent(
-                """
+            self.dedent("""
     `%(prog)s` works by reading the `con_logfile` to which `TF2` logs
     messages during the game. `%(prog)s` can either "tail -f" an active
     game, or `--rewind` and replay saved logfiles. Press `Enter` in the
@@ -389,16 +381,14 @@ class Tf2monCLI(BaseCLI):
 
         `Two-machines, NFS`
             cross-mount TF2's `cfg` tree to another box and run from there.
-                """
-            ),
+                """),
         )
 
     def _add_terminal(self) -> None:
 
         self.parser.add_argument_group(
             "Terminal Size",
-            self.dedent(
-                """
+            self.dedent("""
     `%(prog)s` requires a large terminal. Maximize the window, and use keys
     (maybe `Ctrl-Minus` and `Shift-Ctrl-Plus`) to resize. The wider the
     terminal, the more player data will be displayed:
@@ -407,49 +397,42 @@ class Tf2monCLI(BaseCLI):
         42x173 display personaname
         52x211 display realname
         62x272 display age/location
-                """
-            ),
+                """),
         )
 
     def _add_windows(self) -> None:
         self.parser.add_argument_group(
             "Resizable Windows",
-            self.dedent(
-                """
+            self.dedent("""
     `Drag-and-drop` an interior border to resize the windows on either side.
 
     `Double-click` an interior border to enter `Resize Mode`.
         `scroll-wheel` and `arrows` move the border.
         `click`, `enter` or `esc` to exit.
-                """
-            ),
+                """),
         )
 
     def _add_scoreboard(self) -> None:
 
         self.parser.add_argument_group(
             "Scoreboard",
-            self.dedent(
-                """
+            self.dedent("""
     `Single-click` user to highlight and follow.
     `Double-click` user to kick as cheater.
     `Triple-click` user to kick as racist.
     `F7` to change sort column.
-                """
-            ),
+                """),
         )
 
     def _add_logfiles(self) -> None:
         self.parser.add_argument_group(
             "Log Files",
-            self.dedent(
-                """
+            self.dedent("""
     `%(prog)s` writes plaintext messages to `fileno(2)`, and
     colorized messages to `fileno(3)`, when open to a regular file.
 
         $ %(prog)s 2>x 3>y
-                """
-            ),
+                """),
         )
 
     def main(self) -> None:

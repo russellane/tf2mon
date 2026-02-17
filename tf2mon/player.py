@@ -75,8 +75,7 @@ class Player(DatabaseTable):
         assert db
 
         db.execute(
-            f"create table if not exists {cls.__tablename__}"
-            """(
+            f"create table if not exists {cls.__tablename__}" """(
                 steamid integer primary key,
                 bot text,
                 friends text,

@@ -6,8 +6,8 @@
 .pdm-python
 .pytest_cache/
 .tf2
+.venv/
 __pycache__/
-__pypackages__/
 cleanlog
 conlogs
 dist/
