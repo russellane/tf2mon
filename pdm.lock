@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:33ceaf94c7a38389023756633805057f4ead49766883f899467c106038ef7e93"
+content_hash = "sha256:d7c3a609b2103428d42952ed35e829fa749f0c8e4c1d2cc0dc9e4ad3928959b9"
 
 [[metadata.targets]]
 requires_python = ">=3.10"
@@ -974,7 +974,7 @@ files = [
 
 [[package]]
 name = "rlane-libcli"
-version = "1.0.10"
+version = "1.0.12"
 requires_python = ">=3.10"
 summary = "Command line interface framework"
 groups = ["default"]
@@ -985,13 +985,13 @@ dependencies = [
     "tomli>=2.1.0",
 ]
 files = [
-    {file = "rlane_libcli-1.0.10-py3-none-any.whl", hash = "sha256:e8e30e0eae9a531565931e8df50bb25a2b407d372f2c4846a25c249a4a9432f6"},
-    {file = "rlane_libcli-1.0.10.tar.gz", hash = "sha256:a97c6dda76ca40f9fd2277daf0d33ce8cd1f7dd60867b9908bca4b77d8428a1a"},
+    {file = "rlane_libcli-1.0.12-py3-none-any.whl", hash = "sha256:7726e28b046ede25b5b84a197fe5b9bb8c45e49d7a9da23322342d7cd3867238"},
+    {file = "rlane_libcli-1.0.12.tar.gz", hash = "sha256:3ac1c01f704112880b9f04e4851045949474b627cc855ac1362eddc55fb041ed"},
 ]
 
 [[package]]
 name = "rlane-libcurses"
-version = "1.0.10"
+version = "1.0.12"
 requires_python = ">=3.10"
 summary = "Curses based boxes, menus, loggers"
 groups = ["default"]
@@ -999,8 +999,8 @@ dependencies = [
     "loguru>=0.7.2",
 ]
 files = [
-    {file = "rlane_libcurses-1.0.10-py3-none-any.whl", hash = "sha256:0df9af5148382ee76cda3518305d5127ce344675e22c8f3012bd45e704b25a9f"},
-    {file = "rlane_libcurses-1.0.10.tar.gz", hash = "sha256:f14d37b8cecf94625709aeee351d334090c7bd26b4ed0bbd9fb57ba2cb3031e1"},
+    {file = "rlane_libcurses-1.0.12-py3-none-any.whl", hash = "sha256:45973c5fec454a02bc1e98e9163dd53b595061651e9ad513f4cf56f2ffaf58ba"},
+    {file = "rlane_libcurses-1.0.12.tar.gz", hash = "sha256:678924aa69c5bc81d796a1226b0c54c41e18cc70d6fb6de6357f923c1ded78f5"},
 ]
 
 [[package]]
