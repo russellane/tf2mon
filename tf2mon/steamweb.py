@@ -89,7 +89,6 @@ class SteamWebAPI:
         return steamplayer
 
     def _get_player_summaries(self, steamids: list[SteamID]) -> list[dict[str, str]]:
-
         if not self._webapi:
             return []
 

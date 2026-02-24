@@ -8,7 +8,6 @@ from tf2mon.user import Team
 
 
 class GameServerEvent(GameEvent):
-
     # must be before `chat`
     # account : not logged in  (No account specified)
     # version : 6173888/24 6173888 secure
@@ -26,7 +25,6 @@ class GameServerEvent(GameEvent):
 
 
 class GamePingEvent(GameEvent):
-
     # "06/05/2022 - 13:54:19:   67 ms : luft"
     # "06/05/2022 - 13:54:19:xy 87 ms : BananaHatTaco"
     pattern = r"\s*\d+ ms .*"
@@ -36,7 +34,6 @@ class GamePingEvent(GameEvent):
 
 
 class GameLobbyFailedEvent(GameEvent):
-
     pattern = "Failed to find lobby shared object"
 
     def handler(self, match: Match[str]) -> None:
@@ -44,7 +41,6 @@ class GameLobbyFailedEvent(GameEvent):
 
 
 class GameTeamsSwitchedEvent(GameEvent):
-
     pattern = "^Teams have been switched"
 
     def handler(self, _match: Match[str] | None) -> None:
@@ -52,7 +48,6 @@ class GameTeamsSwitchedEvent(GameEvent):
 
 
 class GameUserSwitchedEvent(GameEvent):
-
     pattern = r"You have switched to team (?P<teamname>\w+) and will"
 
     def handler(self, match: Match[str]) -> None:
@@ -60,7 +55,6 @@ class GameUserSwitchedEvent(GameEvent):
 
 
 class GameHostnameEvent(GameEvent):
-
     # hostname: Valve Matchmaking Server (Virginia iad-1/srcds148 #53)
 
     pattern = "^hostname: (.*)"

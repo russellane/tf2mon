@@ -12,15 +12,15 @@ from loguru import logger
 DATABASE: sqlite3.dbapi2.Cursor | None = None
 
 
-def Database(  # pylint: disable=invalid-name
+def Database(
     path: Path | None = None,
     tables: list[type[DatabaseTable]] | None = None,
-) -> sqlite3.dbapi2.Cursor | None:  # noqa invalid-name
+) -> sqlite3.dbapi2.Cursor | None:
     """Open and return new session with database."""
 
-    global DATABASE  # pylint: disable=global-statement
+    # PLW0603: DATABASE is a module-level singleton; global assignment is the intended pattern.
+    global DATABASE  # noqa: PLW0603
     if not DATABASE and path:
-
         _path = path.expanduser()
         logger.info(f"Opening `{_path}`")
         conn = sqlite3.connect(_path, check_same_thread=False)

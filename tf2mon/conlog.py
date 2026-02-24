@@ -22,8 +22,6 @@ class Conlog:
     "inject" lines into the data stream read from the game console logfile.
     """
 
-    # pylint: disable=too-many-instance-attributes
-
     def __init__(self, options: Namespace):
         """Prepare to open and read the console logfile."""
 
@@ -101,7 +99,6 @@ class Conlog:
         assert self._file
 
         while True:
-
             if _buffer := self._buffer:
                 self._buffer = None
                 self.last_line = f"{self.lineno}: {_buffer}"
@@ -116,7 +113,6 @@ class Conlog:
                 and (self.is_eof or not self._is_inject_paused)
                 and self._inject_cmds[0].lineno <= self.lineno
             ):
-
                 line = self._inject_cmds.pop(0).cmd
                 self._is_inject_paused = True
                 self.last_line = f"{self.lineno + 1}: {line}"

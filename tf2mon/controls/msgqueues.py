@@ -44,7 +44,6 @@ class MsgQueuesControl(Control):
         _static_path.write_text(script, encoding="utf-8")
 
         logger.info(f"Opening `{_dynamic_path}`")
-        # pylint: disable=consider-using-with
         self._file = open(_dynamic_path, "w", encoding="utf-8")  # noqa
 
     def clear(self) -> None:
@@ -78,7 +77,6 @@ class DisplayFileControl(Control):
         self._path = tf2mon.options.tf2_install_dir / "cfg" / "user" / "tf2mon.cfg"
 
     def handler(self, _match: Match[str] | None) -> None:
-
         assert self._path
         tf2mon.ui.popup(
             "help",

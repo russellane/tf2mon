@@ -69,7 +69,7 @@ class TextTable:
         """Docstring."""
 
         result = []
-        for column, value in zip(self.columns, values):
+        for column, value in zip(self.columns, values, strict=False):
             if value is None:
                 result.append(column.fmt_heading.format(""))
             else:

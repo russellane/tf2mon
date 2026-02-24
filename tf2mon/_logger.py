@@ -46,13 +46,12 @@ def configure_logger() -> None:
     add_logging_levels()
 
 
-def add_logging_levels() -> None:
+# Too many statements; registers all custom loguru levels used across the tf2mon project.
+def add_logging_levels() -> None:  # noqa: PLR0915
     """Add custom logging levels."""
 
-    # pylint: disable=too-many-statements
-
     # remove bold from loguru default colors
-    for lvl in logger._core.levels.values():  # type: ignore # noqa: protected-access
+    for lvl in logger._core.levels.values():  # type: ignore
         logger.level(lvl.name, color=lvl.color.replace("<bold>", ""))
 
     # set severity of custom levels relative to the builtins

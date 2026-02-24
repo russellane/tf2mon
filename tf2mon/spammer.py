@@ -89,11 +89,9 @@ class Spammer:
         self._push_spam(spam, killer, weapon, suffix)
 
     def _is_airblast(self, weapon: str) -> bool:
-
         return weapon in self._airblast_weapons
 
     def _push_spam(self, messages: Cycle, user: User, weapon: str, suffix: str = "") -> None:
-
         m = str(messages.cycle).format(
             user=user.moniker,
             duel=tf2mon.users.my.duel_as_str(user),
@@ -107,7 +105,7 @@ class Spammer:
         """Respond to SPAM command."""
 
         if spamno == 1:
-            msg = str("say Real-time stats brought to you by " f"{APPNAME} bot detector")
+            msg = str(f"say Real-time stats brought to you by {APPNAME} bot detector")
 
         else:
             logger.critical(f"bad spamno {spamno!r}")

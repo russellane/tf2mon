@@ -103,17 +103,15 @@ class Monitor:
                 tf2mon.MsgQueuesControl.send()
                 tf2mon.ui.update_display()
 
-    def admin(self) -> None:
+    # Too many branches/statements; admin REPL handles many command types and error conditions.
+    def admin(self) -> None:  # noqa: PLR0912, PLR0915
         """Admin console read-evaluate-process-loop."""
-
-        # pylint: disable=too-many-branches
 
         stepper = tf2mon.SingleStepControl
         assert stepper
         assert tf2mon.conlog
 
         while not tf2mon.conlog.is_eof or tf2mon.options.follow:
-
             tf2mon.ui.update_display()
 
             prompt = APPNAME

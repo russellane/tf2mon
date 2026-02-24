@@ -50,10 +50,8 @@ class Control:
     # Optional; function key to operate control.
     fkey: FKey | None = None
 
-    #
     cli: ClassVar[Tf2monCLI]
 
-    #
     match = None
     search = None
 

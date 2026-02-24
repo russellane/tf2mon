@@ -8,13 +8,9 @@ from tf2mon.user import UserKey
 
 
 class GamePerkOnEvent(GameEvent):
-
-    pattern = (
-        r"[0-9A-F]{6}\[RTD\] [0-9A-F]{6}(?P<username>.*) rolled [0-9A-F]{6}(?P<perk>.*)"
-    )
+    pattern = r"[0-9A-F]{6}\[RTD\] [0-9A-F]{6}(?P<username>.*) rolled [0-9A-F]{6}(?P<perk>.*)"
 
     def handler(self, match: Match[str]) -> None:
-
         username, perk = match.groups()
         user = tf2mon.users[UserKey(username)]
         user.perk = perk
@@ -23,11 +19,9 @@ class GamePerkOnEvent(GameEvent):
 
 
 class GamePerkOff1Event(GameEvent):
-
     pattern = r"[0-9A-F]{6}\[RTD\] [0-9A-F]{6}(?P<username>.*)\'s perk has worn off."
 
     def handler(self, match: Match[str]) -> None:
-
         (username,) = match.groups()
         user = tf2mon.users[UserKey(username)]
         user.perk = ""
@@ -36,11 +30,9 @@ class GamePerkOff1Event(GameEvent):
 
 
 class GamePerkOff2Event(GameEvent):
-
     pattern = r"[0-9A-F]{6}\[RTD\] Your perk has worn off."
 
     def handler(self, _match: Match[str] | None) -> None:
-
         user = tf2mon.users.me
         user.perk = ""
         user.dirty = True
@@ -48,11 +40,11 @@ class GamePerkOff2Event(GameEvent):
 
 
 class GamePerkChangeEvent(GameEvent):
-
-    pattern = r"[0-9A-F]{6}\[RTD\] [0-9A-F]{6}(?P<username>.*) has changed class during their roll."
+    pattern = (
+        r"[0-9A-F]{6}\[RTD\] [0-9A-F]{6}(?P<username>.*) has changed class during their roll."
+    )
 
     def handler(self, match: Match[str]) -> None:
-
         (username,) = match.groups()
         user = tf2mon.users[UserKey(username)]
         logger.debug(f"{user} changed class")

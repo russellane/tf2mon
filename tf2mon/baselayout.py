@@ -17,8 +17,6 @@ class BaseLayout:
     others may remain undefined.
     """
 
-    # pylint: disable=too-many-instance-attributes
-
     grid: InitVar[libcurses.Grid]
     max_users: InitVar[int] = 32
     _: KW_ONLY

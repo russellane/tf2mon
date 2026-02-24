@@ -18,7 +18,6 @@ class Chat:
     teamflag: bool
     msg: str
     timestamp: float | None = field(default=None)
-    #
     s_timestamp: str | None = field(default=None, init=False)
     stats: UserStats | None = field(default=None, init=False)
 

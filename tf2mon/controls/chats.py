@@ -23,7 +23,6 @@ class ChatsControl(Control):
         self.refresh()
 
     def refresh(self) -> None:
-
         if not hasattr(tf2mon.ui, "layout"):
             return
         assert tf2mon.ui.layout

@@ -32,7 +32,7 @@ class Cycle:
 
     def start(self, value: Any) -> None:
         """Set starting `value`."""
-        self.__setitem__(0, value)  # pylint: disable=unnecessary-dunder-call
+        self.__setitem__(0, value)
 
     def __getitem__(self, index: int) -> Any:
         return self._values[index]

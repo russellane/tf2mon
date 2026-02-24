@@ -13,8 +13,6 @@ from tf2mon.steamid import BOT_STEAMID, SteamID
 class SteamPlayer(DatabaseTable):
     """Represent ['response']['players'] element from `ISteamUser.GetPlayerSummaries`."""
 
-    # pylint: disable=too-many-instance-attributes
-
     __tablename__ = "steamplayers"
 
     # database columns
@@ -30,7 +28,6 @@ class SteamPlayer(DatabaseTable):
     mtime: int = 0
 
     def __post_init__(self) -> None:
-
         steamid = SteamID(self.steamid)
         if self.profileurl and self.profileurl == steamid.community_url + "/":
             # for asthetics only; to avoid clutter
@@ -51,7 +48,8 @@ class SteamPlayer(DatabaseTable):
         assert db
 
         db.execute(
-            f"create table if not exists {cls.__tablename__}" """(
+            f"create table if not exists {cls.__tablename__}"
+            """(
                 steamid integer primary key,
                 personaname text,
                 profileurl text,

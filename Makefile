@@ -1,6 +1,5 @@
 include Python.mk
 PROJECT = tf2mon
-COV_FAIL_UNDER = 47
 lint :: mypy
 doc :: README.md
 

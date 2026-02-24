@@ -1,6 +1,6 @@
 [project]
 name = "tf2mon"
-version = "1.0.49"
+version = "1.0.50"
 description = "Team Fortress 2 Console Monitor"
 authors = [
     {name = "Russel Lane", email = "russel@rlane.com"},
@@ -21,8 +21,8 @@ dependencies = [
     "humanize>=4.11.0",
     "loguru>=0.7.2",
     "python-levenshtein>=0.26.1",
-    "rlane-libcli>=1.0.10",
-    "rlane-libcurses>=1.0.10",
+    "rlane-libcli>=1.0.12",
+    "rlane-libcurses>=1.0.12",
     "steam>=1.4.4",
     "xdg>=6.0.0",
 ]
@@ -35,62 +35,77 @@ tf2mon = "tf2mon.cli:main"
 
 [dependency-groups]
 dev = [
-    "black>=24.10.0",
-    "flake8-bugbear>=24.12.12",
-    "flake8-pydocstyle>=0.2.5",
-    "flake8-pylint>=0.2.1",
-    "flake8-pytest-style>=2.1.0",
-    "flake8-simplify>=0.21.0",
-    "flake8>=7.1.1",
     "icecream>=2.1.3",
-    "isort>=5.13.2",
     "mypy>=1.14.1",
     "pytest-cov>=6.0.0",
     "pytest>=8.3.4",
+    "ruff>=0.6.9",
 ]
 
 [tool.coverage.run]
 omit = ["tf2mon/__main__.py"]
 
-[tool.black]
-line-length = "97"
-
-[tool.isort]
-line_length = "97"
-profile = "black"
-
-[tool.pylint.format]
-max-line-length = "97"
-
-[tool.pylint.messages_control]
-enable = [
-    "useless-suppression",
-]
-fail-on = [
-    # useless-suppression
-    "I0021",
-]
-
-good-names = [
-    "i", "j",
-    "k", "v",
-    "m",
-    "Monitor",
-    "me", "my",
-    "ui",
-]
-
-[tool.pydocstyle]
-convention = "google"
-add-ignore = [
-    # "D105",     # pep257 numpy google   # Missing docstring in magic method
-    "D105",
-    # "D202",     # pep257 numpy google   # No blank lines allowed after function docstring
-    "D202",
-]
+[tool.coverage.report]
+fail_under = 47
 
 [tool.mypy]
 strict = true
+
+[tool.ruff]
+line-length = 97
+
+[tool.ruff.lint]
+select = [
+    # pyflakes: undefined names, unused imports, redefined variables
+    "F",
+    # pycodestyle: PEP 8 style errors
+    "E",
+    # pycodestyle: PEP 8 style warnings
+    "W",
+    # flake8-bugbear: likely bugs and design problems
+    "B",
+    # pydocstyle: docstring style and completeness (google convention)
+    "D",
+    # pylint: errors, warnings, refactoring hints, conventions
+    "PL",
+    # flake8-pytest-style: pytest usage best practices
+    "PT",
+    # flake8-simplify: code patterns that can be simplified
+    "SIM",
+    # isort: import sorting and grouping
+    "I",
+]
+ignore = [
+    # formatter: whitespace before ':'
+    "E203",
+    # pydocstyle: missing docstring in magic method
+    "D105",
+    # pydocstyle: no blank lines allowed after function docstring
+    "D202",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = [
+    # pydocstyle: skip all docstring checks
+    "D",
+    # pylint convention: skip convention checks
+    "PLC",
+    # pylint: magic value used in comparison
+    "PLR2004",
+]
+"tf2mon/game/*" = [
+    # pydocstyle: game event classes are thin wrappers; docstrings add no value
+    "D",
+    # pylint convention: skip convention checks
+    "PLC",
+]
+"tf2mon/controls/*" = [
+    # D102: control handler methods have self-evident names; docstrings add no value
+    "D102",
+]
 
 [build-system]
 requires = ["pdm-backend"]

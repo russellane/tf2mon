@@ -22,8 +22,6 @@ from tf2mon.user import Team, User
 class UI:
     """User Interface."""
 
-    # pylint: disable=too-many-instance-attributes
-
     def __init__(self, win: curses.window):
         """Initialize User Interface."""
 
@@ -50,7 +48,6 @@ class UI:
         # map of `loguru-level-name` to `curses-color/attr`.
         self.colormap = libcurses.get_colormap()
 
-        #
         self.scoreboard = Scoreboard(
             self.layout.scorewin_blu,
             self.colormap[Team.BLU.name],
@@ -200,7 +197,6 @@ class UI:
                     list(reversed(kicks.msgs)) if kicks.msgs else ["No Kicks"],
                     self.layout.user_win,
                 )
-            #
             elif panel.value == panel.enum.SPAMS or (
                 panel.value == panel.enum.AUTO and spams.msgs
             ):
@@ -209,7 +205,6 @@ class UI:
                     list(reversed(spams.msgs)) if spams.msgs else ["No Spams"],
                     self.layout.user_win,
                 )
-            #
             else:
                 self._show_lines("user", self._format_duels(user), self.layout.user_win)
 
@@ -313,7 +308,6 @@ class UI:
 
         self.show_journal(
             level,
-            # pylint: disable=protected-access
             f"{leader}: prev={player.s_prev_time} {player._s_prev_time}",
         )
 
@@ -323,7 +317,6 @@ class UI:
         )
 
     def _format_duels(self, user: User) -> list[str]:
-
         lines: list[str] = []
         indent = " " * 12  # 12=len("99 and 99 vs")
 
@@ -356,7 +349,6 @@ class UI:
         self.layout.status_win.noutrefresh()
 
     def _show_lines(self, level: str, lines: list[str], win: curses.window) -> None:
-
         win.erase()
 
         with contextlib.suppress(curses.error):

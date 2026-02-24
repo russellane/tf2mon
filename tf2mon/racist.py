@@ -12,7 +12,8 @@ _RE_RACIST: Pattern[str] | None = None
 def load_racist_data(path: Path) -> None:
     """Docstring."""
 
-    global _RE_RACIST  # pylint: disable=global-statement
+    # PLW0603: _RE_RACIST is a module-level compiled regex updated at startup from a data file.
+    global _RE_RACIST  # noqa: PLW0603
 
     logger.info(f"Reading `{path}`")
     lines = path.read_text(encoding="utf-8").splitlines()

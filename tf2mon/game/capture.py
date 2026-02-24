@@ -8,15 +8,13 @@ from tf2mon.user import Team, UserKey
 
 
 class GameCaptureEvent(GameEvent):
-
-    pattern = r"(?P<username>.*) (?P<action>(?:captured|defended)) (?P<capture_pt>.*) for team #(?P<s_teamno>\d)$"
+    # E501: regex pattern captures all named groups in a single line; splitting would obscure it.
+    pattern = r"(?P<username>.*) (?P<action>(?:captured|defended)) (?P<capture_pt>.*) for team #(?P<s_teamno>\d)$"  # noqa: E501
 
     def handler(self, match: Match[str]) -> None:
-
         username, action, capture_pt, s_teamno = match.groups()
 
         for name in username.split(", "):  # fix: names containing commas
-
             user = tf2mon.users[UserKey(name)]
 
             try:

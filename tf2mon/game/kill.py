@@ -10,15 +10,11 @@ from tf2mon.user import Kill, UserKey, WeaponState
 
 
 class GameKillEvent(GameEvent):
-
     pattern = r"(?P<killer>.*) killed (?P<victim>.*) with (?P<weapon>.*)\.(?P<crit> \(crit\))?$"
     spammer = Spammer()
 
-    def handler(self, match: Match[str]) -> None:
-
-        # pylint: disable=too-many-branches
-        # pylint: disable=too-many-statements
-
+    # Too many branches/statements; handles kill events with weapon/crit classification inline.
+    def handler(self, match: Match[str]) -> None:  # noqa: PLR0912, PLR0915
         s_killer, s_victim, weapon, s_crit = match.groups()
 
         killer = tf2mon.users[UserKey(s_killer)]
@@ -98,7 +94,6 @@ class GameKillEvent(GameEvent):
             killer.nkills_by_opponent_by_weapon[victim.key][killer.weapon_state] = 0
         killer.nkills_by_opponent_by_weapon[victim.key][killer.weapon_state] += 1
 
-        #
         level = "KILL"
         if killer.team:
             level += killer.team.name

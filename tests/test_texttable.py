@@ -4,7 +4,6 @@ from tf2mon.texttable import TextColumn, TextTable
 
 
 def test_column() -> None:
-
     table = TextTable(
         [
             TextColumn(-10, "STEAMID"),

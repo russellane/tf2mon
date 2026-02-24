@@ -15,7 +15,8 @@ _ROLE_BY_WEAPON: dict[str, Role] = {}
 def load_weapons_data(path: Path) -> None:
     """Load weapons data from `path`."""
 
-    global _ROLE_BY_WEAPON  # pylint: disable=global-statement
+    # PLW0603: _ROLE_BY_WEAPON is a module-level dict loaded at startup from a data file.
+    global _ROLE_BY_WEAPON  # noqa: PLW0603
 
     logger.info(f"Reading `{path}`")
     with open(path, encoding="utf-8") as _f:

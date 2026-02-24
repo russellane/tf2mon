@@ -8,11 +8,9 @@ from tf2mon.user import UserKey
 
 
 class GameConnectedEvent(GameEvent):
-
     pattern = "(?P<username>.*) connected$"
 
     def handler(self, match: Match[str]) -> None:
-
         (username,) = match.groups()
 
         logger.log("CONNECT", tf2mon.users[UserKey(username)])

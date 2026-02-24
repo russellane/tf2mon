@@ -106,7 +106,6 @@ class Tf2monCLI(BaseCLI):
         self._add_logfiles()
 
     def _add_base_args(self) -> None:
-
         arg = self.parser.add_argument(
             "--tf2-install-dir",
             metavar="DIR",
@@ -189,7 +188,6 @@ class Tf2monCLI(BaseCLI):
         self.add_default_to_help(arg)
 
     def _add_debug_args(self) -> None:
-
         group = self.parser.add_argument_group("Debugging options")
 
         group.add_argument(
@@ -234,7 +232,6 @@ class Tf2monCLI(BaseCLI):
         self.add_default_to_help(arg)
 
     def _add_database_args(self) -> None:
-
         group = self.parser.add_argument_group("Database options")
 
         arg = group.add_argument(
@@ -282,7 +279,6 @@ class Tf2monCLI(BaseCLI):
         )
 
     def _add_numpad(self) -> None:
-
         self.parser.add_argument_group(
             "In-Game Controls, Numpad",
             self.dedent("""
@@ -326,7 +322,6 @@ class Tf2monCLI(BaseCLI):
         )
 
     def _add_duels(self) -> None:
-
         self.parser.add_argument_group(
             "Duels",
             self.dedent("""
@@ -354,7 +349,6 @@ class Tf2monCLI(BaseCLI):
         )
 
     def _add_fkeys_args(self) -> None:
-
         self.parser.add_argument_group(
             "Function Keys",
             "These function keys are available in-game and in the monitor:\n\n"
@@ -362,7 +356,6 @@ class Tf2monCLI(BaseCLI):
         )
 
     def _add_operate(self) -> None:
-
         self.parser.add_argument_group(
             "Where to Operate",
             self.dedent("""
@@ -385,7 +378,6 @@ class Tf2monCLI(BaseCLI):
         )
 
     def _add_terminal(self) -> None:
-
         self.parser.add_argument_group(
             "Terminal Size",
             self.dedent("""
@@ -413,7 +405,6 @@ class Tf2monCLI(BaseCLI):
         )
 
     def _add_scoreboard(self) -> None:
-
         self.parser.add_argument_group(
             "Scoreboard",
             self.dedent("""

@@ -4,7 +4,6 @@
 .coverage
 .junk/
 .pdm-python
-.pytest_cache/
 .tf2
 .venv/
 __pycache__/

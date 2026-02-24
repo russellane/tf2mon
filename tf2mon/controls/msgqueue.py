@@ -7,8 +7,6 @@ from tf2mon.msgqueue import MsgQueue
 class MsgQueueControl(Control):
     """MsgQueue control."""
 
-    # pylint: disable=too-many-instance-attributes
-
     def __init__(self) -> None:
         """Initialize control."""
 

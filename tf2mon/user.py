@@ -32,7 +32,6 @@ class Team(Enum):
 class UserStats:
     """Snapshot of stats at some point in time."""
 
-    # pylint: disable=too-many-instance-attributes
     user: User | None
     last_killer: User | None
     last_victim: User | None
@@ -62,8 +61,6 @@ class Kill:
 class User:
     """A user of the game."""
 
-    # pylint: disable=too-many-instance-attributes
-
     _re_cheater_chats = re.compile(
         "|".join(
             [
@@ -86,7 +83,6 @@ class User:
             # self.username = self.username.replace("\u0e31", "?")
             logger.warning(f"'\u0e31' in {self.username!r}")
 
-        #
         self.username_upper = username.upper()
         self.userid = 0  # from status command
         self.steamid = None  # from status and tf_lobby_debug commands
@@ -108,7 +104,6 @@ class User:
         self.selected = False
         self.perk = ""
 
-        #
         self.opponents: dict[UserKey, User] = {}
         self.victims: dict[UserKey, User] = {}
         self.killers: dict[UserKey, User] = {}
@@ -131,7 +126,6 @@ class User:
         # list of non-kill actions performed, like capture/defend.
         self.actions: list[str] = []
 
-        #
         self.steamplayer: SteamPlayer | None = None
         self.age = 0
         self.player: Player | None = None
@@ -190,9 +184,8 @@ class User:
         if not tf2mon.ShowKDControl.value:
             return self._clean_username
 
-        # pylint: disable=consider-using-f-string
-
-        if self.ndeaths < 2:
+        # PLR2004: 2 deaths is the minimum to compute a meaningful K/D ratio.
+        if self.ndeaths < 2:  # noqa: PLR2004
             return "{!r} ({}/{})".format(self._clean_username, self.nkills, self.ndeaths)
 
         return "{!r} ({}/{}={:.1f})".format(
@@ -207,7 +200,6 @@ class User:
         return f"{nkills:2} and {ndeaths:2}" if formatted else f"{nkills} and {ndeaths}"
 
     def __repr__(self) -> str:
-
         team = f"{self.team.name}:" if self.team else ""
         return f"{team}{self.userid}={self.username!r}"
 

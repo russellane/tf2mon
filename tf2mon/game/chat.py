@@ -11,7 +11,6 @@ from tf2mon.user import UserKey
 
 
 class GameChatEvent(GameEvent):
-
     # 'Bob :  hello'
     # '*DEAD* Bob :  hello'
     # '*DEAD*(TEAM) Bob :  hello'
@@ -21,7 +20,6 @@ class GameChatEvent(GameEvent):
     )
 
     def handler(self, match: Match[str]) -> None:
-
         _dead, teamflag, username, msg = match.groups()
 
         user = tf2mon.users[UserKey(username)]

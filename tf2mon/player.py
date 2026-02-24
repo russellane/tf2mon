@@ -15,8 +15,6 @@ from tf2mon.database import Database, DatabaseTable
 class Player(DatabaseTable):
     """A `Player`."""
 
-    # pylint: disable=too-many-instance-attributes
-
     __tablename__ = "players"
 
     # database columns
@@ -75,7 +73,8 @@ class Player(DatabaseTable):
         assert db
 
         db.execute(
-            f"create table if not exists {cls.__tablename__}" """(
+            f"create table if not exists {cls.__tablename__}"
+            """(
                 steamid integer primary key,
                 bot text,
                 friends text,
@@ -179,11 +178,10 @@ class Player(DatabaseTable):
 
         return time.strftime("%FT%T", time.localtime(seconds))
 
+    # Too many returns; property checks each player classification in priority order.
     @property
-    def display_level(self) -> str:
+    def display_level(self) -> str:  # noqa: PLR0911
         """Return logging level for displaying this player."""
-
-        # pylint: disable=too-many-return-statements
 
         # Ordered.
         if self.racist or self._racist:

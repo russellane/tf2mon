@@ -12,5 +12,4 @@ from tf2mon.steamplayer import SteamPlayer
 
 @pytest.fixture(scope="session")
 def session():
-
     return Database(Path(".cache/tf2mon.db"), [Player, SteamPlayer])

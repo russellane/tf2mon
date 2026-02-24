@@ -9,14 +9,12 @@ from tf2mon.user import Team
 
 
 class GameLobbyEvent(GameEvent):
-
     # tf_lobby_debug
     # "Member[22] [U:1:99999999]  team = TF_GC_TEAM_INVADERS  type = MATCH_PLAYER"
 
     pattern = r"\s*(?:Member|Pending)\[\d+\] (?P<steamid>\S+)\s+team = (?P<teamname>\w+)"
 
     def handler(self, match: Match[str]) -> None:
-
         # this will not be called for games on local server with bots
         # or community servers; only on valve matchmaking servers.
 
@@ -41,5 +39,4 @@ class GameLobbyEvent(GameEvent):
         else:
             logger.log("ADDLOBBY", f"{team} {steamid.id}")
 
-        #
         tf2mon.users.teams_by_steamid[steamid] = team

@@ -52,7 +52,8 @@ class FKey:
     longname: str  # for `--help`.
     pkey: PKey  # physical key
 
-    def __init__(self, keyspec: str):
+    # Too many branches; parses keyspec with modifier prefix detection and alias expansion.
+    def __init__(self, keyspec: str):  # noqa: PLR0912
         """Init `FKey` from `keyspec`.
 
         Keyname in TF2 terms, with optional modifier "shift+" or "ctrl+" (not both).
@@ -70,8 +71,6 @@ class FKey:
         >>> FKey("shift+A").__dict__ != FKey("A").__dict__
         True
         """
-
-        # pylint: disable=too-many-branches
 
         if not keyspec:
             raise ValueError("keyspec", keyspec)
@@ -157,12 +156,10 @@ class FKey:
             if self.pkey.ctrl:
                 raise ValueError("duplicate keyspec", self.keyspec)
             self.pkey.ctrl = payload
-        #
         elif self.is_shift:
             if self.pkey.shift:
                 raise ValueError("duplicate keyspec", self.keyspec)
             self.pkey.shift = payload
-        #
         else:
             if self.pkey.base:
                 raise ValueError("duplicate keyspec", self.keyspec)

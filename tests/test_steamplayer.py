@@ -2,8 +2,6 @@ import pytest
 
 from tf2mon.steamplayer import SteamPlayer
 
-# pylint: disable=unused-argument
-
 VALUEHOLDERS = "values(?,?,?,?,?,?,?,?,?,?)"
 
 

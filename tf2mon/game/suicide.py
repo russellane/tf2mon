@@ -8,11 +8,9 @@ from tf2mon.user import UserKey
 
 
 class GameSuicideEvent(GameEvent):
-
     pattern = "(?P<username>.*) suicided.$"
 
     def handler(self, match: Match[str]) -> None:
-
         (username,) = match.groups()
 
         user = tf2mon.users[UserKey(username)]

@@ -92,16 +92,13 @@ class Scoreboard:
         self._refresh_team(self.win1, self.color1, team1)
         self._refresh_team(self.win2, self.color2, team2 + unassigned)
 
-    def _refresh_team(
+    # Too many branches; renders team scoreboard with column headers and per-user formatting.
+    def _refresh_team(  # noqa: PLR0912
         self,
         win: curses.window,
         color: int,
         team: list[User],
     ) -> None:
-
-        # pylint: disable=too-many-branches
-        # pylint: disable=too-many-locals
-
         ncols = win.getmaxyx()[1]
         win.erase()
 
@@ -197,9 +194,10 @@ class Scoreboard:
         user.selected = True
         tf2mon.ui.update_display()
 
-        if mouse.nclicks == 2:
+        # PLR2004: 2/3 click counts map to specific kick actions by convention.
+        if mouse.nclicks == 2:  # noqa: PLR2004
             user.kick(Player.CHEATER)
-        elif mouse.nclicks == 3:
+        elif mouse.nclicks == 3:  # noqa: PLR2004
             user.kick(Player.RACIST)
 
         return True  # handled

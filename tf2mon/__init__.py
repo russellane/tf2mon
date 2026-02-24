@@ -155,7 +155,7 @@ def debugger() -> None:
 
     if conlog.is_eof or SingleStepControl.is_stepping:
         curses.reset_shell_mode()
-        breakpoint()  # pylint: disable=forgotten-debug-statement
+        breakpoint()
         curses.reset_prog_mode()
 
 

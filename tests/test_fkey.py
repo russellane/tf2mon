@@ -30,10 +30,9 @@ icecream.ic.configureOutput(prefix="=====>\n", includeContext=True)
     ],
 )
 def test_fkey_value_error(keyspec: str) -> None:
-
     with pytest.raises(ValueError, match="keyspec") as err:
         FKey(keyspec)
-    assert err.type == ValueError
+    assert err.type is ValueError
 
 
 @pytest.mark.parametrize(
@@ -52,7 +51,6 @@ def test_fkey_value_error(keyspec: str) -> None:
     ],
 )
 def test_fkey_letters(keyspec: str, key: int, is_shift: bool, is_ctrl: bool) -> None:
-
     keystroke = FKey(keyspec)
     ic(keystroke)
     assert keystroke.key == key
@@ -61,17 +59,14 @@ def test_fkey_letters(keyspec: str, key: int, is_shift: bool, is_ctrl: bool) -> 
 
 
 def test_fkey_a_A() -> None:
-
     assert FKey("a").__dict__ == FKey("A").__dict__
 
 
 def test_fkey_f1_F1() -> None:
-
     assert FKey("f1").__dict__ == FKey("F1").__dict__
 
 
 def test_fkey_f1() -> None:
-
     keystroke = FKey("f1")
     ic(keystroke)
     assert not keystroke.is_shift
@@ -79,7 +74,6 @@ def test_fkey_f1() -> None:
 
 
 def test_fkey_f12() -> None:
-
     keystroke = FKey("f12")
     ic(keystroke)
     assert not keystroke.is_shift
@@ -87,7 +81,6 @@ def test_fkey_f12() -> None:
 
 
 def test_fkey_f13() -> None:
-
     keystroke = FKey("f13")
     ic(keystroke)
     assert not keystroke.is_shift
@@ -95,7 +88,6 @@ def test_fkey_f13() -> None:
 
 
 def test_fkey_shift_f1() -> None:
-
     keystroke = FKey("shift+f1")
     ic(keystroke)
     assert keystroke.is_shift
@@ -103,7 +95,6 @@ def test_fkey_shift_f1() -> None:
 
 
 def test_fkey_shift_f12() -> None:
-
     keystroke = FKey("shift+f12")
     ic(keystroke)
     assert keystroke.is_shift
@@ -111,7 +102,6 @@ def test_fkey_shift_f12() -> None:
 
 
 def test_fkey_shift_f13() -> None:
-
     keystroke = FKey("shift+f13")
     ic(keystroke)
     assert keystroke.is_shift
@@ -119,7 +109,6 @@ def test_fkey_shift_f13() -> None:
 
 
 def test_fkey_ctrl_f1() -> None:
-
     keystroke = FKey("ctrl+f1")
     ic(keystroke)
     assert not keystroke.is_shift
@@ -127,7 +116,6 @@ def test_fkey_ctrl_f1() -> None:
 
 
 def test_fkey_ctrl_f12() -> None:
-
     keystroke = FKey("ctrl+f12")
     ic(keystroke)
     assert not keystroke.is_shift
@@ -135,7 +123,6 @@ def test_fkey_ctrl_f12() -> None:
 
 
 def test_fkey_ctrl_f13() -> None:
-
     keystroke = FKey("ctrl+f13")
     ic(keystroke)
     assert not keystroke.is_shift

@@ -28,7 +28,6 @@ def test_list_con_logfile() -> None:
     ],
 )
 def test_config_files(config_file: str, expected: list[str]) -> None:
-
     print()
     try:
         main(["-v", "--config", config_file, "--print-config"])

@@ -111,13 +111,13 @@ class Users:
     )
 
     def _is_cheater_name(self, user: User) -> bool:
-
         if self.re_cheater_names.search(user.username):
             return True
 
         for _user in [x for x in self.active_users() if x.steamplayer and not x.player]:
             ratio = fuzz.ratio(user.username, _user.username)
-            if ratio > 80:
+            # PLR2004: 80 is the fuzz ratio threshold for detecting name-stealing cheaters.
+            if ratio > 80:  # noqa: PLR2004
                 logger.log("FUZZ", f"ratio {ratio} `{user.username}` vs `{_user.username}`")
                 # Careful, this might be a legitimate name-change, not a cheating name-stealer.
                 _user.cloner = user  # point the original user to the clone

@@ -4,7 +4,7 @@ VENV ?=		.venv
 
 build::		venv tags lint test doc dist
 
-lint::		black isort flake8
+lint::		ruff
 test::		pytest
 doc::		;
 dist::
@@ -21,22 +21,16 @@ $(VENV):
 tags::
 		ctags -R $(PROJECT) tests $(VENV)
 
-black::
-		pdm run black -q $(PROJECT) tests
-
-isort::
-		pdm run isort $(PROJECT) tests
-
-flake8::
-		pdm run flake8 $(PROJECT) tests
+ruff::
+		pdm run ruff format $(PROJECT) tests
+		pdm run ruff check --fix $(PROJECT) tests
 
 mypy::
 		pdm run mypy $(PROJECT) tests
 
-COV_FAIL_UNDER = 0
+# coverage fail_under is set in pyproject.toml [tool.coverage.report]
 PYTEST =	pdm run pytest $(PYTESTOPTS) \
 		--cov=$(PROJECT) --cov-report=html \
-		--cov-fail-under $(COV_FAIL_UNDER) \
 		--exitfirst --showlocals --verbose
 
 pytest::

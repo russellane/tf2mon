@@ -12,8 +12,6 @@ logging.basicConfig(force=True, level=logging.DEBUG)
 
 @pytest.fixture(name="api", scope="session")
 def api_(session: str) -> SteamWebAPI:
-    # pylint: disable=unused-argument
-
     path = Path("~/.tf2mon.toml").expanduser()
     config = tomli.loads(path.read_text(encoding="utf-8"))
     webapi_key = None

@@ -22,8 +22,6 @@ class FullLayout(BaseLayout):
     +-----------------------+------------------+
     """
 
-    # pylint: disable=too-many-instance-attributes
-
     def __post_init__(self, grid: libcurses.Grid, max_users: int) -> None:
         """Build windows."""
 
@@ -69,7 +67,6 @@ class FullLayout(BaseLayout):
             bottom=grid,
         )
 
-        #
         self.chatwin_blu = grid.box(
             "chatwin_blu",
             nlines=0,
@@ -88,7 +85,6 @@ class FullLayout(BaseLayout):
             bottom=self.scorewin_red,
         )
 
-        #
         self.kicks_win = grid.box(
             "kicks_win",
             nlines=0,
